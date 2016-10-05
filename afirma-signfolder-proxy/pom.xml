@@ -6,7 +6,7 @@
 	<packaging>war</packaging>
 	<artifactId>afirma-signfolder-proxy</artifactId>
 	<name>afirma-signfolder-proxy</name>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0.2</version>
 
 	<properties>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -37,7 +37,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/ctt-gob-es/portafirmas-proxy.git</connection>
 		<url>https://github.com/ctt-gob-es/portafirmas-proxy.git</url>
-	  <tag>afirma-signfolder-proxy_1.0.1</tag>
+	  <tag>afirma-signfolder-proxy_1.0.2</tag>
   </scm>
 	
 	<distributionManagement>
