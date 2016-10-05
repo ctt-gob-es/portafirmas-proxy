@@ -3,6 +3,7 @@ package es.gob.afirma.signfolder.client;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
@@ -10,9 +11,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileRequestFilterList complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="mobileRequestFilterList">
  *   &lt;complexContent>
@@ -24,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileRequestFilterList", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -37,29 +38,29 @@ public class MobileRequestFilterList {
 
     /**
      * Gets the value of the requestFilter property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the requestFilter property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getRequestFilter().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link MobileRequestFilter }
-     * 
-     * 
+     * @return Listado de filtros para aplicar a las solicitudes de peticiones.
+     *
      */
     public List<MobileRequestFilter> getRequestFilter() {
-        if (requestFilter == null) {
-            requestFilter = new ArrayList<MobileRequestFilter>();
+        if (this.requestFilter == null) {
+            this.requestFilter = new ArrayList<MobileRequestFilter>();
         }
         return this.requestFilter;
     }

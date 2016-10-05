@@ -11,49 +11,49 @@ import javax.xml.namespace.QName;
 
 
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the es.gob.afirma.signfolder.client package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
+ * generated in the es.gob.afirma.signfolder.client package.
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
+ *
  */
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _MobileRequestImportanceLevel_QNAME = new QName("", "importanceLevel");
-    private final static QName _MobileRequestRef_QNAME = new QName("", "ref");
-    private final static QName _MobileRequestApplication_QNAME = new QName("", "application");
-    private final static QName _MobileRequestText_QNAME = new QName("", "text");
-    private final static QName _MobileRequestForward_QNAME = new QName("", "forward");
-    private final static QName _MobileRequestSubject_QNAME = new QName("", "subject");
-    private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry");
-    private final static QName _MobileRequestWorkflow_QNAME = new QName("", "workflow");
-    private final static QName _MobileRequestIdentifier_QNAME = new QName("", "identifier");
-    private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
-    private final static QName _MobileSignLineType_QNAME = new QName("", "type");
-    private final static QName _MobileDocumentSignatureType_QNAME = new QName("", "signatureType");
-    private final static QName _MobileDocumentData_QNAME = new QName("", "data");
-    private final static QName _MobileDocumentSignAlgorithm_QNAME = new QName("", "signAlgorithm");
-    private final static QName _MobileDocumentSize_QNAME = new QName("", "size");
-    private final static QName _MobileDocumentSignatureParameters_QNAME = new QName("", "signatureParameters");
+    private final static QName _MobileRequestImportanceLevel_QNAME = new QName("", "importanceLevel"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestRef_QNAME = new QName("", "ref"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestApplication_QNAME = new QName("", "application"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestText_QNAME = new QName("", "text"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestForward_QNAME = new QName("", "forward"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestSubject_QNAME = new QName("", "subject"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestWorkflow_QNAME = new QName("", "workflow"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileRequestIdentifier_QNAME = new QName("", "identifier"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileSignLineType_QNAME = new QName("", "type"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileDocumentSignatureType_QNAME = new QName("", "signatureType"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileDocumentData_QNAME = new QName("", "data"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileDocumentSignAlgorithm_QNAME = new QName("", "signAlgorithm"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileDocumentSize_QNAME = new QName("", "size"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileDocumentSignatureParameters_QNAME = new QName("", "signatureParameters"); //$NON-NLS-1$ //$NON-NLS-2$
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: es.gob.afirma.signfolder.client
-     * 
+     *
      */
     public ObjectFactory() {
     }
 
     /**
      * Create an instance of {@link QueryApplicationsMobileResponse }
-     * 
+     * @return Resultado.
      */
     public QueryApplicationsMobileResponse createQueryApplicationsMobileResponse() {
         return new QueryApplicationsMobileResponse();
@@ -61,7 +61,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ReportPreview }
-     * 
+     * @return Resultado.
      */
     public ReportPreview createReportPreview() {
         return new ReportPreview();
@@ -69,7 +69,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileError }
-     * 
+     * @return Resultado.
      */
     public MobileError createMobileError() {
         return new MobileError();
@@ -77,7 +77,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileRequestList }
-     * 
+     * @return Resultado.
+     *
      */
     public MobileRequestList createMobileRequestList() {
         return new MobileRequestList();
@@ -85,7 +86,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link SignPreview }
-     * 
+     * @return Resultado.
+     *
      */
     public SignPreview createSignPreview() {
         return new SignPreview();
@@ -93,7 +95,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link SaveSign }
-     * 
+     * @return Resultado.
+     *
      */
     public SaveSign createSaveSign() {
         return new SaveSign();
@@ -101,7 +104,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileRequestFilter }
-     * 
+     * @return Resultado.
      */
     public MobileRequestFilter createMobileRequestFilter() {
         return new MobileRequestFilter();
@@ -109,7 +112,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link DocumentPreview }
-     * 
+     * @return Resultado.
      */
     public DocumentPreview createDocumentPreview() {
         return new DocumentPreview();
@@ -117,7 +120,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link QueryRequest }
-     * 
+     * @return Resultado.
      */
     public QueryRequest createQueryRequest() {
         return new QueryRequest();
@@ -125,7 +128,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileRequestFilterList }
-     * 
+     * @return Resultado.
      */
     public MobileRequestFilterList createMobileRequestFilterList() {
         return new MobileRequestFilterList();
@@ -133,7 +136,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileSignLine }
-     * 
+     * @return Resultado.
      */
     public MobileSignLine createMobileSignLine() {
         return new MobileSignLine();
@@ -141,7 +144,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link GetDocumentsToSign }
-     * 
+     * @return Resultado.
      */
     public GetDocumentsToSign createGetDocumentsToSign() {
         return new GetDocumentsToSign();
@@ -149,7 +152,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ApproveRequest }
-     * 
+     * @return Resultado.
      */
     public ApproveRequest createApproveRequest() {
         return new ApproveRequest();
@@ -157,7 +160,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link SaveSignResponse }
-     * 
+     * @return Resultado.
      */
     public SaveSignResponse createSaveSignResponse() {
         return new SaveSignResponse();
@@ -165,7 +168,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ReportPreviewResponse }
-     * 
+     * @return Resultado.
      */
     public ReportPreviewResponse createReportPreviewResponse() {
         return new ReportPreviewResponse();
@@ -173,7 +176,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileSignLineList }
-     * 
+     * @return Resultado.
      */
     public MobileSignLineList createMobileSignLineList() {
         return new MobileSignLineList();
@@ -181,7 +184,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileApplicationList }
-     * 
+     * @return Resultado.
      */
     public MobileApplicationList createMobileApplicationList() {
         return new MobileApplicationList();
@@ -189,7 +192,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link SignPreviewResponse }
-     * 
+     * @return Resultado.
      */
     public SignPreviewResponse createSignPreviewResponse() {
         return new SignPreviewResponse();
@@ -197,7 +200,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileRequest }
-     * 
+     * @return Resultado.
      */
     public MobileRequest createMobileRequest() {
         return new MobileRequest();
@@ -205,7 +208,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileDocument }
-     * 
+     * @return Resultado.
      */
     public MobileDocument createMobileDocument() {
         return new MobileDocument();
@@ -213,7 +216,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RejectRequestResponse }
-     * 
+     * @return Resultado.
      */
     public RejectRequestResponse createRejectRequestResponse() {
         return new RejectRequestResponse();
@@ -221,7 +224,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileStringList }
-     * 
+     * @return Resultado.
      */
     public MobileStringList createMobileStringList() {
         return new MobileStringList();
@@ -229,7 +232,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileApplication }
-     * 
+     * @return Resultado.
+     *
      */
     public MobileApplication createMobileApplication() {
         return new MobileApplication();
@@ -237,7 +241,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link QueryRequestList }
-     * 
+     * @return Resultado.
+     *
      */
     public QueryRequestList createQueryRequestList() {
         return new QueryRequestList();
@@ -245,7 +250,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ApproveRequestResponse }
-     * 
+     * @return Resultado.
+     *
      */
     public ApproveRequestResponse createApproveRequestResponse() {
         return new ApproveRequestResponse();
@@ -253,7 +259,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link GetDocumentsToSignResponse }
-     * 
+     * @return Resultado.
+     *
      */
     public GetDocumentsToSignResponse createGetDocumentsToSignResponse() {
         return new GetDocumentsToSignResponse();
@@ -261,7 +268,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link QueryRequestResponse }
-     * 
+     * @return Resultado.
+     *
      */
     public QueryRequestResponse createQueryRequestResponse() {
         return new QueryRequestResponse();
@@ -269,7 +277,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link QueryRequestListResponse }
-     * 
+     * @return Resultado.
+     *
      */
     public QueryRequestListResponse createQueryRequestListResponse() {
         return new QueryRequestListResponse();
@@ -277,7 +286,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileDocumentList }
-     * 
+     * @return Resultado.
+     *
      */
     public MobileDocumentList createMobileDocumentList() {
         return new MobileDocumentList();
@@ -285,7 +295,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileDocSignInfo }
-     * 
+     * @return Resultado.
+     *
      */
     public MobileDocSignInfo createMobileDocSignInfo() {
         return new MobileDocSignInfo();
@@ -293,7 +304,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link DocumentPreviewResponse }
-     * 
+     * @return Resultado.
      */
     public DocumentPreviewResponse createDocumentPreviewResponse() {
         return new DocumentPreviewResponse();
@@ -301,7 +312,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MobileDocSignInfoList }
-     * 
+     * @return Resultado.
      */
     public MobileDocSignInfoList createMobileDocSignInfoList() {
         return new MobileDocSignInfoList();
@@ -309,7 +320,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RejectRequest }
-     * 
+     * @return Resultado.
      */
     public RejectRequest createRejectRequest() {
         return new RejectRequest();
@@ -317,7 +328,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link QueryApplicationsMobile }
-     * 
+     * @return Resultado.
      */
     public QueryApplicationsMobile createQueryApplicationsMobile() {
         return new QueryApplicationsMobile();
@@ -325,7 +336,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "importanceLevel", scope = MobileRequest.class)
     public JAXBElement<String> createMobileRequestImportanceLevel(String value) {
@@ -334,7 +345,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "ref", scope = MobileRequest.class)
     public JAXBElement<String> createMobileRequestRef(String value) {
@@ -343,7 +354,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "application", scope = MobileRequest.class)
     public JAXBElement<String> createMobileRequestApplication(String value) {
@@ -352,7 +363,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "text", scope = MobileRequest.class)
     public JAXBElement<String> createMobileRequestText(String value) {
@@ -361,7 +372,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "forward", scope = MobileRequest.class)
     public JAXBElement<Boolean> createMobileRequestForward(Boolean value) {
@@ -370,7 +381,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "subject", scope = MobileRequest.class)
     public JAXBElement<String> createMobileRequestSubject(String value) {
@@ -379,7 +390,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "fentry", scope = MobileRequest.class)
     public JAXBElement<XMLGregorianCalendar> createMobileRequestFentry(XMLGregorianCalendar value) {
@@ -388,7 +399,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "workflow", scope = MobileRequest.class)
     public JAXBElement<Boolean> createMobileRequestWorkflow(Boolean value) {
@@ -397,7 +408,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "identifier", scope = MobileRequest.class)
     public JAXBElement<String> createMobileRequestIdentifier(String value) {
@@ -406,7 +417,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
     public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
@@ -415,7 +426,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "type", scope = MobileSignLine.class)
     public JAXBElement<String> createMobileSignLineType(String value) {
@@ -424,7 +435,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link MobileSignFormat }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "signatureType", scope = MobileDocument.class)
     public JAXBElement<MobileSignFormat> createMobileDocumentSignatureType(MobileSignFormat value) {
@@ -433,7 +444,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link DataHandler }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "data", scope = MobileDocument.class)
     @XmlMimeType("application/octet-stream")
@@ -443,7 +454,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "signAlgorithm", scope = MobileDocument.class)
     public JAXBElement<String> createMobileDocumentSignAlgorithm(String value) {
@@ -452,7 +463,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link Integer }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "size", scope = MobileDocument.class)
     public JAXBElement<Integer> createMobileDocumentSize(Integer value) {
@@ -461,7 +472,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * @return Resultado.
      */
     @XmlElementDecl(namespace = "", name = "signatureParameters", scope = MobileDocument.class)
     public JAXBElement<String> createMobileDocumentSignatureParameters(String value) {

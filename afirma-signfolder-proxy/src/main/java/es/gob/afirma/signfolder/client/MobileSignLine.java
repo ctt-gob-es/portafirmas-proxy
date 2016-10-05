@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileSignLine complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="mobileSignLine">
  *   &lt;complexContent>
@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileSignLine", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -42,50 +42,50 @@ public class MobileSignLine {
 
     /**
      * Gets the value of the mobileSignerList property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}
-     *     
+     *
      */
     public JAXBElement<MobileStringList> getMobileSignerList() {
-        return mobileSignerList;
+        return this.mobileSignerList;
     }
 
     /**
      * Sets the value of the mobileSignerList property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}
-     *     
+     *
      */
     public void setMobileSignerList(JAXBElement<MobileStringList> value) {
-        this.mobileSignerList = ((JAXBElement<MobileStringList> ) value);
+        this.mobileSignerList = value;
     }
 
     /**
      * Gets the value of the type property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *     
+     *
      */
     public JAXBElement<String> getType() {
-        return type;
+        return this.type;
     }
 
     /**
      * Sets the value of the type property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *     
+     *
      */
     public void setType(JAXBElement<String> value) {
-        this.type = ((JAXBElement<String> ) value);
+        this.type = value;
     }
 
 }

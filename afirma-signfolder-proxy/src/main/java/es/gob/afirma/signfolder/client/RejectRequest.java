@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -26,8 +26,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -47,45 +47,45 @@ public class RejectRequest {
 
     /**
      * Gets the value of the certificate property.
-     * 
+     *
      * @return
      *     possible object is
      *     byte[]
      */
     public byte[] getCertificate() {
-        return certificate;
+        return this.certificate;
     }
 
     /**
      * Sets the value of the certificate property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     byte[]
      */
     public void setCertificate(byte[] value) {
-        this.certificate = ((byte[]) value);
+        this.certificate = value;
     }
 
     /**
      * Gets the value of the requestId property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getRequestId() {
-        return requestId;
+        return this.requestId;
     }
 
     /**
      * Sets the value of the requestId property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setRequestId(String value) {
         this.requestId = value;
@@ -93,23 +93,23 @@ public class RejectRequest {
 
     /**
      * Gets the value of the textRejection property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getTextRejection() {
-        return textRejection;
+        return this.textRejection;
     }
 
     /**
      * Sets the value of the textRejection property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setTextRejection(String value) {
         this.textRejection = value;
