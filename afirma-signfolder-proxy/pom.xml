@@ -6,7 +6,7 @@
 	<packaging>war</packaging>
 	<artifactId>afirma-signfolder-proxy</artifactId>
 	<name>afirma-signfolder-proxy</name>
-	<version>1.0.1</version>
+	<version>1.0.2-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
