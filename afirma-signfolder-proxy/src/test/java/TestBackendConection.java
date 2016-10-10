@@ -31,6 +31,7 @@ import es.gob.afirma.signfolder.client.MobileService;
 import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.client.MobileSignFormat;
 import es.gob.afirma.signfolder.client.MobileStringList;
+import es.gob.afirma.signfolder.server.proxy.ConfigManager;
 
 
 public class TestBackendConection {
@@ -46,7 +47,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado
@@ -102,7 +103,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado
@@ -152,7 +153,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado
@@ -196,7 +197,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado
@@ -244,7 +245,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado
@@ -266,7 +267,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado
@@ -293,7 +294,7 @@ public class TestBackendConection {
 
 		disableSslChecks();
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Cargamos el certificado

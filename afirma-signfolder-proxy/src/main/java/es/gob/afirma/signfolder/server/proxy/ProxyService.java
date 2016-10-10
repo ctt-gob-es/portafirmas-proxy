@@ -10,7 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,12 +55,6 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String DEFAULT_CHARSET = "utf-8";  //$NON-NLS-1$
 
-	private static final String CONFIG_FILE = "config.properties"; //$NON-NLS-1$
-
-	private static final String KEY_SIGNATURE_SERVICE = "triphase.server.url"; //$NON-NLS-1$
-
-	private static final String KEY_FORCED_EXTRAPARAMS = "forced.extraparams"; //$NON-NLS-1$
-
 	private static final String SIGNATURE_SERVICE_URL = "TRIPHASE_SERVER_URL"; //$NON-NLS-1$
 
 	private static final String PARAMETER_NAME_OPERATION = "op"; //$NON-NLS-1$
@@ -80,18 +73,12 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String CRYPTO_PARAM_NEED_DATA = "NEED_DATA"; //$NON-NLS-1$
 
-	private static final String JAVA_HTTP_PORT_VARIABLE = "tomcat.httpport"; //$NON-NLS-1$
-	private static final String TOMCAT_HTTP_PORT_VARIABLE = "${" + JAVA_HTTP_PORT_VARIABLE + "}"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	private static final String DATE_TIME_FORMAT = "dd/MM/yyyy  HH:mm"; //$NON-NLS-1$
 
 	static final Logger LOGGER;
 
 	private final DocumentBuilder documentBuilder;
-
-	private final Properties config;
-
-	private String signatureServiceUrl = null;
 
 	static {
 //		final InputStream is = ProxyService.class.getResourceAsStream("/log.properties"); //$NON-NLS-1$
@@ -117,51 +104,20 @@ public final class ProxyService extends HttpServlet {
 	public ProxyService() throws ParserConfigurationException {
 		this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 
-		LOGGER.info("Cargamos el fichero de configuracion del Proxy: " + CONFIG_FILE); //$NON-NLS-1$
-
-		final InputStream configIs = ProxyService.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
-		if (configIs == null) {
-			throw new RuntimeException("No se encuentra el fichero de configuracion del servicio: " + CONFIG_FILE); //$NON-NLS-1$
-		}
-
-		try {
-			this.config = new Properties();
-			this.config.load(configIs);
-		} catch (final Exception e) {
-			try { configIs.close(); } catch (final Exception ex) { /* No hacemos nada */ }
-			throw new RuntimeException("No se ha podido cargar el fichero de configuracion del servicio: " + CONFIG_FILE); //$NON-NLS-1$
-		}
-
-		try {
-			configIs.close();
-		} catch (final Exception e) {
-			// No hacemos nada
-		}
-
-		LOGGER.info("Las propiedades cargadas del fichero de configuracion son:"); //$NON-NLS-1$
-		for (final String key : this.config.keySet().toArray(new String[this.config.size()])) {
-			LOGGER.info(key + ": " + this.config.getProperty(key)); //$NON-NLS-1$
-		}
-		LOGGER.info("---"); //$NON-NLS-1$
-
-		// Expandimos la propiedad
-
+		LOGGER.info("Cargamos el fichero de configuracion del Proxy"); //$NON-NLS-1$
+		ConfigManager.checkInitialized();
 
 		// Si esta configurada la variable SIGNATURE_SERVICE_URL en el sistema, se utiliza en lugar de propiedad
 		// interna de la aplicacion
 		try {
 			final String systemSignatureServiceUrl = System.getProperty(SIGNATURE_SERVICE_URL);
 			if (systemSignatureServiceUrl != null) {
-				this.config.setProperty(KEY_SIGNATURE_SERVICE, systemSignatureServiceUrl);
+				ConfigManager.setTriphaseServiceUrl(systemSignatureServiceUrl);
 				LOGGER.info("Se sustituye la URL del servicio de firma por la configurada en la propiedad del sistema " + SIGNATURE_SERVICE_URL + " con el valor: " + systemSignatureServiceUrl);	 //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
 		catch (final Exception e) {
 			LOGGER.warning("No se ha podido recuperar la URL del servicio de firma configurado en la variable " + SIGNATURE_SERVICE_URL + " del sistema: " + e);	 //$NON-NLS-1$ //$NON-NLS-2$
-		}
-
-		if (!this.config.containsKey(KEY_SIGNATURE_SERVICE)) {
-			throw new RuntimeException("No se ha configurado la clave con la URL del servidor de firma: " + KEY_SIGNATURE_SERVICE); //$NON-NLS-1$
 		}
 	}
 
@@ -329,7 +285,7 @@ public final class ProxyService extends HttpServlet {
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc);
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		LOGGER.info("Procesamos la peticiones que se van a prefirmar"); //$NON-NLS-1$
@@ -394,8 +350,8 @@ public final class ProxyService extends HttpServlet {
 					TriSigner.doPreSign(
 							docRequest,
 							triRequests.getCertificate(),
-							getSignatureServiceUrl(this.config),
-							getForcedExtraParams(this.config));
+							ConfigManager.getTriphaseServiceUrl(),
+							ConfigManager.getForcedExtraParams());
 				}
 			} catch (final Exception mex) {
 				LOGGER.log(Level.SEVERE, "Error en la prefirma de la peticion " + //$NON-NLS-1$
@@ -424,7 +380,7 @@ public final class ProxyService extends HttpServlet {
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc);
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		LOGGER.info("Procesamos la peticiones que se van a postfirmar"); //$NON-NLS-1$
@@ -494,8 +450,8 @@ public final class ProxyService extends HttpServlet {
 					TriSigner.doPostSign(
 							docRequest,
 							triRequests.getCertificate(),
-							getSignatureServiceUrl(this.config),
-							getForcedExtraParams(this.config));
+							ConfigManager.getTriphaseServiceUrl(),
+							ConfigManager.getForcedExtraParams());
 				}
 			} catch (final Exception ex) {
 				LOGGER.log(Level.WARNING, "Ocurrio un error al postfirmar un documento: " + ex, ex);  //$NON-NLS-1$
@@ -544,39 +500,6 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Obtiene la URL del servicio de firma, traduciendo las variables utilizadas para
-	 * su configuraci&oacute;n si es necesario.
-	 * @param conf Configuraci&oacute;n del servicio.
-	 * @return URL del servicio trif&aacute;asico de firma.
-	 */
-	private String getSignatureServiceUrl(final Properties conf) {
-		if (this.signatureServiceUrl == null) {
-			String url = conf.getProperty(KEY_SIGNATURE_SERVICE);
-			if (url.contains(TOMCAT_HTTP_PORT_VARIABLE)) {
-				url = url.replace(TOMCAT_HTTP_PORT_VARIABLE, System.getProperty(JAVA_HTTP_PORT_VARIABLE));
-			}
-			this.signatureServiceUrl = url;
-		}
-
-		LOGGER.info("URL del servicio de firma trifasica: " + this.signatureServiceUrl); //$NON-NLS-1$
-
-		return this.signatureServiceUrl;
-	}
-
-	/**
-	 * Obtiene el listado de par&aacute;metros extra con el que se deben de configurar
-	 * todas las firmas (adem&aacute;s de los par&aacute;metros que indiquen cada una
-	 * de ellas). Estos par&aacute;etros forzados tienen prioridad sobre los anteriores.
-	 * Cada uno de los parametros tendr&aacute;n la forma "clave=valor" y estar&aacute;n
-	 * separados entre s&iacute; por punto y coma (';').
-	 * @param conf Configuraci&oacute;n del servicio.
-	 * @return Listado de par&aacute;metros.
-	 */
-	private static String getForcedExtraParams(final Properties conf) {
-		return conf.getProperty(KEY_FORCED_EXTRAPARAMS);
-	}
-
-	/**
 	 * Procesa la petici&oacute;n de un listado de peticiones de firma.
 	 * @param xml XML con la solicitud.
 	 * @return XML con la respuesta a la petici&oacute;n.
@@ -606,7 +529,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private static PartialSignRequestsList getRequestsList(final ListRequest listRequest) throws MobileException {
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Listado de formatos de firma soportados
@@ -708,7 +631,7 @@ public final class ProxyService extends HttpServlet {
 
 		LOGGER.info("Se solicita el rechazo de peticiones: " + Integer.toString(rejectRequest.size())); //$NON-NLS-1$
 
-		final MobileService service = new MobileService_Service().getMobileServicePort();
+		final MobileService service = new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort();
 
 		final List<Boolean> rejectionsResults = new ArrayList<Boolean>();
 		for (final String id : rejectRequest) {
@@ -755,7 +678,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private static Detail getRequestDetail(final DetailRequest request) throws MobileException {
 
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		// Solicitud de lista de peticiones
@@ -854,7 +777,7 @@ public final class ProxyService extends HttpServlet {
 	 * @throws IOException Cuando no ha sido posible leer el documento.
 	 */
 	private static DocumentData previewDocument(final PreviewRequest request) throws MobileException, IOException {
-		return buildDocumentData(new MobileService_Service().getMobileServicePort()
+		return buildDocumentData(new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort()
 				.documentPreview(request.getCertEncoded(), request.getDocId()));
 	}
 
@@ -866,7 +789,7 @@ public final class ProxyService extends HttpServlet {
 	 * @throws IOException Cuando no ha sido posible leer el documento.
 	 */
 	private static DocumentData previewSign(final PreviewRequest request) throws MobileException, IOException {
-		return buildDocumentData(new MobileService_Service().getMobileServicePort()
+		return buildDocumentData(new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort()
 				.signPreview(request.getCertEncoded(), request.getDocId()));
 	}
 
@@ -879,7 +802,7 @@ public final class ProxyService extends HttpServlet {
 	 * @throws IOException Cuando no ha sido posible leer el documento.
 	 */
 	private static DocumentData previewSignReport(final PreviewRequest request) throws MobileException, IOException {
-	return buildDocumentData(new MobileService_Service().getMobileServicePort()
+	return buildDocumentData(new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort()
 				.reportPreview(request.getCertEncoded(), request.getDocId()));
 	}
 
@@ -935,7 +858,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private static AppConfiguration loadConfiguration(final ConfigurationRequest request) throws MobileException, IOException {
 
-		final MobileService service = new MobileService_Service().getMobileServicePort();
+		final MobileService service = new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort();
 		final MobileApplicationList appList = service.queryApplicationsMobile(request.getCertEncoded());
 
 		final List<String> appIds = new ArrayList<String>();
@@ -964,7 +887,7 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	private static ApproveRequestList approveRequests(final ApproveRequestList appRequests) {
-		final MobileService_Service mobileService = new MobileService_Service();
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		final MobileService service = mobileService.getMobileServicePort();
 
 		for (final ApproveRequest appReq : appRequests) {

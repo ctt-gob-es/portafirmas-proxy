@@ -1,11 +1,7 @@
 
 package es.gob.afirma.signfolder.client;
 
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
-import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
@@ -24,39 +20,6 @@ import javax.xml.ws.WebServiceFeature;
 public class MobileService_Service
     extends Service
 {
-
-    private final static URL MOBILESERVICE_WSDL_LOCATION;
-    private final static Logger logger = Logger.getLogger(es.gob.afirma.signfolder.client.MobileService_Service.class.getName());
-
-    private static final String CONFIG_FILE = "config.properties"; //$NON-NLS-1$
-    private static final String PROPERTY_WSDL_URL = "signfolder.ws.url"; //$NON-NLS-1$
-
-    static {
-
-    	String wsdlPath = "/MobileService.wsdl"; //$NON-NLS-1$
-    	try {
-			final Properties config = new Properties();
-    		final InputStream configIs = MobileService_Service.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
-			config.load(configIs);
-			configIs.close();
-
-			wsdlPath = config.getProperty(PROPERTY_WSDL_URL);
-		} catch (final Exception e) {
-			throw new RuntimeException("No se ha podido cargar el fichero de configuracion del servicio: " + CONFIG_FILE); //$NON-NLS-1$
-		}
-
-        URL url = null;
-        try {
-            URL baseUrl;
-            baseUrl = es.gob.afirma.signfolder.client.MobileService_Service.class.getResource("."); //$NON-NLS-1$
-            url = new URL(baseUrl, wsdlPath);
-        } catch (final MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: '" + url + "', retrying as a local file"); //$NON-NLS-1$ //$NON-NLS-2$
-            logger.warning(e.getMessage());
-        }
-        MOBILESERVICE_WSDL_LOCATION = url;
-    }
-
     /** Construye el servicio.
      * @param wsdlLocation Localizacion del servlet.
      * @param serviceName Nombre del servicio.
@@ -65,9 +28,10 @@ public class MobileService_Service
         super(wsdlLocation, serviceName);
     }
 
-    /** Contruye el servicio. */
-    public MobileService_Service() {
-        super(MOBILESERVICE_WSDL_LOCATION, new QName("urn:juntadeandalucia:cice:pfirma:mobile:v2.0", "MobileService")); //$NON-NLS-1$ //$NON-NLS-2$
+    /** Contruye el servicio.
+     * @param wsdlLocation URL del WSDL del servicio. */
+    public MobileService_Service(final URL wsdlLocation) {
+    	super(wsdlLocation, new QName("urn:juntadeandalucia:cice:pfirma:mobile:v2.0", "MobileService")); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     /**

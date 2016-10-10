@@ -37,7 +37,6 @@
 	<scm>
 		<connection>scm:git:https://github.com/ctt-gob-es/portafirmas-proxy.git</connection>
 		<url>https://github.com/ctt-gob-es/portafirmas-proxy.git</url>
-	  <tag>afirma-signfolder-proxy_1.0.1</tag>
   </scm>
 	
 	<distributionManagement>
@@ -52,6 +51,7 @@
 	</distributionManagement>
 	
 	<build>
+		<finalName>pfmovil</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
