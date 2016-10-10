@@ -69,7 +69,8 @@
 				<configuration>  
 					<archive>  
 						<addMavenDescriptor>false</addMavenDescriptor> 
-					</archive> 
+					</archive>
+					<packagingExcludes>WEB-INF\classes\pfmovil.properties</packagingExcludes>
 				</configuration>
 			</plugin>
 			<plugin>
