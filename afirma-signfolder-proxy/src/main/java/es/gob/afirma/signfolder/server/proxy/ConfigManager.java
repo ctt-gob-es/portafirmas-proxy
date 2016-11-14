@@ -144,7 +144,13 @@ public class ConfigManager {
 	public static String getTriphaseServiceUrl(){
 		String url = config.getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
 		if (url.contains(TOMCAT_HTTP_PORT_VARIABLE)) {
-			url = url.replace(TOMCAT_HTTP_PORT_VARIABLE, System.getProperty(JAVA_HTTP_PORT_VARIABLE));
+
+			String configuredPort = System.getProperty(JAVA_HTTP_PORT_VARIABLE);
+			if (configuredPort == null) {
+				LOGGER.severe("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
+				throw new RuntimeException("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
+			}
+			url = url.replace(TOMCAT_HTTP_PORT_VARIABLE, configuredPort);
 		}
 		return url;
 	}
