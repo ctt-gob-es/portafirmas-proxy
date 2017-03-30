@@ -238,4 +238,24 @@ public interface MobileService {
         throws MobileException
     ;
 
+    /**
+     * 
+     * @param certificate
+     * @param register
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileSIMUserStatus
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "registerStatus", targetNamespace = "")
+    @RequestWrapper(localName = "registerSIMUser", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RegisterSIMUser")
+    @ResponseWrapper(localName = "registerSIMUserResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RegisterSIMUserResponse")
+    public MobileSIMUserStatus registerSIMUser(
+        @WebParam(name = "certificate", targetNamespace = "")
+        String certificate,
+        @WebParam(name = "register", targetNamespace = "")
+        MobileSIMUser register)
+        throws MobileException
+    ;
+
 }

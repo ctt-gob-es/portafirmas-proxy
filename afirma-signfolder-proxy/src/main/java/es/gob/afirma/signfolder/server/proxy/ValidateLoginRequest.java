@@ -6,22 +6,32 @@ package es.gob.afirma.signfolder.server.proxy;
  */
 public class ValidateLoginRequest {
 
-	private final byte[] signature;
+	private final byte[] pkcs1;
+	private final byte[] certificate;
 
 	/**
 	 * Construye los datos de la validaci&oacute;n de acceso.
-	 * @param signature Firma electr&oacute;nica CAdES implicita.
+	 * @param pkcs1 Firma PKCS#1.
+	 * @param certificate Certificado con el que se genero la firma.
 	 */
-	public ValidateLoginRequest(final byte[] signature) {
-		this.signature = signature;
+	public ValidateLoginRequest(final byte[] pkcs1, final byte[] certificate) {
+		this.pkcs1 = pkcs1;
+		this.certificate = certificate;
 	}
 
 	/**
-	 *Recupera la firma de la validaci&oacute;n.
+	 * Recupera la firma de la validaci&oacute;n.
 	 * @return Firma de acceso.
 	 */
-	public byte[] getSignature() {
-		return this.signature;
+	public byte[] getPkcs1() {
+		return this.pkcs1;
 	}
 
+	/**
+	 * Recupera el certificado de la validaci&oacute;n.
+	 * @return Certificado con el que se genero la firma.
+	 */
+	public byte[] getCertificate() {
+		return this.certificate;
+	}
 }

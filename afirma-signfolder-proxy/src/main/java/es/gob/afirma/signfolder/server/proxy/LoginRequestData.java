@@ -10,6 +10,8 @@ public class LoginRequestData {
 
 	private byte[] data = null;
 
+	private byte[] presign = null;
+
 	LoginRequestData(String id) {
 		this.id = id;
 	}
@@ -18,11 +20,19 @@ public class LoginRequestData {
 		this.data = data;
 	}
 
+	void setPresign(byte[] presign) {
+		this.presign = presign;
+	}
+
 	String getId() {
 		return this.id;
 	}
 
 	byte[] getData() {
 		return this.data;
+	}
+
+	byte[] getPresign() {
+		return this.presign;
 	}
 }

@@ -249,6 +249,56 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
+	public static String createRequestLoginResponse(LoginRequestData loginRequestData) {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<lgnrq id='").append(loginRequestData.getId()).append("'>") //$NON-NLS-1$ //$NON-NLS-2$
+				.append(Base64.encode(loginRequestData.getData()))
+				.append("</lgnrq>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	public static String createRequestLoginErrorResponse() {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<lgnrq err='Error' />"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	public static String createValidateLoginResponse(ValidateLoginResult validateLoginData) {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<vllgnrq ok='").append(validateLoginData.isLogged()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (!validateLoginData.isLogged()) {
+			sb.append(" er='").append(validateLoginData.getError()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		sb.append("/>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	public static String createRequestLogoutResponse() {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<lgorq/>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	public static String createNotificationRegistryResponse(NotificationRegistryResult registryResult) {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<reg ok='").append(registryResult.isRegistered()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (!registryResult.isRegistered()) {
+			sb.append(" err='").append(registryResult.getError()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		sb.append("/>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
 	/**
 	 * Sustituye los caracteres que pueden conllevar a la malformaci&oacute;n de un XML por sus
 	 * correspondientes versiones escapadas de HTML.

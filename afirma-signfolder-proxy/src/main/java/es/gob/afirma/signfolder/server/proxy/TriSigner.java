@@ -316,7 +316,7 @@ public class TriSigner {
 	 */
 	private static String normalizeSignatureFormat(final String format) {
 		String normalizeFormat = format;
-		if (format.equalsIgnoreCase("pdf") || format.equalsIgnoreCase("pades")) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (format.toLowerCase().contains("pdf") || format.toLowerCase().contains("pades")) { //$NON-NLS-1$ //$NON-NLS-2$
 			normalizeFormat = AOSignConstants.SIGN_FORMAT_PADES;
 		} else if (format.equalsIgnoreCase("cades")) { //$NON-NLS-1$
 			normalizeFormat = AOSignConstants.SIGN_FORMAT_CADES;
@@ -466,4 +466,6 @@ public class TriSigner {
 		}
 		return -1;
 	}
+
+
 }

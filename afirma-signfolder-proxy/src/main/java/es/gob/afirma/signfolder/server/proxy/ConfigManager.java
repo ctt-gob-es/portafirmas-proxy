@@ -33,6 +33,11 @@ public class ConfigManager {
 	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
 	private static final String PROPERTY_TRIPHASE_SERVICE_URL = "triphase.server.url"; //$NON-NLS-1$
 
+	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
+	private static final String PROPERTY_NOTIFICATION_APP_ID = ""; //$NON-NLS-1$
+
+	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
+	private static final String PROPERTY_NOTIFICATION_SERVICE_ID = ""; //$NON-NLS-1$
 
 	private static Properties config = null;
 
@@ -145,7 +150,7 @@ public class ConfigManager {
 		String url = config.getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
 		if (url.contains(TOMCAT_HTTP_PORT_VARIABLE)) {
 
-			String configuredPort = System.getProperty(JAVA_HTTP_PORT_VARIABLE);
+			final String configuredPort = System.getProperty(JAVA_HTTP_PORT_VARIABLE);
 			if (configuredPort == null) {
 				LOGGER.severe("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
 				throw new RuntimeException("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
@@ -170,5 +175,22 @@ public class ConfigManager {
 	 */
 	public static String getForcedExtraParams(){
 		return config.getProperty(PROPERTY_FORCED_EXTRAPARAMS);
+	}
+
+	/**
+	 * Devuelve el identificador de la aplicaci&oacute;n de Portafirmas de cara al
+	 * sistema de notificaciones.
+	 * @return Identificador de la aplicaci&oacute;n.
+	 */
+	public static String getRegistryId() {
+		return config.getProperty(PROPERTY_NOTIFICATION_APP_ID);
+	}
+
+	/**
+	 * Devuelve el identificador del servicio de Portafirmas de cara al sistema de notificaciones.
+	 * @return Identificador del servicio.
+	 */
+	public static String getServiceId() {
+		return config.getProperty(PROPERTY_NOTIFICATION_SERVICE_ID);
 	}
 }

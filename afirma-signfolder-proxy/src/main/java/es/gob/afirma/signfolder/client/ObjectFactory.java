@@ -43,6 +43,7 @@ public class ObjectFactory {
     private final static QName _MobileDocumentSignAlgorithm_QNAME = new QName("", "signAlgorithm"); //$NON-NLS-1$ //$NON-NLS-2$
     private final static QName _MobileDocumentSize_QNAME = new QName("", "size"); //$NON-NLS-1$ //$NON-NLS-2$
     private final static QName _MobileDocumentSignatureParameters_QNAME = new QName("", "signatureParameters"); //$NON-NLS-1$ //$NON-NLS-2$
+    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate"); //$NON-NLS-1$ //$NON-NLS-2$
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: es.gob.afirma.signfolder.client
@@ -479,4 +480,35 @@ public class ObjectFactory {
         return new JAXBElement<String>(_MobileDocumentSignatureParameters_QNAME, String.class, MobileDocument.class, value);
     }
 
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
+     *
+     */
+    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
+    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
+    }
+
+    /**
+     * Create an instance of {@link RegisterSIMUser }
+     *
+     */
+    public RegisterSIMUser createRegisterSIMUser() {
+        return new RegisterSIMUser();
+    }
+
+    /**
+     * Create an instance of {@link MobileSIMUser }
+     *
+     */
+    public MobileSIMUser createMobileSIMUser() {
+        return new MobileSIMUser();
+    }
+    /**
+     * Create an instance of {@link RegisterSIMUserResponse }
+     *
+     */
+    public RegisterSIMUserResponse createRegisterSIMUserResponse() {
+        return new RegisterSIMUserResponse();
+    }
 }

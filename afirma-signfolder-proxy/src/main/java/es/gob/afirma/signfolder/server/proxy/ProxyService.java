@@ -5,12 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +25,7 @@ import javax.activation.DataHandler;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.xml.bind.JAXBElement;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -42,6 +50,8 @@ import es.gob.afirma.signfolder.client.MobileRequest;
 import es.gob.afirma.signfolder.client.MobileRequestFilter;
 import es.gob.afirma.signfolder.client.MobileRequestFilterList;
 import es.gob.afirma.signfolder.client.MobileRequestList;
+import es.gob.afirma.signfolder.client.MobileSIMUser;
+import es.gob.afirma.signfolder.client.MobileSIMUserStatus;
 import es.gob.afirma.signfolder.client.MobileService;
 import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.client.MobileSignLine;
@@ -70,11 +80,20 @@ public final class ProxyService extends HttpServlet {
 	private static final String OPERATION_APPROVE = "7"; //$NON-NLS-1$
 	private static final String OPERATION_SIGN_PREVIEW = "8"; //$NON-NLS-1$
 	private static final String OPERATION_REPORT_PREVIEW = "9"; //$NON-NLS-1$
+	private static final String OPERATION_REQUEST_LOGIN = "10"; //$NON-NLS-1$
+	private static final String OPERATION_VALIDATE_LOGIN = "11"; //$NON-NLS-1$
+	private static final String OPERATION_LOGOUT = "12"; //$NON-NLS-1$
+	private static final String OPERATION_REGISTER_NOTIFICATION_SYSTEM = "13"; //$NON-NLS-1$
 
 	private static final String CRYPTO_PARAM_NEED_DATA = "NEED_DATA"; //$NON-NLS-1$
 
+	private static final String SESSION_PARAM_TOKEN = "token"; //$NON-NLS-1$
+
+	private static final String SESSION_PARAM_VALID_SESSION = "validsession"; //$NON-NLS-1$
 
 	private static final String DATE_TIME_FORMAT = "dd/MM/yyyy  HH:mm"; //$NON-NLS-1$
+
+	private static final String LOGIN_SIGNATURE_ALGORITHM = "SHA256withRSA"; //$NON-NLS-1$
 
 	static final Logger LOGGER;
 
@@ -94,7 +113,6 @@ public final class ProxyService extends HttpServlet {
 //			}
 //		}
 //		LOGGER.info("LoggerManager cargado"); //$NON-NLS-1$
-
 		LOGGER = Logger.getLogger("es.gob.afirma"); //$NON-NLS-1$
 	}
 
@@ -179,79 +197,103 @@ public final class ProxyService extends HttpServlet {
 		LOGGER.info("XML de la peticion:\n" + new String(xml)); //$NON-NLS-1$
 
 		final Object ret;
-		try {
-			if (OPERATION_PRESIGN.equals(operation)) {
-				LOGGER.info("Solicitud de prefirma"); //$NON-NLS-1$
-				ret = processPreSigns(xml);
+		if (!OPERATION_REQUEST_LOGIN.equals(operation) &&
+				!OPERATION_VALIDATE_LOGIN.equals(operation) &&
+				(request.getSession(false) == null || !Boolean.parseBoolean((String) request.getSession().getAttribute(SESSION_PARAM_VALID_SESSION)))) {
+			LOGGER.warning("Se ha solicitado la operacion siguiente operacion del proxy sin estar autenticado: " + operation); //$NON-NLS-1$
+			ret = ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST);
+		}
+		else {
+			try {
+				if (OPERATION_REQUEST_LOGIN.equals(operation)) {
+					LOGGER.info("Solicitud de login"); //$NON-NLS-1$
+					ret = processRequestLogin(request, xml);
+				}
+				else if (OPERATION_VALIDATE_LOGIN.equals(operation)) {
+					LOGGER.info("Validacion de login"); //$NON-NLS-1$
+					ret = processValidateLogin(request, xml);
+				}
+				else if (OPERATION_LOGOUT.equals(operation)) {
+					LOGGER.info("Logout"); //$NON-NLS-1$
+					ret = processLogout(request, xml);
+				}
+				else if (OPERATION_REGISTER_NOTIFICATION_SYSTEM.equals(operation)) {
+					LOGGER.info("Registro en el sistema de notificaciones"); //$NON-NLS-1$
+					ret = processNotificationRegistry(xml);
+				}
+				else if (OPERATION_PRESIGN.equals(operation)) {
+					LOGGER.info("Solicitud de prefirma"); //$NON-NLS-1$
+					ret = processPreSigns(xml);
+				}
+				else if (OPERATION_POSTSIGN.equals(operation)) {
+					LOGGER.info("Solicitud de postfirma"); //$NON-NLS-1$
+					ret = processPostSigns(xml);
+				}
+				else if (OPERATION_REQUEST.equals(operation)) {
+					LOGGER.info("Solicitud del listado de peticiones"); //$NON-NLS-1$
+					ret = processRequestsList(xml);
+				}
+				else if (OPERATION_REJECT.equals(operation)) {
+					LOGGER.info("Solicitud de rechazo peticiones"); //$NON-NLS-1$
+					ret = processRejects(xml);
+				}
+				else if (OPERATION_DETAIL.equals(operation)) {
+					LOGGER.info("Solicitud de detalle de una peticion"); //$NON-NLS-1$
+					ret = processRequestDetail(xml);
+				}
+				else if (OPERATION_DOCUMENT_PREVIEW.equals(operation)) {
+					LOGGER.info("Solicitud de previsualizacion de un documento"); //$NON-NLS-1$
+					ret = processDocumentPreview(xml);
+				}
+				else if (OPERATION_CONFIGURING.equals(operation)) {
+					LOGGER.info("Solicitud de la configuracion"); //$NON-NLS-1$
+					ret = processConfigueApp(xml);
+				}
+				else if (OPERATION_APPROVE.equals(operation)) {
+					LOGGER.info("Solicitud de aprobacion de una peticion"); //$NON-NLS-1$
+					ret = processApproveRequest(xml);
+				}
+				else if (OPERATION_SIGN_PREVIEW.equals(operation)) {
+					LOGGER.info("Solicitud de previsualizacion de una firma"); //$NON-NLS-1$
+					ret = processSignPreview(xml);
+				}
+				else if (OPERATION_REPORT_PREVIEW.equals(operation)) {
+					LOGGER.info("Solicitud de previsualizacion de un informe de firma"); //$NON-NLS-1$
+					ret = processSignReportPreview(xml);
+				}
+				else {
+					LOGGER.info("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
+					ret = ErrorManager.genError(ErrorManager.ERROR_UNSUPPORTED_OPERATION_NAME);
+				}
+			} catch (final SAXException e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_BAD_XML) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_BAD_XML));
+				return;
+			} catch (final CertificateException e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_BAD_CERTIFICATE) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_BAD_CERTIFICATE));
+				return;
+			} catch (final MobileException e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS));
+				return;
+			} catch (final IOException e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS));
+				return;
+			} catch (final SOAPFaultException e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST));
+				return;
+			} catch (final WebServiceException e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_SERVICE) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_SERVICE));
+				return;
+			} catch (final Exception e) {
+				LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_UNKNOWN_ERROR) + ": " + e, e); //$NON-NLS-1$
+				responser.print(ErrorManager.genError(ErrorManager.ERROR_UNKNOWN_ERROR));
+				return;
 			}
-			else if (OPERATION_POSTSIGN.equals(operation)) {
-				LOGGER.info("Solicitud de postfirma"); //$NON-NLS-1$
-				ret = processPostSigns(xml);
-			}
-			else if (OPERATION_REQUEST.equals(operation)) {
-				LOGGER.info("Solicitud del listado de peticiones"); //$NON-NLS-1$
-				ret = processRequestsList(xml);
-			}
-			else if (OPERATION_REJECT.equals(operation)) {
-				LOGGER.info("Solicitud de rechazo peticiones"); //$NON-NLS-1$
-				ret = processRejects(xml);
-			}
-			else if (OPERATION_DETAIL.equals(operation)) {
-				LOGGER.info("Solicitud de detalle de una peticion"); //$NON-NLS-1$
-				ret = processRequestDetail(xml);
-			}
-			else if (OPERATION_DOCUMENT_PREVIEW.equals(operation)) {
-				LOGGER.info("Solicitud de previsualizacion de un documento"); //$NON-NLS-1$
-				ret = processDocumentPreview(xml);
-			}
-			else if (OPERATION_CONFIGURING.equals(operation)) {
-				LOGGER.info("Solicitud de la configuracion"); //$NON-NLS-1$
-				ret = processConfigueApp(xml);
-			}
-			else if (OPERATION_APPROVE.equals(operation)) {
-				LOGGER.info("Solicitud de aprobacion de una peticion"); //$NON-NLS-1$
-				ret = processApproveRequest(xml);
-			}
-			else if (OPERATION_SIGN_PREVIEW.equals(operation)) {
-				LOGGER.info("Solicitud de previsualizacion de una firma"); //$NON-NLS-1$
-				ret = processSignPreview(xml);
-			}
-			else if (OPERATION_REPORT_PREVIEW.equals(operation)) {
-				LOGGER.info("Solicitud de previsualizacion de un informe de firma"); //$NON-NLS-1$
-				ret = processSignReportPreview(xml);
-			}
-			else {
-				LOGGER.info("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
-				ret = ErrorManager.genError(ErrorManager.ERROR_UNSUPPORTED_OPERATION_NAME);
-			}
-		} catch (final SAXException e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_BAD_XML) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_BAD_XML));
-			return;
-		} catch (final CertificateException e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_BAD_CERTIFICATE) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_BAD_CERTIFICATE));
-			return;
-		} catch (final MobileException e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS));
-			return;
-		} catch (final IOException e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_PORTAFIRMAS));
-			return;
-		} catch (final SOAPFaultException e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST));
-			return;
-		} catch (final WebServiceException e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_SERVICE) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_COMMUNICATING_SERVICE));
-			return;
-		} catch (final Exception e) {
-			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_UNKNOWN_ERROR) + ": " + e, e); //$NON-NLS-1$
-			responser.print(ErrorManager.genError(ErrorManager.ERROR_UNKNOWN_ERROR));
-			return;
 		}
 
 		if (ret instanceof InputStream) {
@@ -268,6 +310,221 @@ public final class ProxyService extends HttpServlet {
 			responser.print((String) ret);
 		}
 		LOGGER.info("Fin peticion ProxyService"); //$NON-NLS-1$
+	}
+
+	/**
+	 * Procesa una petici&oacute;n de acceso a la aplicaci&oacute;n. Como respuesta a esta
+	 * petici&oacute;n, se emitir&aacute; un token para la firma por parte del cliente y
+	 * posterior validaci&oacute;n de la sesi&oacute;n.
+	 * @param request Petici&oacute;n realizada al servicio.
+	 * @param xml XML con los datos para el proceso de autenticaci&oacute;n.
+	 * @return XML con el resultado a la petici&oacute;n.
+	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
+	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
+	 */
+	private String processRequestLogin(HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		try {
+			LoginRequestParser.parse(doc);
+		}
+		catch (final Exception e) {
+			LOGGER.warning("No se ha proporcionado una peticion de login valida: " + e); //$NON-NLS-1$
+			throw new SAXException("No se ha proporcionado una peticion de login valida", e); //$NON-NLS-1$
+		}
+
+		LOGGER.info("Solicitud de nueva sesion del Portafirmas movil"); //$NON-NLS-1$
+
+		final HttpSession session = request.getSession();
+		session.setMaxInactiveInterval(45);
+
+		// Reiniciamos la sesion en caso de que estuviese establecida
+		session.removeAttribute(SESSION_PARAM_VALID_SESSION);
+
+		final LoginRequestData loginRequestData = createLoginRequestData(session);
+
+		session.setAttribute(SESSION_PARAM_TOKEN, loginRequestData.getData());
+
+		LOGGER.info("Devolvemos el identificador de sesion y los datos a firmar para su validacion " + session.getId()); //$NON-NLS-1$
+
+		return XmlResponsesFactory.createRequestLoginResponse(loginRequestData);
+	}
+
+	/**
+	 * Obtiene los datos necesarios para el login de la aplicaci&oacute;n cliente.
+	 * @param session Sesi&oacute;n sobre la que se desea autenticar el usuario.
+	 * @return Datos de inicio de sesi&oacute;n.
+	 */
+	private static LoginRequestData createLoginRequestData(final HttpSession session) {
+
+		final LoginRequestData loginRequestData = new LoginRequestData(session.getId());
+		// Establecemos los datos a firmar (Token)
+		loginRequestData.setData(new StringBuilder()
+				.append(session.getCreationTime()).append("|") //$NON-NLS-1$
+				.append(UUID.randomUUID().toString()).toString().getBytes());
+
+		return loginRequestData;
+	}
+
+	/**
+	 * Procesa una petici&oacute;n de acceso a la aplicaci&oacute;n. Como respuesta a esta
+	 * petici&oacute;n, se emitir&aacute; un token para la firma por parte del cliente y
+	 * posterior validaci&oacute;n de la sesi&oacute;n.
+	 * @param request Petici&oacute;n realizada al servicio.
+	 * @param xml XML con los datos para el proceso de autenticaci&oacute;n.
+	 * @return XML con el resultado a la petici&oacute;n.
+	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
+	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
+	 */
+	private String processValidateLogin(final HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final ValidateLoginRequest loginRequest = ValidateLoginRequestParser.parse(doc);
+
+		LOGGER.info("Solicitamos las peticiones de firma al Portafirmas"); //$NON-NLS-1$
+
+		final HttpSession session = request.getSession(false);
+
+		final ValidateLoginResult validateLoginResult = validateLoginData(session, loginRequest);
+
+		if (validateLoginResult.isLogged()) {
+			session.setAttribute(SESSION_PARAM_VALID_SESSION, Boolean.TRUE.toString());
+			session.removeAttribute(SESSION_PARAM_TOKEN);
+		}
+
+		LOGGER.info("Devolvemos el el resultado del proceso de login para la sesion " + session.getId() + ": " + validateLoginResult.isLogged()); //$NON-NLS-1$ //$NON-NLS-2$
+
+		return XmlResponsesFactory.createValidateLoginResponse(validateLoginResult);
+	}
+
+	private static ValidateLoginResult validateLoginData(final HttpSession session, final ValidateLoginRequest loginRequest) {
+
+		if (session == null) {
+			return new ValidateLoginResult("No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
+		}
+
+		// Comprobamos la validez de la firma PKCS1 remitida contra el certificado recibido
+		// y el token que se envio originalmente, y se manda a validar el certificado para
+		// el inicio de sesion
+		try {
+			checkPkcs1(loginRequest.getPkcs1(),
+					loginRequest.getCertificate(),
+					(byte[]) session.getAttribute(SESSION_PARAM_TOKEN));
+		}
+		catch (final Exception e) {
+			LOGGER.warning("Ocurrio un error durante la validacion de la firma de login: " + e); //$NON-NLS-1$
+			return new ValidateLoginResult(e.getMessage());
+		}
+
+		//TODO: Hacer validacion contra el portafirmas (que valide que
+		// la firma es valida y el certificado usado se corresponde con
+		// un usuario)
+//			final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
+//			final MobileService service = mobileService.getMobileServicePort();
+//
+//			// Validamos que la firma sea valida contra el portafirmas
+//			service.queryRequestLogin(loginRequest.getCertificate());
+
+		return new ValidateLoginResult();
+	}
+
+	/**
+	 * Procesa una petici&oacute;n de cierre de sesi&oacute;n.
+	 * @param request Petici&oacute;n realizada al servicio.
+	 * @param xml XML con los datos para el proceso de autenticaci&oacute;n.
+	 * @return XML con el resultado a la petici&oacute;n.
+	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
+	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
+	 */
+	private String processLogout(HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		try {
+			LogoutRequestParser.parse(doc);
+		}
+		catch (final Exception e) {
+			LOGGER.warning("No se ha proporcionado una peticion de logout valida: " + e); //$NON-NLS-1$
+			throw new SAXException("No se ha proporcionado una peticion de logout valida", e); //$NON-NLS-1$
+		}
+
+		LOGGER.info("Solicitud de cierre de sesion del Portafirmas movil"); //$NON-NLS-1$
+
+		final HttpSession session = request.getSession(false);
+		if (session != null) {
+			session.invalidate();
+		}
+
+		LOGGER.info("Devolvemos el resultado del cierre de sesion"); //$NON-NLS-1$
+
+		return XmlResponsesFactory.createRequestLogoutResponse();
+	}
+
+	/**
+	 * Comprueba que un PKCS#1 se genero en base a un certificado y sobre unos datos concretos.
+	 * @param pkcs1 Firma PKCS#1 calculada sobre el algoritmo SHA-256.
+	 * @param certEncoded Certificado electr&oacute;nico con el que se gener&oacute; el PKCS#1.
+	 * @param data Datos que se firmaron.
+	 * @throws NoSuchAlgorithmException Cuando el algoritmo de firma no este soportado.
+	 * @throws CertificateException Cuando el certificado de la firma no sea valido o no coincida con el indicado.
+	 * @throws InvalidKeyException Cuando el certificado no contenga una clave publica v&aacute;lida.
+	 * @throws Exception Cuando no se puede completar la validaci&oacute;n de la estructura.
+	 */
+	private static void checkPkcs1(final byte[] pkcs1, final byte[] certEncoded, final byte[] data) throws SignatureException, NoSuchAlgorithmException, CertificateException, InvalidKeyException {
+
+		final Certificate cert = CertificateFactory.getInstance("X.509").generateCertificate( //$NON-NLS-1$
+				new ByteArrayInputStream(certEncoded)
+		);
+
+		final Signature signer = Signature.getInstance(LOGIN_SIGNATURE_ALGORITHM);
+		signer.initVerify(cert.getPublicKey());
+		signer.update(data);
+
+		System.out.println(new String(data));
+		if (!signer.verify(pkcs1)) {
+			throw new SignatureException("La firma no se corresponde con la del token proporcionado o el certificado indicado"); //$NON-NLS-1$
+		}
+	}
+
+	private String processNotificationRegistry(final byte[] xml) throws SAXException, IOException, MobileException {
+
+		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final NotificationRegistry registry = NotificationRegistryParser.parse(xmlDoc);
+
+		final NotificationRegistryResult result = doNotificationRegistry(registry);
+
+		return XmlResponsesFactory.createNotificationRegistryResponse(result);
+	}
+
+	private static NotificationRegistryResult doNotificationRegistry(final NotificationRegistry registry) throws MobileException {
+
+		final MobileService_Service mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
+		final MobileService service = mobileService.getMobileServicePort();
+
+		LOGGER.info("Registramos al usuario en el sistema de notificaciones"); //$NON-NLS-1$
+
+		final MobileSIMUser user = new MobileSIMUser();
+		user.setIdDispositivo(registry.getDeviceId());	// Identificador unico del dispositivo
+		//user.setCertificado(registry.getCertificate());	// Certificado de usuario a partir del que
+														//   se obtendra su identificador (DNI)
+		user.setPlataforma(registry.getPlatform());		// Plataforma de notificacion ("GCM" para Android
+														//   y "APNS" para iOS)
+		user.setServicio(								// Nombre del servicio dentro de la aplicacion
+				ConfigManager.getServiceId());			// (tomado del fichero de configuracion)
+
+		//TODO: Este debería ser siempre el mismo y pasarlo directamente el Portafirmas web
+		user.setIdRegistro(								// Identificador de la aplicacion Portafirmas
+				ConfigManager.getRegistryId());			//   movil (tomado del fichero de configuracion)
+
+
+		final MobileSIMUserStatus status = service.registerSIMUser(registry.getCertificate(), user);
+
+		final NotificationRegistryResult result = new NotificationRegistryResult(
+				status.getStatusCode(),
+				status.getStatusText());
+		if (!result.isRegistered()) {
+			result.setErrorDetails(status.getDetails());
+		}
+		return result;
 	}
 
 	/**
@@ -946,4 +1203,5 @@ public final class ProxyService extends HttpServlet {
 			}
 		}
 	}
+
 }
