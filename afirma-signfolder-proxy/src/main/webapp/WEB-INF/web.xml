@@ -6,8 +6,17 @@
     <servlet-name>ProxyService</servlet-name>
     <servlet-class>es.gob.afirma.signfolder.server.proxy.ProxyService</servlet-class>
   </servlet>
+  <servlet>
+  	<description>Servicio de version</description>
+  	<servlet-name>VersionService</servlet-name>
+  	<servlet-class>es.gob.afirma.signfolder.server.proxy.VersionService</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>ProxyService</servlet-name>
     <url-pattern>/pf</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+  	<servlet-name>VersionService</servlet-name>
+  	<url-pattern>/version</url-pattern>
   </servlet-mapping>
 </web-app>
