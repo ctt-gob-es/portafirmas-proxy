@@ -196,11 +196,11 @@ public final class ProxyService extends HttpServlet {
 
 		LOGGER.info("XML de la peticion:\n" + new String(xml)); //$NON-NLS-1$
 
-		final Object ret;
+		Object ret;
 		if (!OPERATION_REQUEST_LOGIN.equals(operation) &&
 				!OPERATION_VALIDATE_LOGIN.equals(operation) &&
 				(request.getSession(false) == null || !Boolean.parseBoolean((String) request.getSession().getAttribute(SESSION_PARAM_VALID_SESSION)))) {
-			LOGGER.warning("Se ha solicitado la operacion siguiente operacion del proxy sin estar autenticado: " + operation); //$NON-NLS-1$
+			LOGGER.warning("Se ha solicitado la siguiente operacion del proxy sin estar autenticado: " + operation); //$NON-NLS-1$
 			ret = ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST);
 		}
 		else {

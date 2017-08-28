@@ -33,22 +33,12 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
+<!--
 	<scm>
 		<connection>scm:git:https://github.com/ctt-gob-es/portafirmas-proxy.git</connection>
 		<url>https://github.com/ctt-gob-es/portafirmas-proxy.git</url>
   </scm>
-	
-	<distributionManagement>
-		<repository>
-			<id>nexus</id>
-			<url>http://devel01.uji.es:8080/nexus/content/repositories/releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>nexus</id>
-			<url>http://devel01.uji.es:8080/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+ -->
 	
 	<build>
 		<finalName>pfmovil</finalName>
