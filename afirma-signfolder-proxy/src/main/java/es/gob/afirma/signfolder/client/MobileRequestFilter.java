@@ -8,9 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileRequestFilter complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileRequestFilter">
  *   &lt;complexContent>
@@ -23,8 +23,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileRequestFilter", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -38,23 +38,23 @@ public class MobileRequestFilter {
 
     /**
      * Gets the value of the key property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getKey() {
-        return this.key;
+        return key;
     }
 
     /**
      * Sets the value of the key property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setKey(String value) {
         this.key = value;
@@ -62,23 +62,23 @@ public class MobileRequestFilter {
 
     /**
      * Gets the value of the value property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getValue() {
-        return this.value;
+        return value;
     }
 
     /**
      * Sets the value of the value property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setValue(String value) {
         this.value = value;

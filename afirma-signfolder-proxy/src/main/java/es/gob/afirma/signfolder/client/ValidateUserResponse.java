@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="document" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileDocument"/>
+ *         &lt;element name="nifCif" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,36 +29,36 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "document"
+    "nifCif"
 })
-@XmlRootElement(name = "reportPreviewResponse")
-public class ReportPreviewResponse {
+@XmlRootElement(name = "validateUserResponse")
+public class ValidateUserResponse {
 
     @XmlElement(required = true)
-    protected MobileDocument document;
+    protected String nifCif;
 
     /**
-     * Gets the value of the document property.
+     * Gets the value of the nifCif property.
      * 
      * @return
      *     possible object is
-     *     {@link MobileDocument }
+     *     {@link String }
      *     
      */
-    public MobileDocument getDocument() {
-        return document;
+    public String getNifCif() {
+        return nifCif;
     }
 
     /**
-     * Sets the value of the document property.
+     * Sets the value of the nifCif property.
      * 
      * @param value
      *     allowed object is
-     *     {@link MobileDocument }
+     *     {@link String }
      *     
      */
-    public void setDocument(MobileDocument value) {
-        this.document = value;
+    public void setNifCif(String value) {
+        this.nifCif = value;
     }
 
 }

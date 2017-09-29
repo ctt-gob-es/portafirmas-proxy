@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -26,8 +26,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -47,18 +47,18 @@ public class SaveSign {
 
     /**
      * Gets the value of the certificate property.
-     *
+     * 
      * @return
      *     possible object is
      *     byte[]
      */
     public byte[] getCertificate() {
-        return this.certificate;
+        return certificate;
     }
 
     /**
      * Sets the value of the certificate property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     byte[]
@@ -69,23 +69,23 @@ public class SaveSign {
 
     /**
      * Gets the value of the requestTagId property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getRequestTagId() {
-        return this.requestTagId;
+        return requestTagId;
     }
 
     /**
      * Sets the value of the requestTagId property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setRequestTagId(String value) {
         this.requestTagId = value;
@@ -93,23 +93,23 @@ public class SaveSign {
 
     /**
      * Gets the value of the docSignInfoList property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileDocSignInfoList }
-     *
+     *     
      */
     public MobileDocSignInfoList getDocSignInfoList() {
-        return this.docSignInfoList;
+        return docSignInfoList;
     }
 
     /**
      * Sets the value of the docSignInfoList property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileDocSignInfoList }
-     *
+     *     
      */
     public void setDocSignInfoList(MobileDocSignInfoList value) {
         this.docSignInfoList = value;

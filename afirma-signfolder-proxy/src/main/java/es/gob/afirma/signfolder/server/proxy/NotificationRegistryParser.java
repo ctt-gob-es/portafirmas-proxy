@@ -9,9 +9,9 @@ class NotificationRegistryParser {
 	private static final String REGISTRY_REQUEST_NODE = "rqtreg"; //$NON-NLS-1$
 	private static final String PLATFORM_ID_ATTRIBUTE = "plt"; //$NON-NLS-1$
 	private static final String DEVICE_ID_ATTRIBUTE = "dvc"; //$NON-NLS-1$
-	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
+	private static final String NOTIFICATIONS_ID_REGISTRY = "tkn"; //$NON-NLS-1$
 
-	public static NotificationRegistry parse(Document doc) {
+	public static NotificationRegistry parse(Document doc, String certEncoded) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -31,14 +31,21 @@ class NotificationRegistryParser {
 		}
 
 		// Recogermos el identificador del dispositivo del usuario
-		final String devideId = doc.getDocumentElement().getAttribute(DEVICE_ID_ATTRIBUTE);
-		if (devideId == null) {
+		final String deviceId = doc.getDocumentElement().getAttribute(DEVICE_ID_ATTRIBUTE);
+		if (deviceId == null) {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					DEVICE_ID_ATTRIBUTE + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
 		}
+		
+		// Recogermos el identificador de de registro en el servicio de notificaciones de Google
+		final String idRegistry = doc.getDocumentElement().getAttribute(NOTIFICATIONS_ID_REGISTRY);
+		if (idRegistry == null) {
+			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
+					NOTIFICATIONS_ID_REGISTRY + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
+		}
 
 		final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
+		/*final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
 					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
@@ -51,9 +58,9 @@ class NotificationRegistryParser {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el nodo " + CERT_NODE + //$NON-NLS-1$
 					" en su lugar se encontro " + certNode.getNodeName()); //$NON-NLS-1$
-		}
+		}*/
 
-		return new NotificationRegistry(certNode.getTextContent(), devideId, platformId);
+		return new NotificationRegistry(certEncoded, deviceId, platformId, idRegistry);
 	}
 
 }

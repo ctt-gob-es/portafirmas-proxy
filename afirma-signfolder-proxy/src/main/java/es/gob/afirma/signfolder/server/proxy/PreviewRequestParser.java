@@ -15,7 +15,6 @@ public class PreviewRequestParser {
 
 	private static final String PREVIEW_REQUEST_NODE = "rqtprw"; //$NON-NLS-1$
 	private static final String DOCUMENT_ID_ATTRIBUTE = "docid"; //$NON-NLS-1$
-	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
 
 	private PreviewRequestParser() {
 		// Se evita el uso del constructor
@@ -26,7 +25,7 @@ public class PreviewRequestParser {
 	 * @param doc Documento XML.
 	 * @return Identificador de documento.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static PreviewRequest parse(final Document doc) {
+	static PreviewRequest parse(final Document doc, final byte[] certEncoded) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -46,7 +45,7 @@ public class PreviewRequestParser {
 		}
 
 		final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
+		/*final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
 					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
@@ -65,7 +64,7 @@ public class PreviewRequestParser {
 		} catch (Exception e) {
 			throw new IllegalArgumentException(
 					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-		}
+		}*/
 		
 		return new PreviewRequest(certEncoded, docId);
 	}

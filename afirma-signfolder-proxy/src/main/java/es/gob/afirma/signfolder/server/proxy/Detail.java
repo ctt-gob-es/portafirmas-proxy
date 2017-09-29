@@ -20,7 +20,9 @@ public class Detail {
 	private String[] senders = null;
 
 	private String date = null;
-
+	
+	private String expdate = null;
+	
 	private String app = null;
 
 	private String ref = null;
@@ -30,6 +32,8 @@ public class Detail {
 	private List<String>[] signLines;
 
 	private SignRequestDocument[] docs;
+	
+	private SignRequestDocument[] attached;
 
 	/**
 	 * Construye el detalle de una petici&oacute;n de firma.
@@ -144,6 +148,22 @@ public class Detail {
 	}
 
 	/**
+	 * Recupera la fecha de caducidad de la petici&oacute;n.
+	 * @return Fecha.
+	 */
+	public String getExpDate() {
+		return this.expdate;
+	}
+
+	/**
+	 * Establece la fecha de caducidad de la petici&oacute;n.
+	 * @param expdate Fecha.
+	 */
+	public void setExpDate(final String expdate) {
+		this.expdate = expdate;
+	}
+	
+	/**
 	 * Recupera el nombre de la aplicaci&oacute;n que solicit&oacute; la firma.
 	 * @return Nombre de la aplicaci&oacute;n.
 	 */
@@ -225,5 +245,23 @@ public class Detail {
 	 */
 	public void setDocs(final SignRequestDocument[] docs) {
 		this.docs = docs;
+	}
+	
+	/**
+	 * Recupera el listado de anexos que componen la petici&oacute;n de firma. La informaci&oacute;n
+	 * de cada documento se almacena en objetos de tipo {@link es.gob.afirma.signfolder.server.proxy.SignRequestDocument}.
+	 * @return Listado de anexos.
+	 */
+	public SignRequestDocument[] getAttached() {
+		return this.attached;
+	}
+
+	/**
+	 * Establece el listado de anexos que componen la petici&oacute;n de firma. La informaci&oacute;n
+	 * de cada documento se almacena en objetos de tipo {@link es.gob.afirma.signfolder.server.proxy.SignRequestDocument}.
+	 * @param attached Listado de anexos.
+	 */
+	public void setAttached(final SignRequestDocument[] attached) {
+		this.attached = attached;
 	}
 }

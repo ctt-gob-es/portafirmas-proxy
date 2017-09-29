@@ -8,9 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileApplication complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileApplication">
  *   &lt;complexContent>
@@ -23,8 +23,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileApplication", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -38,23 +38,23 @@ public class MobileApplication {
 
     /**
      * Gets the value of the id property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getId() {
-        return this.id;
+        return id;
     }
 
     /**
      * Sets the value of the id property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setId(String value) {
         this.id = value;
@@ -62,23 +62,23 @@ public class MobileApplication {
 
     /**
      * Gets the value of the name property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
      * Sets the value of the name property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setName(String value) {
         this.name = value;

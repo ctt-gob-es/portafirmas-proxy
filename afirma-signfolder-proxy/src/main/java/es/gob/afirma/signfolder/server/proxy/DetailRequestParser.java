@@ -15,7 +15,6 @@ public class DetailRequestParser {
 
 	private static final String DETAIL_REQUEST_NODE = "rqtdtl"; //$NON-NLS-1$
 	private static final String REQUEST_ID_ATTRIBUTE = "id"; //$NON-NLS-1$
-	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
 
 	private DetailRequestParser() {
 		// Se evita el uso del constructor
@@ -26,7 +25,7 @@ public class DetailRequestParser {
 	 * @param doc Documento XML.
 	 * @return Identificador de solicitud de firma.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static DetailRequest parse(final Document doc) {
+	static DetailRequest parse(final Document doc, final byte[] cert) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -44,7 +43,8 @@ public class DetailRequestParser {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					REQUEST_ID_ATTRIBUTE + " con el identificador la solicitud"); //$NON-NLS-1$
 		}
-
+		
+		/*
 		final NodeList nodes = doc.getDocumentElement().getChildNodes();
 		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
@@ -67,8 +67,8 @@ public class DetailRequestParser {
 		} catch (Exception e) {
 			throw new IllegalArgumentException(
 					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-		}
+		}*/
 
-		return new DetailRequest(certEncoded, id);
+		return new DetailRequest(cert, id);
 	}
 }

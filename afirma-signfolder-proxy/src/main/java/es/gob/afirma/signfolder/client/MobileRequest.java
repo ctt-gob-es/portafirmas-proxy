@@ -11,9 +11,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * <p>Java class for mobileRequest complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileRequest">
  *   &lt;complexContent>
@@ -32,6 +32,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="senders" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileStringList" minOccurs="0"/>
  *         &lt;element name="signLineList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileSignLineList" minOccurs="0"/>
  *         &lt;element name="documentList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileDocumentList" minOccurs="0"/>
+ *         &lt;element name="attachList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileDocumentList" minOccurs="0"/>
  *         &lt;element name="requestType" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="requestTagId" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
@@ -39,8 +40,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileRequest", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -57,55 +58,57 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "senders",
     "signLineList",
     "documentList",
+    "attachList",
     "requestType",
     "requestTagId"
 })
 public class MobileRequest {
 
-    @XmlElementRef(name = "identifier", type = JAXBElement.class)
+    @XmlElementRef(name = "identifier", type = JAXBElement.class, required = false)
     protected JAXBElement<String> identifier;
-    @XmlElementRef(name = "subject", type = JAXBElement.class)
+    @XmlElementRef(name = "subject", type = JAXBElement.class, required = false)
     protected JAXBElement<String> subject;
     protected String view;
-    @XmlElementRef(name = "text", type = JAXBElement.class)
+    @XmlElementRef(name = "text", type = JAXBElement.class, required = false)
     protected JAXBElement<String> text;
-    @XmlElementRef(name = "ref", type = JAXBElement.class)
+    @XmlElementRef(name = "ref", type = JAXBElement.class, required = false)
     protected JAXBElement<String> ref;
-    @XmlElementRef(name = "fentry", type = JAXBElement.class)
+    @XmlElementRef(name = "fentry", type = JAXBElement.class, required = false)
     protected JAXBElement<XMLGregorianCalendar> fentry;
-    @XmlElementRef(name = "importanceLevel", type = JAXBElement.class)
+    @XmlElementRef(name = "importanceLevel", type = JAXBElement.class, required = false)
     protected JAXBElement<String> importanceLevel;
-    @XmlElementRef(name = "application", type = JAXBElement.class)
+    @XmlElementRef(name = "application", type = JAXBElement.class, required = false)
     protected JAXBElement<String> application;
-    @XmlElementRef(name = "workflow", type = JAXBElement.class)
+    @XmlElementRef(name = "workflow", type = JAXBElement.class, required = false)
     protected JAXBElement<Boolean> workflow;
-    @XmlElementRef(name = "forward", type = JAXBElement.class)
+    @XmlElementRef(name = "forward", type = JAXBElement.class, required = false)
     protected JAXBElement<Boolean> forward;
     protected MobileStringList senders;
     protected MobileSignLineList signLineList;
     protected MobileDocumentList documentList;
+    protected MobileDocumentList attachList;
     protected String requestType;
     protected String requestTagId;
 
     /**
      * Gets the value of the identifier property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getIdentifier() {
-        return this.identifier;
+        return identifier;
     }
 
     /**
      * Sets the value of the identifier property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setIdentifier(JAXBElement<String> value) {
         this.identifier = value;
@@ -113,23 +116,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the subject property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getSubject() {
-        return this.subject;
+        return subject;
     }
 
     /**
      * Sets the value of the subject property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setSubject(JAXBElement<String> value) {
         this.subject = value;
@@ -137,23 +140,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the view property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getView() {
-        return this.view;
+        return view;
     }
 
     /**
      * Sets the value of the view property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setView(String value) {
         this.view = value;
@@ -161,23 +164,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the text property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getText() {
-        return this.text;
+        return text;
     }
 
     /**
      * Sets the value of the text property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setText(JAXBElement<String> value) {
         this.text = value;
@@ -185,23 +188,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the ref property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getRef() {
-        return this.ref;
+        return ref;
     }
 
     /**
      * Sets the value of the ref property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setRef(JAXBElement<String> value) {
         this.ref = value;
@@ -209,23 +212,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the fentry property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
-     *
+     *     
      */
     public JAXBElement<XMLGregorianCalendar> getFentry() {
-        return this.fentry;
+        return fentry;
     }
 
     /**
      * Sets the value of the fentry property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
-     *
+     *     
      */
     public void setFentry(JAXBElement<XMLGregorianCalendar> value) {
         this.fentry = value;
@@ -233,23 +236,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the importanceLevel property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getImportanceLevel() {
-        return this.importanceLevel;
+        return importanceLevel;
     }
 
     /**
      * Sets the value of the importanceLevel property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setImportanceLevel(JAXBElement<String> value) {
         this.importanceLevel = value;
@@ -257,23 +260,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the application property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getApplication() {
-        return this.application;
+        return application;
     }
 
     /**
      * Sets the value of the application property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setApplication(JAXBElement<String> value) {
         this.application = value;
@@ -281,23 +284,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the workflow property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
-     *
+     *     
      */
     public JAXBElement<Boolean> getWorkflow() {
-        return this.workflow;
+        return workflow;
     }
 
     /**
      * Sets the value of the workflow property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
-     *
+     *     
      */
     public void setWorkflow(JAXBElement<Boolean> value) {
         this.workflow = value;
@@ -305,23 +308,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the forward property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
-     *
+     *     
      */
     public JAXBElement<Boolean> getForward() {
-        return this.forward;
+        return forward;
     }
 
     /**
      * Sets the value of the forward property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
-     *
+     *     
      */
     public void setForward(JAXBElement<Boolean> value) {
         this.forward = value;
@@ -329,23 +332,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the senders property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileStringList }
-     *
+     *     
      */
     public MobileStringList getSenders() {
-        return this.senders;
+        return senders;
     }
 
     /**
      * Sets the value of the senders property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileStringList }
-     *
+     *     
      */
     public void setSenders(MobileStringList value) {
         this.senders = value;
@@ -353,23 +356,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the signLineList property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileSignLineList }
-     *
+     *     
      */
     public MobileSignLineList getSignLineList() {
-        return this.signLineList;
+        return signLineList;
     }
 
     /**
      * Sets the value of the signLineList property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileSignLineList }
-     *
+     *     
      */
     public void setSignLineList(MobileSignLineList value) {
         this.signLineList = value;
@@ -377,47 +380,71 @@ public class MobileRequest {
 
     /**
      * Gets the value of the documentList property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileDocumentList }
-     *
+     *     
      */
     public MobileDocumentList getDocumentList() {
-        return this.documentList;
+        return documentList;
     }
 
     /**
      * Sets the value of the documentList property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileDocumentList }
-     *
+     *     
      */
     public void setDocumentList(MobileDocumentList value) {
         this.documentList = value;
     }
 
     /**
+     * Gets the value of the attachList property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link MobileDocumentList }
+     *     
+     */
+    public MobileDocumentList getAttachList() {
+        return attachList;
+    }
+
+    /**
+     * Sets the value of the attachList property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link MobileDocumentList }
+     *     
+     */
+    public void setAttachList(MobileDocumentList value) {
+        this.attachList = value;
+    }
+
+    /**
      * Gets the value of the requestType property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getRequestType() {
-        return this.requestType;
+        return requestType;
     }
 
     /**
      * Sets the value of the requestType property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setRequestType(String value) {
         this.requestType = value;
@@ -425,23 +452,23 @@ public class MobileRequest {
 
     /**
      * Gets the value of the requestTagId property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getRequestTagId() {
-        return this.requestTagId;
+        return requestTagId;
     }
 
     /**
      * Sets the value of the requestTagId property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setRequestTagId(String value) {
         this.requestTagId = value;

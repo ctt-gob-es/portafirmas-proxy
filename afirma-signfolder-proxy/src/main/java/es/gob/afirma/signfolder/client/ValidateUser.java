@@ -19,7 +19,6 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="certificate" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
- *         &lt;element name="documentId" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -30,16 +29,13 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "certificate",
-    "documentId"
+    "certificate"
 })
-@XmlRootElement(name = "reportPreview")
-public class ReportPreview {
+@XmlRootElement(name = "validateUser")
+public class ValidateUser {
 
     @XmlElement(required = true)
     protected byte[] certificate;
-    @XmlElement(required = true)
-    protected String documentId;
 
     /**
      * Gets the value of the certificate property.
@@ -61,30 +57,6 @@ public class ReportPreview {
      */
     public void setCertificate(byte[] value) {
         this.certificate = value;
-    }
-
-    /**
-     * Gets the value of the documentId property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDocumentId() {
-        return documentId;
-    }
-
-    /**
-     * Sets the value of the documentId property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDocumentId(String value) {
-        this.documentId = value;
     }
 
 }

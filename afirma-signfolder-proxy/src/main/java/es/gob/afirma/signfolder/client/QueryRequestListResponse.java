@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -24,8 +24,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -39,23 +39,23 @@ public class QueryRequestListResponse {
 
     /**
      * Gets the value of the requestList property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileRequestList }
-     *
+     *     
      */
     public MobileRequestList getRequestList() {
-        return this.requestList;
+        return requestList;
     }
 
     /**
      * Sets the value of the requestList property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileRequestList }
-     *
+     *     
      */
     public void setRequestList(MobileRequestList value) {
         this.requestList = value;

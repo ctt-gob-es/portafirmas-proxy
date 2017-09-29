@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -43,23 +43,23 @@ public class RegisterSIMUser {
 
     /**
      * Gets the value of the certificate property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getCertificate() {
-        return this.certificate;
+        return certificate;
     }
 
     /**
      * Sets the value of the certificate property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setCertificate(String value) {
         this.certificate = value;
@@ -67,23 +67,23 @@ public class RegisterSIMUser {
 
     /**
      * Gets the value of the register property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileSIMUser }
-     *
+     *     
      */
     public MobileSIMUser getRegister() {
-        return this.register;
+        return register;
     }
 
     /**
      * Sets the value of the register property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileSIMUser }
-     *
+     *     
      */
     public void setRegister(MobileSIMUser value) {
         this.register = value;

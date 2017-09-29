@@ -14,7 +14,6 @@ import es.gob.afirma.core.misc.Base64;
 public class ConfigurationRequestParser {
 
 	private static final String CONFIGURATION_REQUEST_NODE = "rqtconf"; //$NON-NLS-1$
-	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
 
 	private ConfigurationRequestParser() {
 		// Se evita el uso del constructor
@@ -25,7 +24,7 @@ public class ConfigurationRequestParser {
 	 * @param doc Documento XML.
 	 * @return Identificador de documento.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ConfigurationRequest parse(final Document doc) {
+	static ConfigurationRequest parse(final Document doc, final byte[] certEncoded) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -37,7 +36,7 @@ public class ConfigurationRequestParser {
 					doc.getDocumentElement().getNodeName());
 		}
 
-		final NodeList nodes = doc.getDocumentElement().getChildNodes();
+		/*final NodeList nodes = doc.getDocumentElement().getChildNodes();
 		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
@@ -57,7 +56,7 @@ public class ConfigurationRequestParser {
 		} catch (Exception e) {
 			throw new IllegalArgumentException(
 					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-		}
+		}*/
 		
 		return new ConfigurationRequest(certEncoded);
 	}

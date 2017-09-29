@@ -8,9 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileSIMUserStatus complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileSIMUserStatus">
  *   &lt;complexContent>
@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileSIMUserStatus", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -44,23 +44,23 @@ public class MobileSIMUserStatus {
 
     /**
      * Gets the value of the statusCode property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getStatusCode() {
-        return this.statusCode;
+        return statusCode;
     }
 
     /**
      * Sets the value of the statusCode property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setStatusCode(String value) {
         this.statusCode = value;
@@ -68,23 +68,23 @@ public class MobileSIMUserStatus {
 
     /**
      * Gets the value of the statusText property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getStatusText() {
-        return this.statusText;
+        return statusText;
     }
 
     /**
      * Sets the value of the statusText property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setStatusText(String value) {
         this.statusText = value;
@@ -92,23 +92,23 @@ public class MobileSIMUserStatus {
 
     /**
      * Gets the value of the details property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getDetails() {
-        return this.details;
+        return details;
     }
 
     /**
      * Sets the value of the details property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setDetails(String value) {
         this.details = value;
@@ -116,23 +116,23 @@ public class MobileSIMUserStatus {
 
     /**
      * Gets the value of the idDispositivo property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getIdDispositivo() {
-        return this.idDispositivo;
+        return idDispositivo;
     }
 
     /**
      * Sets the value of the idDispositivo property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setIdDispositivo(String value) {
         this.idDispositivo = value;

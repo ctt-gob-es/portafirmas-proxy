@@ -11,9 +11,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileDocument complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileDocument">
  *   &lt;complexContent>
@@ -33,8 +33,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileDocument", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -53,37 +53,37 @@ public class MobileDocument {
     protected String identifier;
     protected String name;
     protected String mime;
-    @XmlElementRef(name = "signatureType", type = JAXBElement.class)
+    @XmlElementRef(name = "signatureType", type = JAXBElement.class, required = false)
     protected JAXBElement<MobileSignFormat> signatureType;
-    @XmlElementRef(name = "signAlgorithm", type = JAXBElement.class)
+    @XmlElementRef(name = "signAlgorithm", type = JAXBElement.class, required = false)
     protected JAXBElement<String> signAlgorithm;
     protected String operationType;
-    @XmlElementRef(name = "signatureParameters", type = JAXBElement.class)
+    @XmlElementRef(name = "signatureParameters", type = JAXBElement.class, required = false)
     protected JAXBElement<String> signatureParameters;
-    @XmlElementRef(name = "data", type = JAXBElement.class)
+    @XmlElementRef(name = "data", type = JAXBElement.class, required = false)
     protected JAXBElement<DataHandler> data;
-    @XmlElementRef(name = "size", type = JAXBElement.class)
+    @XmlElementRef(name = "size", type = JAXBElement.class, required = false)
     protected JAXBElement<Integer> size;
 
     /**
      * Gets the value of the identifier property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getIdentifier() {
-        return this.identifier;
+        return identifier;
     }
 
     /**
      * Sets the value of the identifier property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setIdentifier(String value) {
         this.identifier = value;
@@ -91,23 +91,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the name property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
      * Sets the value of the name property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setName(String value) {
         this.name = value;
@@ -115,23 +115,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the mime property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getMime() {
-        return this.mime;
+        return mime;
     }
 
     /**
      * Sets the value of the mime property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setMime(String value) {
         this.mime = value;
@@ -139,23 +139,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the signatureType property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link MobileSignFormat }{@code >}
-     *
+     *     
      */
     public JAXBElement<MobileSignFormat> getSignatureType() {
-        return this.signatureType;
+        return signatureType;
     }
 
     /**
      * Sets the value of the signatureType property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link MobileSignFormat }{@code >}
-     *
+     *     
      */
     public void setSignatureType(JAXBElement<MobileSignFormat> value) {
         this.signatureType = value;
@@ -163,23 +163,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the signAlgorithm property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getSignAlgorithm() {
-        return this.signAlgorithm;
+        return signAlgorithm;
     }
 
     /**
      * Sets the value of the signAlgorithm property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setSignAlgorithm(JAXBElement<String> value) {
         this.signAlgorithm = value;
@@ -187,23 +187,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the operationType property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getOperationType() {
-        return this.operationType;
+        return operationType;
     }
 
     /**
      * Sets the value of the operationType property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setOperationType(String value) {
         this.operationType = value;
@@ -211,23 +211,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the signatureParameters property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public JAXBElement<String> getSignatureParameters() {
-        return this.signatureParameters;
+        return signatureParameters;
     }
 
     /**
      * Sets the value of the signatureParameters property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link String }{@code >}
-     *
+     *     
      */
     public void setSignatureParameters(JAXBElement<String> value) {
         this.signatureParameters = value;
@@ -235,23 +235,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the data property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link DataHandler }{@code >}
-     *
+     *     
      */
     public JAXBElement<DataHandler> getData() {
-        return this.data;
+        return data;
     }
 
     /**
      * Sets the value of the data property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link DataHandler }{@code >}
-     *
+     *     
      */
     public void setData(JAXBElement<DataHandler> value) {
         this.data = value;
@@ -259,23 +259,23 @@ public class MobileDocument {
 
     /**
      * Gets the value of the size property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link JAXBElement }{@code <}{@link Integer }{@code >}
-     *
+     *     
      */
     public JAXBElement<Integer> getSize() {
-        return this.size;
+        return size;
     }
 
     /**
      * Sets the value of the size property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link JAXBElement }{@code <}{@link Integer }{@code >}
-     *
+     *     
      */
     public void setSize(JAXBElement<Integer> value) {
         this.size = value;

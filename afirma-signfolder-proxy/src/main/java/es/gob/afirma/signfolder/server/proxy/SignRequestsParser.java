@@ -36,11 +36,12 @@ final class SignRequestsParser {
 	 * la informacion correspondiente a un listado de peticiones de firma con varios documentos
 	 * cada una.
 	 * @param doc Documento XML.
+	 * @param certEncoded Certificado.
 	 * @return Objeto con los datos del XML.
 	 * @throws IOException Si ocurren problemas decodificando el certificado desde Base64
 	 * @throws CertificateException Si ocurren problemas creando el certificado
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static TriphaseRequestBean parse(final Document doc) throws CertificateException, IOException {
+	static TriphaseRequestBean parse(final Document doc, final byte[] certEncoded) throws CertificateException, IOException {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -53,10 +54,10 @@ final class SignRequestsParser {
 		}
 
 		final NodeList requestNodes = doc.getDocumentElement().getChildNodes();
-
+		
 		// Nos aseguramos de procesar solo nodos de tipo Element
 		int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
-		if (nodeIndex == -1 || !CERTIFICATE_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
+		/*if (nodeIndex == -1 || !CERTIFICATE_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
 			throw new IllegalArgumentException("La peticion de firma trifasica no contiene el nodo " + //$NON-NLS-1$
 					CERTIFICATE_NODE + " con el certificado de firma a utilizar"); //$NON-NLS-1$
 		}
@@ -68,8 +69,9 @@ final class SignRequestsParser {
 			throw new IllegalArgumentException(
 					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
 		}
-
+		
 		nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
+		*/
 		if (nodeIndex == -1 || !REQUESTS_LIST_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
 			throw new IllegalArgumentException("La peticion de firma trifasica no contiene el nodo " + //$NON-NLS-1$
 					REQUESTS_LIST_NODE + " con el listado de peticiones de firma de documentos"); //$NON-NLS-1$

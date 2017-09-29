@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileDocSignInfo complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileDocSignInfo">
  *   &lt;complexContent>
@@ -26,8 +26,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileDocSignInfo", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -44,23 +44,23 @@ public class MobileDocSignInfo {
 
     /**
      * Gets the value of the documentId property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getDocumentId() {
-        return this.documentId;
+        return documentId;
     }
 
     /**
      * Sets the value of the documentId property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setDocumentId(String value) {
         this.documentId = value;
@@ -68,23 +68,23 @@ public class MobileDocSignInfo {
 
     /**
      * Gets the value of the signature property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link DataHandler }
-     *
+     *     
      */
     public DataHandler getSignature() {
-        return this.signature;
+        return signature;
     }
 
     /**
      * Sets the value of the signature property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link DataHandler }
-     *
+     *     
      */
     public void setSignature(DataHandler value) {
         this.signature = value;
@@ -92,23 +92,23 @@ public class MobileDocSignInfo {
 
     /**
      * Gets the value of the signFormat property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getSignFormat() {
-        return this.signFormat;
+        return signFormat;
     }
 
     /**
      * Sets the value of the signFormat property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setSignFormat(String value) {
         this.signFormat = value;

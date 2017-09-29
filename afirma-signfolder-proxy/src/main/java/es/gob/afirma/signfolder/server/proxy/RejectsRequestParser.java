@@ -18,7 +18,6 @@ import es.gob.afirma.core.misc.Base64;
  */
 public class RejectsRequestParser {
 
-	private final static String CERT_NODE = "cert"; //$NON-NLS-1$
 	private final static String REJECT_REQUEST_NODE = "reqrjcts"; //$NON-NLS-1$
 	private final static String REJECTS_NODE = "rjcts"; //$NON-NLS-1$
 	private final static String REJECT_NODE = "rjct"; //$NON-NLS-1$
@@ -34,9 +33,10 @@ public class RejectsRequestParser {
 	/** Analiza un documento XML y, en caso de tener el formato correcto, obtiene de &eacute;l
 	 * un listado de identificador de solicitud de firma y el certificado para autenticar la petici&oacute;n.
 	 * @param doc Documento XML.
+	 * @param certEncoded Certificado.
 	 * @return Petici&oacute;n de rechazo.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static RejectRequest parse(final Document doc) {
+	static RejectRequest parse(final Document doc, final byte[] certEncoded) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -49,9 +49,11 @@ public class RejectsRequestParser {
 		}
 
 		// Establecemos el certificado para la autenticacion
-		final byte[] certEncoded;
+		
 		final NodeList rejectRequestNodes = doc.getDocumentElement().getChildNodes();
+		
 		int nodeIndex = XmlUtils.nextNodeElementIndex(rejectRequestNodes, 0);
+		/*final byte[] certEncoded;
 		if (nodeIndex != -1 && CERT_NODE.equalsIgnoreCase(rejectRequestNodes.item(nodeIndex).getNodeName())) {
 			try {
 				certEncoded = Base64.decode(rejectRequestNodes.item(nodeIndex).getTextContent().trim());
@@ -63,7 +65,7 @@ public class RejectsRequestParser {
 		} else {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el certificado para la autenticacion de la peticion de rechazo de solicitudes"); //$NON-NLS-1$
-		}
+		}*/
 
 		// Si se indica una razon del rechazo, la almacenamos
 		String reason = null;

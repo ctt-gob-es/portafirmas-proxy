@@ -1,6 +1,8 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import java.io.ByteArrayInputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -8,6 +10,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -23,13 +31,14 @@ public class ListRequestParser {
 	private final static int DEFAULT_PAGE_SIZE = 50;
 
 	private final static String LIST_REQUEST_NODE = "rqtlst"; //$NON-NLS-1$
-	private final static String CERT_NODE = "cert"; //$NON-NLS-1$
 	private final static String FORMATS_NODE = "fmts"; //$NON-NLS-1$
 	private final static String FORMAT_NODE = "fmt"; //$NON-NLS-1$
 	private final static String FILTERS_NODE = "fltrs"; //$NON-NLS-1$
 	private final static String FILTER_NODE = "fltr"; //$NON-NLS-1$
 	private final static String FILTER_KEY_NODE = "key"; //$NON-NLS-1$
 	private final static String FILTER_VALUE_NODE = "value"; //$NON-NLS-1$
+	
+	private static final String SESSION_PARAM_CERT = "cert";
 
 	private final static String STATE_ATTRIBUTE = "state"; //$NON-NLS-1$
 	private final static String PAGE_ATTRIBUTE = "pg"; //$NON-NLS-1$
@@ -39,14 +48,13 @@ public class ListRequestParser {
 	private ListRequestParser() {
 		// No se permite el constructor por defecto
 	}
-
+	
 	/** Analiza un documento XML y, en caso de tener el formato correcto, obtiene de &eacute;l
 	 * un objeto de tipo {@link es.gob.afirma.signfolder.server.proxy.ListRequest}.
 	 * @param doc Documento XML.
 	 * @return Objeto con los datos del XML.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ListRequest parse(final Document doc) {
-
+	static ListRequest parse(final Document doc, byte[] cert) {
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
 		}
@@ -83,7 +91,9 @@ public class ListRequestParser {
 		// Establecemos el certificado para la autenticacion
 		final NodeList requestNodes = doc.getDocumentElement().getChildNodes();
 		int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
-		if (nodeIndex != -1 && CERT_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
+		// TODO modificar para que no haga falta enviar la parte publica del certificado al portafirmas
+		certEncoded = cert;
+		/*if (nodeIndex != -1 && CERT_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
 			try {
 				certEncoded = Base64.decode(requestNodes.item(nodeIndex).getTextContent().trim());
 			} catch (final Exception e) {
@@ -94,7 +104,7 @@ public class ListRequestParser {
 		} else {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el certificado para la autenticacion de la peticion de solicitudes de firma"); //$NON-NLS-1$
-		}
+		}*/
 
 		// En caso de haber formatos de firma soportados y filtros de peticiones, los establecemos
 		if (nodeIndex != -1 && FORMATS_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {

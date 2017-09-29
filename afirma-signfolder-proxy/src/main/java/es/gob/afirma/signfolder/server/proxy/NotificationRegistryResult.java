@@ -17,7 +17,12 @@ class NotificationRegistryResult {
 	 */
 	public NotificationRegistryResult(String statusCode, String statusText) {
 
-		this.registered = false;	//TODO: Determinar en base a los parametros de entrada
+		if(statusCode.equals("0")) {
+			this.registered = true;	//TODO: Determinar en base a los parametros de entrada
+		}
+		else {
+			this.registered = false;
+		}
 	}
 
 	/**

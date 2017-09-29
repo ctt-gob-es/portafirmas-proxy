@@ -29,6 +29,9 @@ public class SignRequest {
 	/** Fecha de la petici&oacute;n. */
 	private final String date;
 
+	/** Fecha de caducidad de la petici&oacute;n. */
+	private final String expdate;
+	
 	/** Prioridad de la petici&oacute;n. */
 	private final String priority;
 
@@ -60,6 +63,7 @@ public class SignRequest {
 			final String sender,
 			final String view,
 			final String date,
+			final String expdate,
 			final String priority,
 			final boolean workflow,
 			final boolean forward,
@@ -70,6 +74,7 @@ public class SignRequest {
 		this.sender = sender;
 		this.view = view;
 		this.date = date;
+		this.expdate = expdate;
 		this.priority = priority;
 		this.workflow = workflow;
 		this.forward = forward;
@@ -107,6 +112,12 @@ public class SignRequest {
 		return this.date;
 	}
 
+	/** Recupera la fecha de caducidad de la petici&oacute;n.
+	 * @return Fecha de la petici&oacute;n. */
+	public String getExpDate() {
+		return this.expdate;
+	}
+	
 	/** Recupera la prioridad de la petici&oacute;n: 1(Normal), 2 (Alta), 3 (Muy alta) o 4 (Urgente).
 	 * @return Peticionario de la petici&oacute;n. */
 	public String getPriority() {

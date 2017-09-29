@@ -117,7 +117,10 @@ final class XmlResponsesFactory {
 			sb.append("<snder>").append(escapeXmlCharacters(sr.getSender())).append("</snder>"); //$NON-NLS-1$ //$NON-NLS-2$
 			sb.append("<view>").append(sr.getView()).append("</view>"); //$NON-NLS-1$ //$NON-NLS-2$
 			sb.append("<date>").append(sr.getDate()).append("</date>"); //$NON-NLS-1$ //$NON-NLS-2$
-
+			if(sr.getExpDate() != null) {
+				sb.append("<expdate>").append(sr.getExpDate()).append("</expdate>"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			
 			sb.append("<docs>"); //$NON-NLS-1$
 			for (final SignRequestDocument doc : sr.getDocumentsRequests()) {
 				sb.append("<doc docid=\"").append(doc.getId()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -181,6 +184,9 @@ final class XmlResponsesFactory {
 		sb.append("</snders>"); //$NON-NLS-1$
 
 		sb.append("<date>").append(requestDetails.getDate()).append("</date>"); //$NON-NLS-1$ //$NON-NLS-2$
+		if(requestDetails.getExpDate() != null) {
+			sb.append("<expdate>").append(requestDetails.getExpDate()).append("</expdate>"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 		sb.append("<app>").append(escapeXmlCharacters(requestDetails.getApp())).append("</app>"); //$NON-NLS-1$ //$NON-NLS-2$
 		sb.append("<ref>").append(requestDetails.getRef()).append("</ref>"); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -208,6 +214,28 @@ final class XmlResponsesFactory {
 			sb.append("</doc>"); //$NON-NLS-1$
 		}
 		sb.append("</docs>"); //$NON-NLS-1$
+		
+		// Los adjuntos son opcionales
+		boolean firstTime = true;
+		for (final SignRequestDocument att : requestDetails.getAttached()) {
+			if(firstTime) {
+				sb.append("<attachedList>"); //$NON-NLS-1$
+				firstTime = false;
+			}
+			sb.append("<attached docid=\"").append(att.getId()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("<nm>").append(escapeXmlCharacters(att.getName())).append("</nm>"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (att.getSize() != null) {
+				sb.append("<sz>").append(att.getSize()).append("</sz>"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			sb.append("<mmtp>").append(att.getMimeType()).append("</mmtp>"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("<sigfrmt>").append(att.getSignFormat()).append("</sigfrmt>"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("<mdalgo>").append(att.getMessageDigestAlgorithm()).append("</mdalgo>"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("<params>").append(att.getParams() != null ? escapeXmlCharacters(att.getParams()) : "").append("</params>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			sb.append("</attached>"); //$NON-NLS-1$
+		}
+		if(!firstTime) {
+			sb.append("</attachedList>"); //$NON-NLS-1$
+		}
 
 		sb.append("</dtl>"); //$NON-NLS-1$
 

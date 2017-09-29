@@ -13,7 +13,6 @@ import es.gob.afirma.core.misc.Base64;
 public class ApproveRequestParser {
 
 	private static final String APPROVE_REQUEST_NODE = "apprv"; //$NON-NLS-1$
-	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
 	private static final String REQUESTS_NODE = "reqs"; //$NON-NLS-1$
 	private static final String REQUEST_ID_ATTRIBUTE = "id"; //$NON-NLS-1$
 	
@@ -24,9 +23,10 @@ public class ApproveRequestParser {
 	/** Analiza un documento XML y, en caso de tener el formato correcto, obtiene de &eacute;l
 	 * una solicitud de visto bueno de peticiones.
 	 * @param doc Documento XML.
+	 * @param certB64 Certificado guardado en sesi&oacute;n.
 	 * @return Solicitud de visto bueno.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ApproveRequestList parse(final Document doc) {
+	static ApproveRequestList parse(final Document doc, final byte[] cert) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -43,10 +43,10 @@ public class ApproveRequestParser {
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
 					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
-							CERT_NODE);
+							REQUESTS_NODE);
 		}
 		Element currentNode = (Element) nodes.item(nodeIndex);
-		if (!CERT_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
+		/*if (!CERT_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el nodo " + CERT_NODE + //$NON-NLS-1$
 					" en su lugar se encontro " + currentNode.getNodeName()); //$NON-NLS-1$
@@ -60,7 +60,7 @@ public class ApproveRequestParser {
 					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
 		}
 		
-		nodeIndex = XmlUtils.nextNodeElementIndex(nodes, ++nodeIndex);
+		nodeIndex = XmlUtils.nextNodeElementIndex(nodes, ++nodeIndex);*/
 		currentNode = (Element) nodes.item(nodeIndex);
 		if (!REQUESTS_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
 			throw new IllegalArgumentException(
@@ -68,7 +68,7 @@ public class ApproveRequestParser {
 					" en su lugar se encontro " + currentNode.getNodeName()); //$NON-NLS-1$
 		}
 		
-		final ApproveRequestList appRequest = new ApproveRequestList(certEncoded);
+		final ApproveRequestList appRequest = new ApproveRequestList(cert);
 		final NodeList idsNodeList = currentNode.getChildNodes();
 		for (int i = 0; i < idsNodeList.getLength(); i++) {
 			i = XmlUtils.nextNodeElementIndex(idsNodeList, i);

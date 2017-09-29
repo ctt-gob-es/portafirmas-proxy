@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -29,8 +29,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -59,18 +59,18 @@ public class QueryRequestList {
 
     /**
      * Gets the value of the certificate property.
-     *
+     * 
      * @return
      *     possible object is
      *     byte[]
      */
     public byte[] getCertificate() {
-        return this.certificate;
+        return certificate;
     }
 
     /**
      * Sets the value of the certificate property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     byte[]
@@ -81,23 +81,23 @@ public class QueryRequestList {
 
     /**
      * Gets the value of the state property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getState() {
-        return this.state;
+        return state;
     }
 
     /**
      * Sets the value of the state property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setState(String value) {
         this.state = value;
@@ -105,23 +105,23 @@ public class QueryRequestList {
 
     /**
      * Gets the value of the initPage property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getInitPage() {
-        return this.initPage;
+        return initPage;
     }
 
     /**
      * Sets the value of the initPage property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setInitPage(String value) {
         this.initPage = value;
@@ -129,23 +129,23 @@ public class QueryRequestList {
 
     /**
      * Gets the value of the pageSize property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getPageSize() {
-        return this.pageSize;
+        return pageSize;
     }
 
     /**
      * Sets the value of the pageSize property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setPageSize(String value) {
         this.pageSize = value;
@@ -153,23 +153,23 @@ public class QueryRequestList {
 
     /**
      * Gets the value of the signFormats property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileStringList }
-     *
+     *     
      */
     public MobileStringList getSignFormats() {
-        return this.signFormats;
+        return signFormats;
     }
 
     /**
      * Sets the value of the signFormats property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileStringList }
-     *
+     *     
      */
     public void setSignFormats(MobileStringList value) {
         this.signFormats = value;
@@ -177,23 +177,23 @@ public class QueryRequestList {
 
     /**
      * Gets the value of the filters property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link MobileRequestFilterList }
-     *
+     *     
      */
     public MobileRequestFilterList getFilters() {
-        return this.filters;
+        return filters;
     }
 
     /**
      * Sets the value of the filters property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link MobileRequestFilterList }
-     *
+     *     
      */
     public void setFilters(MobileRequestFilterList value) {
         this.filters = value;

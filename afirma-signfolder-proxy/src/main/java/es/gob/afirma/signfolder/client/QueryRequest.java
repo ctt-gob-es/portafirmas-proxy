@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -43,18 +43,18 @@ public class QueryRequest {
 
     /**
      * Gets the value of the certificate property.
-     *
+     * 
      * @return
      *     possible object is
      *     byte[]
      */
     public byte[] getCertificate() {
-        return this.certificate;
+        return certificate;
     }
 
     /**
      * Sets the value of the certificate property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     byte[]
@@ -65,23 +65,23 @@ public class QueryRequest {
 
     /**
      * Gets the value of the requestId property.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getRequestId() {
-        return this.requestId;
+        return requestId;
     }
 
     /**
      * Sets the value of the requestId property.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
     public void setRequestId(String value) {
         this.requestId = value;

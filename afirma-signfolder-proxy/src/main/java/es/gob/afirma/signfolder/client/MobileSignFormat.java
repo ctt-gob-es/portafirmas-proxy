@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for mobileSignFormat.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -20,70 +20,44 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;enumeration value="XADES"/>
  *     &lt;enumeration value="XADES IMPLICITO"/>
  *     &lt;enumeration value="XADES EXPLICITO"/>
- *     &lt;enumeration value="XADES ENVELOPING"/>
  *     &lt;enumeration value="XADES ENVELOPED"/>
+ *     &lt;enumeration value="XADES ENVELOPING"/>
  *     &lt;enumeration value="PDF"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- *
+ * 
  */
 @XmlType(name = "mobileSignFormat", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0")
 @XmlEnum
 public enum MobileSignFormat {
 
-	/** PKCS7 */
-	@XmlEnumValue("PKCS7")
-    PKCS_7("PKCS7"), //$NON-NLS-1$
-
-    /** CMS */
-    CMS("CMS"), //$NON-NLS-1$
-
-    /** CAdESS */
-    CADES("CADES"), //$NON-NLS-1$
-
-    /** XAdES */
-    XADES("XADES"), //$NON-NLS-1$
-
-    /** XADES IMPLICITO */
+    @XmlEnumValue("PKCS7")
+    PKCS_7("PKCS7"),
+    CMS("CMS"),
+    CADES("CADES"),
+    XADES("XADES"),
     @XmlEnumValue("XADES IMPLICITO")
-    XADES_IMPLICITO("XADES IMPLICITO"), //$NON-NLS-1$
-
-    /** XADES EXPLICITO */
+    XADES_IMPLICITO("XADES IMPLICITO"),
     @XmlEnumValue("XADES EXPLICITO")
-    XADES_EXPLICITO("XADES EXPLICITO"), //$NON-NLS-1$
-
-    /** XADES ENVELOPING */
-    @XmlEnumValue("XADES ENVELOPING")
-    XADES_ENVELOPING("XADES ENVELOPING"), //$NON-NLS-1$
-
-    /** XADES ENVELOPED */
+    XADES_EXPLICITO("XADES EXPLICITO"),
     @XmlEnumValue("XADES ENVELOPED")
-    XADES_ENVELOPED("XADES ENVELOPED"), //$NON-NLS-1$
-    /** PDF */
-    PDF("PDF"); //$NON-NLS-1$
-
+    XADES_ENVELOPED("XADES ENVELOPED"),
+    @XmlEnumValue("XADES ENVELOPING")
+    XADES_ENVELOPING("XADES ENVELOPING"),
+    PDF("PDF");
     private final String value;
 
-    MobileSignFormat(final String v) {
-        this.value = v;
+    MobileSignFormat(String v) {
+        value = v;
     }
 
-    /**
-     * Obtiene el valor del elemento.
-     * @return Valor.
-     */
     public String value() {
-        return this.value;
+        return value;
     }
 
-    /**
-     * Obtiene un elemento a partir de su valor.
-     * @param v Valor.
-     * @return Elemento enumerado.
-     */
-    public static MobileSignFormat fromValue(final String v) {
-        for (final MobileSignFormat c: MobileSignFormat.values()) {
+    public static MobileSignFormat fromValue(String v) {
+        for (MobileSignFormat c: MobileSignFormat.values()) {
             if (c.value.equals(v)) {
                 return c;
             }
