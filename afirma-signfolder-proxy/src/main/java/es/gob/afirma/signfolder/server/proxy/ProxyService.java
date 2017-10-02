@@ -725,10 +725,6 @@ public final class ProxyService extends HttpServlet {
 
 			// Guardamos las firmas de todos los documentos de cada peticion
 			try {
-				
-				OutputStream out = new FileOutputStream("C:/Entrada/out.pdf");
-				out.write(triRequest.get(0).getResult());
-				out.close();
 				service.saveSign(triRequests.getCertificate().getEncoded(),
 						triRequest.getRef(), transformToWsParams(triRequest));
 			} catch (final Exception ex) {
