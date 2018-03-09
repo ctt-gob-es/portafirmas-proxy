@@ -9,9 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Clase Java para anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType>
@@ -58,7 +58,7 @@ public class QueryRequestList {
     protected MobileRequestFilterList filters;
 
     /**
-     * Gets the value of the certificate property.
+     * Obtiene el valor de la propiedad certificate.
      * 
      * @return
      *     possible object is
@@ -69,7 +69,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Sets the value of the certificate property.
+     * Define el valor de la propiedad certificate.
      * 
      * @param value
      *     allowed object is
@@ -80,7 +80,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Gets the value of the state property.
+     * Obtiene el valor de la propiedad state.
      * 
      * @return
      *     possible object is
@@ -92,7 +92,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Sets the value of the state property.
+     * Define el valor de la propiedad state.
      * 
      * @param value
      *     allowed object is
@@ -104,7 +104,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Gets the value of the initPage property.
+     * Obtiene el valor de la propiedad initPage.
      * 
      * @return
      *     possible object is
@@ -116,7 +116,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Sets the value of the initPage property.
+     * Define el valor de la propiedad initPage.
      * 
      * @param value
      *     allowed object is
@@ -128,7 +128,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Gets the value of the pageSize property.
+     * Obtiene el valor de la propiedad pageSize.
      * 
      * @return
      *     possible object is
@@ -140,7 +140,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Sets the value of the pageSize property.
+     * Define el valor de la propiedad pageSize.
      * 
      * @param value
      *     allowed object is
@@ -152,7 +152,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Gets the value of the signFormats property.
+     * Obtiene el valor de la propiedad signFormats.
      * 
      * @return
      *     possible object is
@@ -164,7 +164,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Sets the value of the signFormats property.
+     * Define el valor de la propiedad signFormats.
      * 
      * @param value
      *     allowed object is
@@ -176,7 +176,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Gets the value of the filters property.
+     * Obtiene el valor de la propiedad filters.
      * 
      * @return
      *     possible object is
@@ -188,7 +188,7 @@ public class QueryRequestList {
     }
 
     /**
-     * Sets the value of the filters property.
+     * Define el valor de la propiedad filters.
      * 
      * @param value
      *     allowed object is

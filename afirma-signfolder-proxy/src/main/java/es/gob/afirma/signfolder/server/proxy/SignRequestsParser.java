@@ -8,13 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.core.signers.TriphaseData;
 
 /** Analizador de XML para la generaci&oacute;n de objetos de tipo
@@ -26,6 +26,7 @@ final class SignRequestsParser {
 	private static final String TRISIGN_REQUEST_NODE = "rqttri"; //$NON-NLS-1$
 	private static final String CERTIFICATE_NODE = "cert"; //$NON-NLS-1$
 	private static final String REQUESTS_LIST_NODE = "reqs"; //$NON-NLS-1$
+	private static final String TRANSACTION_ID_ATTR = "trid"; //$NON-NLS-1$
 
 	private SignRequestsParser() {
 		// No instanciable
@@ -53,10 +54,37 @@ final class SignRequestsParser {
 					doc.getDocumentElement().getNodeName());
 		}
 
-		final NodeList requestNodes = doc.getDocumentElement().getChildNodes();
-		
+		return parse(doc.getDocumentElement(), certEncoded);
+	}
+
+	/** Analiza un nodo XML y, en caso de tener el formato correcto, obtiene de &eacute;l
+	 * un objeto de tipo {@link es.gob.afirma.signfolder.server.proxy.TriphaseRequestBean} con
+	 * la informacion correspondiente a un listado de peticiones de firma con varios documentos
+	 * cada una.
+	 * @param xmlNode Nodo XML.
+	 * @param certEncoded Certificado.
+	 * @return Objeto con los datos del XML.
+	 * @throws IOException Si ocurren problemas decodificando el certificado desde Base64
+	 * @throws CertificateException Si ocurren problemas creando el certificado
+	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
+	static TriphaseRequestBean parse(final Element xmlNode, final byte[] certEncoded) throws CertificateException, IOException {
+
+		if (xmlNode == null) {
+			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
+		}
+
+		// Buscamos si en el XML se encuentra el id de transaccion (opcional)
+		String trId = null;
+		final Attr trIdNode = xmlNode.getAttributeNode(TRANSACTION_ID_ATTR);
+		if (trIdNode != null) {
+			trId = trIdNode.getValue();
+		}
+
+		// Obtenemos la informacion de firma trifasica de los documentos
+		final NodeList requestNodes = xmlNode.getChildNodes();
+
 		// Nos aseguramos de procesar solo nodos de tipo Element
-		int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
+		final int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
 		/*if (nodeIndex == -1 || !CERTIFICATE_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
 			throw new IllegalArgumentException("La peticion de firma trifasica no contiene el nodo " + //$NON-NLS-1$
 					CERTIFICATE_NODE + " con el certificado de firma a utilizar"); //$NON-NLS-1$
@@ -69,7 +97,7 @@ final class SignRequestsParser {
 			throw new IllegalArgumentException(
 					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
 		}
-		
+
 		nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
 		*/
 		if (nodeIndex == -1 || !REQUESTS_LIST_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
@@ -87,9 +115,11 @@ final class SignRequestsParser {
 			listTrisignRequests.add(SignRequestParser.parse(requestsNode.item(i)));
 		}
 
-		return new TriphaseRequestBean(certEncoded, listTrisignRequests);
-	}
+		final TriphaseRequestBean triphaseRequest = new TriphaseRequestBean(certEncoded, listTrisignRequests);
+		triphaseRequest.setTrId(trId);
 
+		return triphaseRequest;
+	}
 	/**
 	 * Analizador XML de una petici&oacute;n de firma particular.
 	 */

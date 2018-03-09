@@ -1,8 +1,6 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import java.io.ByteArrayInputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -11,16 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-
-import es.gob.afirma.core.misc.Base64;
 
 /**
  * Analiza un documento XML para obtener una petici&oacute;n de solicitudes de firma.

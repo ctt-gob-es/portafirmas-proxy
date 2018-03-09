@@ -9,9 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for mobileDocSignInfo complex type.
+ * <p>Clase Java para mobileDocSignInfo complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType name="mobileDocSignInfo">
@@ -43,7 +43,7 @@ public class MobileDocSignInfo {
     protected String signFormat;
 
     /**
-     * Gets the value of the documentId property.
+     * Obtiene el valor de la propiedad documentId.
      * 
      * @return
      *     possible object is
@@ -55,7 +55,7 @@ public class MobileDocSignInfo {
     }
 
     /**
-     * Sets the value of the documentId property.
+     * Define el valor de la propiedad documentId.
      * 
      * @param value
      *     allowed object is
@@ -67,7 +67,7 @@ public class MobileDocSignInfo {
     }
 
     /**
-     * Gets the value of the signature property.
+     * Obtiene el valor de la propiedad signature.
      * 
      * @return
      *     possible object is
@@ -79,7 +79,7 @@ public class MobileDocSignInfo {
     }
 
     /**
-     * Sets the value of the signature property.
+     * Define el valor de la propiedad signature.
      * 
      * @param value
      *     allowed object is
@@ -91,7 +91,7 @@ public class MobileDocSignInfo {
     }
 
     /**
-     * Gets the value of the signFormat property.
+     * Obtiene el valor de la propiedad signFormat.
      * 
      * @return
      *     possible object is
@@ -103,7 +103,7 @@ public class MobileDocSignInfo {
     }
 
     /**
-     * Sets the value of the signFormat property.
+     * Define el valor de la propiedad signFormat.
      * 
      * @param value
      *     allowed object is

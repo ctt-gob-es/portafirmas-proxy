@@ -18,6 +18,9 @@ public final class TriphaseRequestBean extends ArrayList<TriphaseRequest> {
 	/** Certificado de firma. */
 	private final X509Certificate cert;
 
+	/** Identificador asignado a la transacci&oacute;n. */
+	private String trId = null;
+
 	/** Construye el listado de peticiones de firma trif&aacute;sica.
 	 * @param certEncoded Certificado de firma codificado en Base64.
 	 * @param triphaseRequests Listado de firmas solicitadas.
@@ -30,7 +33,7 @@ public final class TriphaseRequestBean extends ArrayList<TriphaseRequest> {
 
 		this.cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate( //$NON-NLS-1$
 			new ByteArrayInputStream(certEncoded));
-		
+
 		if (triphaseRequests != null) {
 			this.addAll(triphaseRequests);
 		}
@@ -51,5 +54,21 @@ public final class TriphaseRequestBean extends ArrayList<TriphaseRequest> {
 	 * @return Certificado de firma. */
 	public X509Certificate getCertificate() {
 		return this.cert;
+	}
+
+	/**
+	 * Obtiene el identificador asociado a la transacci&oacute;n.
+	 * @return Identificador de transacci&oacute;n o {@code null} si no est&aacute; definido.
+	 */
+	public String getTrId() {
+		return this.trId;
+	}
+
+	/**
+	 * Establece el identificador de transacci&oacute;n.
+	 * @param trId Identificador de transacci&oacute;n.
+	 */
+	public void setTrId(String trId) {
+		this.trId = trId;
 	}
 }

@@ -4,15 +4,16 @@ package es.gob.afirma.signfolder.client;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
- * <p>Java class for mobileRequest complex type.
+ * <p>Clase Java para mobileRequest complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType name="mobileRequest">
@@ -25,13 +26,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="text" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="ref" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="fentry" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *         &lt;element name="fexpiration" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
  *         &lt;element name="importanceLevel" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="application" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="workflow" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *         &lt;element name="forward" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
+ *         &lt;element name="rejected" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
+ *         &lt;element name="rejectedText" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="cascadeSign" type="{http://www.w3.org/2001/XMLSchema}boolean"/>
  *         &lt;element name="senders" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileStringList" minOccurs="0"/>
  *         &lt;element name="signLineList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileSignLineList" minOccurs="0"/>
- *         &lt;element name="documentList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileDocumentList" minOccurs="0"/>
+ *         &lt;element name="documentList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileDocumentList"/>
  *         &lt;element name="attachList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileDocumentList" minOccurs="0"/>
  *         &lt;element name="requestType" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="requestTagId" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
@@ -51,10 +56,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "text",
     "ref",
     "fentry",
+    "fexpiration",
     "importanceLevel",
     "application",
     "workflow",
     "forward",
+    "rejected",
+    "rejectedText",
+    "cascadeSign",
     "senders",
     "signLineList",
     "documentList",
@@ -75,6 +84,8 @@ public class MobileRequest {
     protected JAXBElement<String> ref;
     @XmlElementRef(name = "fentry", type = JAXBElement.class, required = false)
     protected JAXBElement<XMLGregorianCalendar> fentry;
+    @XmlElementRef(name = "fexpiration", type = JAXBElement.class, required = false)
+    protected JAXBElement<XMLGregorianCalendar> fexpiration;
     @XmlElementRef(name = "importanceLevel", type = JAXBElement.class, required = false)
     protected JAXBElement<String> importanceLevel;
     @XmlElementRef(name = "application", type = JAXBElement.class, required = false)
@@ -83,15 +94,23 @@ public class MobileRequest {
     protected JAXBElement<Boolean> workflow;
     @XmlElementRef(name = "forward", type = JAXBElement.class, required = false)
     protected JAXBElement<Boolean> forward;
+    @XmlElementRef(name = "rejected", type = JAXBElement.class, required = false)
+    protected JAXBElement<Boolean> rejected;
+    @XmlElementRef(name = "rejectedText", type = JAXBElement.class, required = false)
+    protected JAXBElement<String> rejectedText;
+    protected boolean cascadeSign;
     protected MobileStringList senders;
-    protected MobileSignLineList signLineList;
+    @XmlElementRef(name = "signLineList", type = JAXBElement.class, required = false)
+    protected JAXBElement<MobileSignLineList> signLineList;
+    @XmlElement(required = true)
     protected MobileDocumentList documentList;
-    protected MobileDocumentList attachList;
+    @XmlElementRef(name = "attachList", type = JAXBElement.class, required = false)
+    protected JAXBElement<MobileDocumentList> attachList;
     protected String requestType;
     protected String requestTagId;
 
     /**
-     * Gets the value of the identifier property.
+     * Obtiene el valor de la propiedad identifier.
      * 
      * @return
      *     possible object is
@@ -103,7 +122,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the identifier property.
+     * Define el valor de la propiedad identifier.
      * 
      * @param value
      *     allowed object is
@@ -115,7 +134,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the subject property.
+     * Obtiene el valor de la propiedad subject.
      * 
      * @return
      *     possible object is
@@ -127,7 +146,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the subject property.
+     * Define el valor de la propiedad subject.
      * 
      * @param value
      *     allowed object is
@@ -139,7 +158,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the view property.
+     * Obtiene el valor de la propiedad view.
      * 
      * @return
      *     possible object is
@@ -151,7 +170,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the view property.
+     * Define el valor de la propiedad view.
      * 
      * @param value
      *     allowed object is
@@ -163,7 +182,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the text property.
+     * Obtiene el valor de la propiedad text.
      * 
      * @return
      *     possible object is
@@ -175,7 +194,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the text property.
+     * Define el valor de la propiedad text.
      * 
      * @param value
      *     allowed object is
@@ -187,7 +206,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the ref property.
+     * Obtiene el valor de la propiedad ref.
      * 
      * @return
      *     possible object is
@@ -199,7 +218,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the ref property.
+     * Define el valor de la propiedad ref.
      * 
      * @param value
      *     allowed object is
@@ -211,7 +230,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the fentry property.
+     * Obtiene el valor de la propiedad fentry.
      * 
      * @return
      *     possible object is
@@ -223,7 +242,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the fentry property.
+     * Define el valor de la propiedad fentry.
      * 
      * @param value
      *     allowed object is
@@ -235,7 +254,31 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the importanceLevel property.
+     * Obtiene el valor de la propiedad fexpiration.
+     * 
+     * @return
+     *     possible object is
+     *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
+     *     
+     */
+    public JAXBElement<XMLGregorianCalendar> getFexpiration() {
+        return fexpiration;
+    }
+
+    /**
+     * Define el valor de la propiedad fexpiration.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
+     *     
+     */
+    public void setFexpiration(JAXBElement<XMLGregorianCalendar> value) {
+        this.fexpiration = value;
+    }
+
+    /**
+     * Obtiene el valor de la propiedad importanceLevel.
      * 
      * @return
      *     possible object is
@@ -247,7 +290,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the importanceLevel property.
+     * Define el valor de la propiedad importanceLevel.
      * 
      * @param value
      *     allowed object is
@@ -259,7 +302,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the application property.
+     * Obtiene el valor de la propiedad application.
      * 
      * @return
      *     possible object is
@@ -271,7 +314,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the application property.
+     * Define el valor de la propiedad application.
      * 
      * @param value
      *     allowed object is
@@ -283,7 +326,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the workflow property.
+     * Obtiene el valor de la propiedad workflow.
      * 
      * @return
      *     possible object is
@@ -295,7 +338,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the workflow property.
+     * Define el valor de la propiedad workflow.
      * 
      * @param value
      *     allowed object is
@@ -307,7 +350,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the forward property.
+     * Obtiene el valor de la propiedad forward.
      * 
      * @return
      *     possible object is
@@ -319,7 +362,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the forward property.
+     * Define el valor de la propiedad forward.
      * 
      * @param value
      *     allowed object is
@@ -331,7 +374,71 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the senders property.
+     * Obtiene el valor de la propiedad rejected.
+     * 
+     * @return
+     *     possible object is
+     *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
+     *     
+     */
+    public JAXBElement<Boolean> getRejected() {
+        return rejected;
+    }
+
+    /**
+     * Define el valor de la propiedad rejected.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
+     *     
+     */
+    public void setRejected(JAXBElement<Boolean> value) {
+        this.rejected = value;
+    }
+
+    /**
+     * Obtiene el valor de la propiedad rejectedText.
+     * 
+     * @return
+     *     possible object is
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
+     *     
+     */
+    public JAXBElement<String> getRejectedText() {
+        return rejectedText;
+    }
+
+    /**
+     * Define el valor de la propiedad rejectedText.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
+     *     
+     */
+    public void setRejectedText(JAXBElement<String> value) {
+        this.rejectedText = value;
+    }
+
+    /**
+     * Obtiene el valor de la propiedad cascadeSign.
+     * 
+     */
+    public boolean isCascadeSign() {
+        return cascadeSign;
+    }
+
+    /**
+     * Define el valor de la propiedad cascadeSign.
+     * 
+     */
+    public void setCascadeSign(boolean value) {
+        this.cascadeSign = value;
+    }
+
+    /**
+     * Obtiene el valor de la propiedad senders.
      * 
      * @return
      *     possible object is
@@ -343,7 +450,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the senders property.
+     * Define el valor de la propiedad senders.
      * 
      * @param value
      *     allowed object is
@@ -355,31 +462,31 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the signLineList property.
+     * Obtiene el valor de la propiedad signLineList.
      * 
      * @return
      *     possible object is
-     *     {@link MobileSignLineList }
+     *     {@link JAXBElement }{@code <}{@link MobileSignLineList }{@code >}
      *     
      */
-    public MobileSignLineList getSignLineList() {
+    public JAXBElement<MobileSignLineList> getSignLineList() {
         return signLineList;
     }
 
     /**
-     * Sets the value of the signLineList property.
+     * Define el valor de la propiedad signLineList.
      * 
      * @param value
      *     allowed object is
-     *     {@link MobileSignLineList }
+     *     {@link JAXBElement }{@code <}{@link MobileSignLineList }{@code >}
      *     
      */
-    public void setSignLineList(MobileSignLineList value) {
+    public void setSignLineList(JAXBElement<MobileSignLineList> value) {
         this.signLineList = value;
     }
 
     /**
-     * Gets the value of the documentList property.
+     * Obtiene el valor de la propiedad documentList.
      * 
      * @return
      *     possible object is
@@ -391,7 +498,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the documentList property.
+     * Define el valor de la propiedad documentList.
      * 
      * @param value
      *     allowed object is
@@ -403,31 +510,31 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the attachList property.
+     * Obtiene el valor de la propiedad attachList.
      * 
      * @return
      *     possible object is
-     *     {@link MobileDocumentList }
+     *     {@link JAXBElement }{@code <}{@link MobileDocumentList }{@code >}
      *     
      */
-    public MobileDocumentList getAttachList() {
+    public JAXBElement<MobileDocumentList> getAttachList() {
         return attachList;
     }
 
     /**
-     * Sets the value of the attachList property.
+     * Define el valor de la propiedad attachList.
      * 
      * @param value
      *     allowed object is
-     *     {@link MobileDocumentList }
+     *     {@link JAXBElement }{@code <}{@link MobileDocumentList }{@code >}
      *     
      */
-    public void setAttachList(MobileDocumentList value) {
+    public void setAttachList(JAXBElement<MobileDocumentList> value) {
         this.attachList = value;
     }
 
     /**
-     * Gets the value of the requestType property.
+     * Obtiene el valor de la propiedad requestType.
      * 
      * @return
      *     possible object is
@@ -439,7 +546,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the requestType property.
+     * Define el valor de la propiedad requestType.
      * 
      * @param value
      *     allowed object is
@@ -451,7 +558,7 @@ public class MobileRequest {
     }
 
     /**
-     * Gets the value of the requestTagId property.
+     * Obtiene el valor de la propiedad requestTagId.
      * 
      * @return
      *     possible object is
@@ -463,7 +570,7 @@ public class MobileRequest {
     }
 
     /**
-     * Sets the value of the requestTagId property.
+     * Define el valor de la propiedad requestTagId.
      * 
      * @param value
      *     allowed object is

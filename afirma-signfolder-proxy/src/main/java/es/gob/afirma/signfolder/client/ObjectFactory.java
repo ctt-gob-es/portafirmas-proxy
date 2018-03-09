@@ -27,22 +27,26 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _MobileRequestIdentifier_QNAME = new QName("", "identifier");
-    private final static QName _MobileRequestRef_QNAME = new QName("", "ref");
-    private final static QName _MobileRequestApplication_QNAME = new QName("", "application");
-    private final static QName _MobileRequestWorkflow_QNAME = new QName("", "workflow");
-    private final static QName _MobileRequestSubject_QNAME = new QName("", "subject");
-    private final static QName _MobileRequestImportanceLevel_QNAME = new QName("", "importanceLevel");
-    private final static QName _MobileRequestForward_QNAME = new QName("", "forward");
-    private final static QName _MobileRequestText_QNAME = new QName("", "text");
-    private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry");
     private final static QName _MobileDocumentData_QNAME = new QName("", "data");
     private final static QName _MobileDocumentSize_QNAME = new QName("", "size");
     private final static QName _MobileDocumentSignatureType_QNAME = new QName("", "signatureType");
     private final static QName _MobileDocumentSignatureParameters_QNAME = new QName("", "signatureParameters");
     private final static QName _MobileDocumentSignAlgorithm_QNAME = new QName("", "signAlgorithm");
+    private final static QName _MobileRequestIdentifier_QNAME = new QName("", "identifier");
+    private final static QName _MobileRequestFexpiration_QNAME = new QName("", "fexpiration");
+    private final static QName _MobileRequestRejectedText_QNAME = new QName("", "rejectedText");
+    private final static QName _MobileRequestWorkflow_QNAME = new QName("", "workflow");
+    private final static QName _MobileRequestRejected_QNAME = new QName("", "rejected");
+    private final static QName _MobileRequestSubject_QNAME = new QName("", "subject");
+    private final static QName _MobileRequestImportanceLevel_QNAME = new QName("", "importanceLevel");
+    private final static QName _MobileRequestForward_QNAME = new QName("", "forward");
+    private final static QName _MobileRequestAttachList_QNAME = new QName("", "attachList");
+    private final static QName _MobileRequestSignLineList_QNAME = new QName("", "signLineList");
+    private final static QName _MobileRequestRef_QNAME = new QName("", "ref");
+    private final static QName _MobileRequestApplication_QNAME = new QName("", "application");
+    private final static QName _MobileRequestText_QNAME = new QName("", "text");
+    private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry");
     private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
-    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate");
     private final static QName _MobileSignLineType_QNAME = new QName("", "type");
 
     /**
@@ -373,87 +377,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "identifier", scope = MobileRequest.class)
-    public JAXBElement<String> createMobileRequestIdentifier(String value) {
-        return new JAXBElement<String>(_MobileRequestIdentifier_QNAME, String.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "ref", scope = MobileRequest.class)
-    public JAXBElement<String> createMobileRequestRef(String value) {
-        return new JAXBElement<String>(_MobileRequestRef_QNAME, String.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "application", scope = MobileRequest.class)
-    public JAXBElement<String> createMobileRequestApplication(String value) {
-        return new JAXBElement<String>(_MobileRequestApplication_QNAME, String.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "workflow", scope = MobileRequest.class)
-    public JAXBElement<Boolean> createMobileRequestWorkflow(Boolean value) {
-        return new JAXBElement<Boolean>(_MobileRequestWorkflow_QNAME, Boolean.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "subject", scope = MobileRequest.class)
-    public JAXBElement<String> createMobileRequestSubject(String value) {
-        return new JAXBElement<String>(_MobileRequestSubject_QNAME, String.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "importanceLevel", scope = MobileRequest.class)
-    public JAXBElement<String> createMobileRequestImportanceLevel(String value) {
-        return new JAXBElement<String>(_MobileRequestImportanceLevel_QNAME, String.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "forward", scope = MobileRequest.class)
-    public JAXBElement<Boolean> createMobileRequestForward(Boolean value) {
-        return new JAXBElement<Boolean>(_MobileRequestForward_QNAME, Boolean.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "text", scope = MobileRequest.class)
-    public JAXBElement<String> createMobileRequestText(String value) {
-        return new JAXBElement<String>(_MobileRequestText_QNAME, String.class, MobileRequest.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "fentry", scope = MobileRequest.class)
-    public JAXBElement<XMLGregorianCalendar> createMobileRequestFentry(XMLGregorianCalendar value) {
-        return new JAXBElement<XMLGregorianCalendar>(_MobileRequestFentry_QNAME, XMLGregorianCalendar.class, MobileRequest.class, value);
-    }
-
-    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link DataHandler }{@code >}}
      * 
      */
@@ -500,21 +423,138 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
-    public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
-        return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
+    @XmlElementDecl(namespace = "", name = "identifier", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestIdentifier(String value) {
+        return new JAXBElement<String>(_MobileRequestIdentifier_QNAME, String.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "fexpiration", scope = MobileRequest.class)
+    public JAXBElement<XMLGregorianCalendar> createMobileRequestFexpiration(XMLGregorianCalendar value) {
+        return new JAXBElement<XMLGregorianCalendar>(_MobileRequestFexpiration_QNAME, XMLGregorianCalendar.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "rejectedText", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestRejectedText(String value) {
+        return new JAXBElement<String>(_MobileRequestRejectedText_QNAME, String.class, MobileRequest.class, value);
     }
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
-    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
-        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
+    @XmlElementDecl(namespace = "", name = "workflow", scope = MobileRequest.class)
+    public JAXBElement<Boolean> createMobileRequestWorkflow(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileRequestWorkflow_QNAME, Boolean.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "rejected", scope = MobileRequest.class)
+    public JAXBElement<Boolean> createMobileRequestRejected(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileRequestRejected_QNAME, Boolean.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "subject", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestSubject(String value) {
+        return new JAXBElement<String>(_MobileRequestSubject_QNAME, String.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "importanceLevel", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestImportanceLevel(String value) {
+        return new JAXBElement<String>(_MobileRequestImportanceLevel_QNAME, String.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "forward", scope = MobileRequest.class)
+    public JAXBElement<Boolean> createMobileRequestForward(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileRequestForward_QNAME, Boolean.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link MobileDocumentList }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "attachList", scope = MobileRequest.class)
+    public JAXBElement<MobileDocumentList> createMobileRequestAttachList(MobileDocumentList value) {
+        return new JAXBElement<MobileDocumentList>(_MobileRequestAttachList_QNAME, MobileDocumentList.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link MobileSignLineList }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "signLineList", scope = MobileRequest.class)
+    public JAXBElement<MobileSignLineList> createMobileRequestSignLineList(MobileSignLineList value) {
+        return new JAXBElement<MobileSignLineList>(_MobileRequestSignLineList_QNAME, MobileSignLineList.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "ref", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestRef(String value) {
+        return new JAXBElement<String>(_MobileRequestRef_QNAME, String.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "application", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestApplication(String value) {
+        return new JAXBElement<String>(_MobileRequestApplication_QNAME, String.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "text", scope = MobileRequest.class)
+    public JAXBElement<String> createMobileRequestText(String value) {
+        return new JAXBElement<String>(_MobileRequestText_QNAME, String.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "fentry", scope = MobileRequest.class)
+    public JAXBElement<XMLGregorianCalendar> createMobileRequestFentry(XMLGregorianCalendar value) {
+        return new JAXBElement<XMLGregorianCalendar>(_MobileRequestFentry_QNAME, XMLGregorianCalendar.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
+    public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
+        return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
     }
 
     /**

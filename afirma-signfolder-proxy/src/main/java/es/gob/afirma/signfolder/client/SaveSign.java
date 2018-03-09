@@ -9,9 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Clase Java para anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType>
@@ -46,7 +46,7 @@ public class SaveSign {
     protected MobileDocSignInfoList docSignInfoList;
 
     /**
-     * Gets the value of the certificate property.
+     * Obtiene el valor de la propiedad certificate.
      * 
      * @return
      *     possible object is
@@ -57,7 +57,7 @@ public class SaveSign {
     }
 
     /**
-     * Sets the value of the certificate property.
+     * Define el valor de la propiedad certificate.
      * 
      * @param value
      *     allowed object is
@@ -68,7 +68,7 @@ public class SaveSign {
     }
 
     /**
-     * Gets the value of the requestTagId property.
+     * Obtiene el valor de la propiedad requestTagId.
      * 
      * @return
      *     possible object is
@@ -80,7 +80,7 @@ public class SaveSign {
     }
 
     /**
-     * Sets the value of the requestTagId property.
+     * Define el valor de la propiedad requestTagId.
      * 
      * @param value
      *     allowed object is
@@ -92,7 +92,7 @@ public class SaveSign {
     }
 
     /**
-     * Gets the value of the docSignInfoList property.
+     * Obtiene el valor de la propiedad docSignInfoList.
      * 
      * @return
      *     possible object is
@@ -104,7 +104,7 @@ public class SaveSign {
     }
 
     /**
-     * Sets the value of the docSignInfoList property.
+     * Define el valor de la propiedad docSignInfoList.
      * 
      * @param value
      *     allowed object is

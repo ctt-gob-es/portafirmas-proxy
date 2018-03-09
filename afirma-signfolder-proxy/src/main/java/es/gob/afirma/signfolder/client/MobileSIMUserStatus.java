@@ -7,9 +7,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for mobileSIMUserStatus complex type.
+ * <p>Clase Java para mobileSIMUserStatus complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType name="mobileSIMUserStatus">
@@ -43,7 +43,7 @@ public class MobileSIMUserStatus {
     protected String idDispositivo;
 
     /**
-     * Gets the value of the statusCode property.
+     * Obtiene el valor de la propiedad statusCode.
      * 
      * @return
      *     possible object is
@@ -55,7 +55,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Sets the value of the statusCode property.
+     * Define el valor de la propiedad statusCode.
      * 
      * @param value
      *     allowed object is
@@ -67,7 +67,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Gets the value of the statusText property.
+     * Obtiene el valor de la propiedad statusText.
      * 
      * @return
      *     possible object is
@@ -79,7 +79,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Sets the value of the statusText property.
+     * Define el valor de la propiedad statusText.
      * 
      * @param value
      *     allowed object is
@@ -91,7 +91,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Gets the value of the details property.
+     * Obtiene el valor de la propiedad details.
      * 
      * @return
      *     possible object is
@@ -103,7 +103,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Sets the value of the details property.
+     * Define el valor de la propiedad details.
      * 
      * @param value
      *     allowed object is
@@ -115,7 +115,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Gets the value of the idDispositivo property.
+     * Obtiene el valor de la propiedad idDispositivo.
      * 
      * @return
      *     possible object is
@@ -127,7 +127,7 @@ public class MobileSIMUserStatus {
     }
 
     /**
-     * Sets the value of the idDispositivo property.
+     * Define el valor de la propiedad idDispositivo.
      * 
      * @param value
      *     allowed object is

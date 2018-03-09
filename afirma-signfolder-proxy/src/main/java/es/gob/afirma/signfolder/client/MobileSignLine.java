@@ -9,9 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for mobileSignLine complex type.
+ * <p>Clase Java para mobileSignLine complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType name="mobileSignLine">
@@ -20,7 +20,6 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;sequence>
  *         &lt;element name="mobileSignerList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileStringList" minOccurs="0"/>
  *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="terminate" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -32,8 +31,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileSignLine", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
     "mobileSignerList",
-    "type",
-    "terminate"
+    "type"
 })
 public class MobileSignLine {
 
@@ -41,11 +39,9 @@ public class MobileSignLine {
     protected JAXBElement<MobileStringList> mobileSignerList;
     @XmlElementRef(name = "type", type = JAXBElement.class, required = false)
     protected JAXBElement<String> type;
-    @XmlElementRef(name = "terminate", type = JAXBElement.class, required = false)
-    protected JAXBElement<Boolean> terminate;
 
     /**
-     * Gets the value of the mobileSignerList property.
+     * Obtiene el valor de la propiedad mobileSignerList.
      * 
      * @return
      *     possible object is
@@ -57,7 +53,7 @@ public class MobileSignLine {
     }
 
     /**
-     * Sets the value of the mobileSignerList property.
+     * Define el valor de la propiedad mobileSignerList.
      * 
      * @param value
      *     allowed object is
@@ -69,7 +65,7 @@ public class MobileSignLine {
     }
 
     /**
-     * Gets the value of the type property.
+     * Obtiene el valor de la propiedad type.
      * 
      * @return
      *     possible object is
@@ -81,7 +77,7 @@ public class MobileSignLine {
     }
 
     /**
-     * Sets the value of the type property.
+     * Define el valor de la propiedad type.
      * 
      * @param value
      *     allowed object is
@@ -90,30 +86,6 @@ public class MobileSignLine {
      */
     public void setType(JAXBElement<String> value) {
         this.type = value;
-    }
-
-    /**
-     * Gets the value of the terminate property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
-     *     
-     */
-    public JAXBElement<Boolean> getTerminate() {
-        return terminate;
-    }
-
-    /**
-     * Sets the value of the terminate property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
-     *     
-     */
-    public void setTerminate(JAXBElement<Boolean> value) {
-        this.terminate = value;
     }
 
 }

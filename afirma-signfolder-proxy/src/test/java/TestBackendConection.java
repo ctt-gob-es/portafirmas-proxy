@@ -72,7 +72,7 @@ public class TestBackendConection {
 
 		// Solicitud de lista de peticiones
 		final MobileRequestList requestsList = service.queryRequestList(cert.getEncoded(), "unresolved", "1", "50", formatsList, filterList);
-		final List<MobileRequest> list = requestsList.getRequestList();
+		final List<MobileRequest> list = requestsList.getRequest();
 
 		// Imprimimos
 		for (final MobileRequest request : list) {
@@ -125,7 +125,7 @@ public class TestBackendConection {
 //		filterList.getRequestFilter().add(filter);
 
 		// Solicitud de lista de peticiones
-		final List<MobileRequest> list = service.queryRequestList(cert.getEncoded(), "signed", "1", "500", formatsList, filterList).getRequestList();
+		final List<MobileRequest> list = service.queryRequestList(cert.getEncoded(), "signed", "1", "500", formatsList, filterList).getRequest();
 
 		// Imprimimos
 		for (final MobileRequest request : list) {
@@ -169,7 +169,7 @@ public class TestBackendConection {
 		final MobileRequestFilterList filterList = new MobileRequestFilterList();
 
 		// Solicitud de lista de peticiones
-		final List<MobileRequest> list = service.queryRequestList(cert.getEncoded(), "rejected", "1", "50", formatsList, filterList).getRequestList();
+		final List<MobileRequest> list = service.queryRequestList(cert.getEncoded(), "rejected", "1", "50", formatsList, filterList).getRequest();
 
 		// Imprimimos
 		for (final MobileRequest request : list) {

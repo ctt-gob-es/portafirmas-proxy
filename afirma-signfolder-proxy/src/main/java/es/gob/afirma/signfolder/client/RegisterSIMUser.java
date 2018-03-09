@@ -9,9 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Clase Java para anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType>
@@ -42,7 +42,7 @@ public class RegisterSIMUser {
     protected MobileSIMUser register;
 
     /**
-     * Gets the value of the certificate property.
+     * Obtiene el valor de la propiedad certificate.
      * 
      * @return
      *     possible object is
@@ -54,7 +54,7 @@ public class RegisterSIMUser {
     }
 
     /**
-     * Sets the value of the certificate property.
+     * Define el valor de la propiedad certificate.
      * 
      * @param value
      *     allowed object is
@@ -66,7 +66,7 @@ public class RegisterSIMUser {
     }
 
     /**
-     * Gets the value of the register property.
+     * Obtiene el valor de la propiedad register.
      * 
      * @return
      *     possible object is
@@ -78,7 +78,7 @@ public class RegisterSIMUser {
     }
 
     /**
-     * Sets the value of the register property.
+     * Define el valor de la propiedad register.
      * 
      * @param value
      *     allowed object is

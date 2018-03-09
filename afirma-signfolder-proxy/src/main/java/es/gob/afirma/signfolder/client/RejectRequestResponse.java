@@ -9,9 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * <p>Clase Java para anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType>
@@ -38,7 +38,7 @@ public class RejectRequestResponse {
     protected String responseId;
 
     /**
-     * Gets the value of the responseId property.
+     * Obtiene el valor de la propiedad responseId.
      * 
      * @return
      *     possible object is
@@ -50,7 +50,7 @@ public class RejectRequestResponse {
     }
 
     /**
-     * Sets the value of the responseId property.
+     * Define el valor de la propiedad responseId.
      * 
      * @param value
      *     allowed object is

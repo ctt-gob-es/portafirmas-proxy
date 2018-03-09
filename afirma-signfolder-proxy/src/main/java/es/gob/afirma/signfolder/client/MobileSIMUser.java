@@ -8,9 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for mobileSIMUser complex type.
+ * <p>Clase Java para mobileSIMUser complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType name="mobileSIMUser">
@@ -44,7 +44,7 @@ public class MobileSIMUser {
     protected String idDispositivo;
 
     /**
-     * Gets the value of the idRegistro property.
+     * Obtiene el valor de la propiedad idRegistro.
      * 
      * @return
      *     possible object is
@@ -56,7 +56,7 @@ public class MobileSIMUser {
     }
 
     /**
-     * Sets the value of the idRegistro property.
+     * Define el valor de la propiedad idRegistro.
      * 
      * @param value
      *     allowed object is
@@ -68,7 +68,7 @@ public class MobileSIMUser {
     }
 
     /**
-     * Gets the value of the plataforma property.
+     * Obtiene el valor de la propiedad plataforma.
      * 
      * @return
      *     possible object is
@@ -80,7 +80,7 @@ public class MobileSIMUser {
     }
 
     /**
-     * Sets the value of the plataforma property.
+     * Define el valor de la propiedad plataforma.
      * 
      * @param value
      *     allowed object is
@@ -92,7 +92,7 @@ public class MobileSIMUser {
     }
 
     /**
-     * Gets the value of the idDispositivo property.
+     * Obtiene el valor de la propiedad idDispositivo.
      * 
      * @return
      *     possible object is
@@ -104,7 +104,7 @@ public class MobileSIMUser {
     }
 
     /**
-     * Sets the value of the idDispositivo property.
+     * Define el valor de la propiedad idDispositivo.
      * 
      * @param value
      *     allowed object is

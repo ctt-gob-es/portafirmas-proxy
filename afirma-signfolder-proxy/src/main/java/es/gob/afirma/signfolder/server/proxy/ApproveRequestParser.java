@@ -4,8 +4,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import es.gob.afirma.core.misc.Base64;
-
 /**
  * Analiza un documento XML para obtener una solicitud de visto bueno de peticiones.
  * @author Carlos Gamuci

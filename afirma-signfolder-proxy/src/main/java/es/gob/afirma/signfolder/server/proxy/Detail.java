@@ -1,11 +1,14 @@
 package es.gob.afirma.signfolder.server.proxy;
 
-import java.util.List;
-
 /**
  * Datos identificados de un fichero para su descarga o previsualizaci&oacute;n.
  */
 public class Detail {
+
+	/** Flujo de firma en cascada. */
+	public static final String SIGN_LINES_FLOW_CASCADE = "CASCADA"; //$NON-NLS-1$
+	/** Flujo de firma en paralelo. */
+	public static final String SIGN_LINES_FLOW_PARALLEL = "PARALELO"; //$NON-NLS-1$
 
 	private final String id;
 
@@ -20,19 +23,23 @@ public class Detail {
 	private String[] senders = null;
 
 	private String date = null;
-	
+
 	private String expdate = null;
-	
+
 	private String app = null;
+
+	private String rejectReason = null;
 
 	private String ref = null;
 
 	private String type = null;
 
-	private List<String>[] signLines;
+	private String signLinesFlow = SIGN_LINES_FLOW_CASCADE;
+
+	private SignLine[] signLines;
 
 	private SignRequestDocument[] docs;
-	
+
 	private SignRequestDocument[] attached;
 
 	/**
@@ -162,7 +169,7 @@ public class Detail {
 	public void setExpDate(final String expdate) {
 		this.expdate = expdate;
 	}
-	
+
 	/**
 	 * Recupera el nombre de la aplicaci&oacute;n que solicit&oacute; la firma.
 	 * @return Nombre de la aplicaci&oacute;n.
@@ -177,6 +184,23 @@ public class Detail {
 	 */
 	public void setApp(final String app) {
 		this.app = app;
+	}
+
+	/**
+	 * Recupera la raz&oacute;n del rechazo de la petici&oacute;n.
+	 * @return El motivo del rechazo de la peticion, si hubiese sido rechazada
+	 * y se indicase el camino. En caso contrario, se devuelve {@code null}.
+	 */
+	public String getRejectReason() {
+		return this.rejectReason;
+	}
+
+	/**
+	 * Establece el motivo del rechazo de la petici&oacute;n.
+	 * @param rejectReason Motivo del rechazo.
+	 */
+	public void setRejectReason(final String rejectReason) {
+		this.rejectReason = rejectReason;
 	}
 
 	/**
@@ -212,11 +236,27 @@ public class Detail {
 	}
 
 	/**
+	 * Recupera el flujo de las l&iacute;neas de firma: CASCADA o PARALELO.
+	 * @return Flujo de las l&iacute;neas de firma.
+	 */
+	public String getSignLinesFlow() {
+		return this.signLinesFlow;
+	}
+
+	/**
+	 * Establece el flujo de las l&iacute;neas de firma.
+	 * @param signLinesFlow Flujo de l&iacute;neas de firma.
+	 */
+	public void setSignLinesFlow(String signLinesFlow) {
+		this.signLinesFlow = signLinesFlow;
+	}
+
+	/**
 	 * Recupera el listado de l&iacute;neas de firma de la petici&oacute;n. Las l&iacute;neas de firma
 	 * se componen de un listado de nombre de usuarios por los que debe pasar o ha pasado la firma.
 	 * @return Listado de l&iacute;neas de firma.
 	 */
-	public List<String>[] getSignLines() {
+	public SignLine[] getSignLines() {
 		return this.signLines;
 	}
 
@@ -225,7 +265,7 @@ public class Detail {
 	 * se componen de un listado de nombre de usuarios por los que debe pasar o ha pasado la firma.
 	 * @param signLines Listado de l&iacute;neas de firma.
 	 */
-	public void setSignLines(final List<String>[] signLines) {
+	public void setSignLines(final SignLine[] signLines) {
 		this.signLines = signLines;
 	}
 
@@ -246,7 +286,7 @@ public class Detail {
 	public void setDocs(final SignRequestDocument[] docs) {
 		this.docs = docs;
 	}
-	
+
 	/**
 	 * Recupera el listado de anexos que componen la petici&oacute;n de firma. La informaci&oacute;n
 	 * de cada documento se almacena en objetos de tipo {@link es.gob.afirma.signfolder.server.proxy.SignRequestDocument}.

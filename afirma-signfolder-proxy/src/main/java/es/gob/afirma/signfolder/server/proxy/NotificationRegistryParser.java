@@ -1,7 +1,6 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 class NotificationRegistryParser {
@@ -36,7 +35,7 @@ class NotificationRegistryParser {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					DEVICE_ID_ATTRIBUTE + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
 		}
-		
+
 		// Recogermos el identificador de de registro en el servicio de notificaciones de Google
 		final String idRegistry = doc.getDocumentElement().getAttribute(NOTIFICATIONS_ID_REGISTRY);
 		if (idRegistry == null) {

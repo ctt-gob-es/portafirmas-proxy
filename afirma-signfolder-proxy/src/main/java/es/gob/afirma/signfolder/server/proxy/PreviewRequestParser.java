@@ -1,10 +1,7 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import es.gob.afirma.core.misc.Base64;
 
 /**
  * Analiza un documento XML para obtener una petici&oacute;n de previsualizaci&oacute;n

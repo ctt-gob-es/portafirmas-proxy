@@ -10,9 +10,9 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for mobileDocument complex type.
+ * <p>Clase Java para mobileDocument complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
  * 
  * <pre>
  * &lt;complexType name="mobileDocument">
@@ -66,7 +66,7 @@ public class MobileDocument {
     protected JAXBElement<Integer> size;
 
     /**
-     * Gets the value of the identifier property.
+     * Obtiene el valor de la propiedad identifier.
      * 
      * @return
      *     possible object is
@@ -78,7 +78,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the identifier property.
+     * Define el valor de la propiedad identifier.
      * 
      * @param value
      *     allowed object is
@@ -90,7 +90,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the name property.
+     * Obtiene el valor de la propiedad name.
      * 
      * @return
      *     possible object is
@@ -102,7 +102,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the name property.
+     * Define el valor de la propiedad name.
      * 
      * @param value
      *     allowed object is
@@ -114,7 +114,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the mime property.
+     * Obtiene el valor de la propiedad mime.
      * 
      * @return
      *     possible object is
@@ -126,7 +126,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the mime property.
+     * Define el valor de la propiedad mime.
      * 
      * @param value
      *     allowed object is
@@ -138,7 +138,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the signatureType property.
+     * Obtiene el valor de la propiedad signatureType.
      * 
      * @return
      *     possible object is
@@ -150,7 +150,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the signatureType property.
+     * Define el valor de la propiedad signatureType.
      * 
      * @param value
      *     allowed object is
@@ -162,7 +162,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the signAlgorithm property.
+     * Obtiene el valor de la propiedad signAlgorithm.
      * 
      * @return
      *     possible object is
@@ -174,7 +174,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the signAlgorithm property.
+     * Define el valor de la propiedad signAlgorithm.
      * 
      * @param value
      *     allowed object is
@@ -186,7 +186,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the operationType property.
+     * Obtiene el valor de la propiedad operationType.
      * 
      * @return
      *     possible object is
@@ -198,7 +198,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the operationType property.
+     * Define el valor de la propiedad operationType.
      * 
      * @param value
      *     allowed object is
@@ -210,7 +210,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the signatureParameters property.
+     * Obtiene el valor de la propiedad signatureParameters.
      * 
      * @return
      *     possible object is
@@ -222,7 +222,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the signatureParameters property.
+     * Define el valor de la propiedad signatureParameters.
      * 
      * @param value
      *     allowed object is
@@ -234,7 +234,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the data property.
+     * Obtiene el valor de la propiedad data.
      * 
      * @return
      *     possible object is
@@ -246,7 +246,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the data property.
+     * Define el valor de la propiedad data.
      * 
      * @param value
      *     allowed object is
@@ -258,7 +258,7 @@ public class MobileDocument {
     }
 
     /**
-     * Gets the value of the size property.
+     * Obtiene el valor de la propiedad size.
      * 
      * @return
      *     possible object is
@@ -270,7 +270,7 @@ public class MobileDocument {
     }
 
     /**
-     * Sets the value of the size property.
+     * Define el valor de la propiedad size.
      * 
      * @param value
      *     allowed object is

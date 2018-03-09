@@ -11,19 +11,29 @@ class ValidateLoginResult {
 
 	private String error = null;
 
+	private String dni = null;
+
 	/** Construye el resultado de la validaci&oacute;n indicando que se ha completado correctamente. */
 	public ValidateLoginResult() {
 		this.logged = true;
 	}
 
-	/** Construye el resultado de la validaci&oacute;n indicando que se ha producido un error.
-	 * @param error Mensaje de error. */
-	public ValidateLoginResult(final String error) {
-		this.error = error;
-	}
 
 	boolean isLogged() {
 		return this.logged;
+	}
+
+	void setDni(String dni) {
+		this.dni = dni;
+	}
+
+	public String getDni() {
+		return this.dni;
+	}
+
+	void setError(String error) {
+		this.error = error;
+		this.logged = false;
 	}
 
 	Object getError() {

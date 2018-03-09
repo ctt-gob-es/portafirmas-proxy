@@ -49,6 +49,24 @@ public class SignRequestDocument {
 		this.params = params;
 	}
 
+	/** Crea un documento englobado en una petici&oacute;n de firma, pero sin configuraci&oacute;n de firma.
+	 * Se puede usar para definir la informaci&oacute;n de los documentos adjuntos.
+	 * @param id Identificador del documento.
+	 * @param name Nombre.
+	 * @param size Tama&ntilde;o del documento.
+	 * @param mimeType MimeType.
+	 */
+	public SignRequestDocument(final String id, final String name, final Integer size, final String mimeType) {
+		this.id = id;
+		this.name = name;
+		this.size = size;
+		this.mimeType = mimeType;
+		this.operation = null;
+		this.signFormat = null;
+		this.messageDigestAlgorithm = null;
+		this.params = null;
+	}
+
 	/** Recupera el identificador del documento.
 	 * @return Identificador. */
 	public String getId() {
