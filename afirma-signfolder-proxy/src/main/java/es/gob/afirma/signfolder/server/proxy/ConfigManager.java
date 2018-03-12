@@ -27,17 +27,14 @@ public class ConfigManager {
 	/** Propiedad que establece los extraparams que deben forzarse en las operaciones de firma. */
 	private static final String PROPERTY_FORCED_EXTRAPARAMS = "forced.extraparams"; //$NON-NLS-1$
 
+	/** Propiedad que establece la ruta del directorio temporal. */
+	private static final String PROPERTY_TEMP_DIR = "temp.dir"; //$NON-NLS-1$
+
 	/** Propiedad que establece el endpoint del servicio del Portafirmas. */
 	private static final String PROPERTY_SIGNFOLDER_URL = "signfolder.ws.url"; //$NON-NLS-1$
 
 	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
 	private static final String PROPERTY_TRIPHASE_SERVICE_URL = "triphase.server.url"; //$NON-NLS-1$
-
-	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
-	private static final String PROPERTY_NOTIFICATION_APP_ID = ""; //$NON-NLS-1$
-
-	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
-	private static final String PROPERTY_NOTIFICATION_SERVICE_ID = ""; //$NON-NLS-1$
 
 	private static Properties config = null;
 
@@ -178,19 +175,12 @@ public class ConfigManager {
 	}
 
 	/**
-	 * Devuelve el identificador de la aplicaci&oacute;n de Portafirmas de cara al
-	 * sistema de notificaciones.
-	 * @return Identificador de la aplicaci&oacute;n.
+	 * Devuelve el directorio temporal establecido en el fichero de
+	 * configuraci&oacute;n.
+	 * @return Ruta del directorio temporal o {@code null} si no se
+	 * estableci&oacute;.
 	 */
-	public static String getRegistryId() {
-		return config.getProperty(PROPERTY_NOTIFICATION_APP_ID);
-	}
-
-	/**
-	 * Devuelve el identificador del servicio de Portafirmas de cara al sistema de notificaciones.
-	 * @return Identificador del servicio.
-	 */
-	public static String getServiceId() {
-		return config.getProperty(PROPERTY_NOTIFICATION_SERVICE_ID);
+	public static String getTempDir(){
+		return config.getProperty(PROPERTY_TEMP_DIR);
 	}
 }

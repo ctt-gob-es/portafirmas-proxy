@@ -366,6 +366,8 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processRequestLogin(HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
 
+		LOGGER.info("Solicitud de nueva sesion del Portafirmas movil"); //$NON-NLS-1$
+
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		try {
 			LoginRequestParser.parse(doc);
@@ -374,8 +376,6 @@ public final class ProxyService extends HttpServlet {
 			LOGGER.warning("No se ha proporcionado una peticion de login valida: " + e); //$NON-NLS-1$
 			throw new SAXException("No se ha proporcionado una peticion de login valida", e); //$NON-NLS-1$
 		}
-
-		LOGGER.info("Solicitud de nueva sesion del Portafirmas movil"); //$NON-NLS-1$
 
 		final HttpSession session = request.getSession();
 		// Se mantiene la sesion durante un dia
@@ -421,10 +421,10 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processValidateLogin(final HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
 
+		LOGGER.info("Validación del login del usuario"); //$NON-NLS-1$
+
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final ValidateLoginRequest loginRequest = ValidateLoginRequestParser.parse(doc);
-
-		LOGGER.info("Solicitamos las peticiones de firma al Portafirmas"); //$NON-NLS-1$
 
 		final HttpSession session = request.getSession(false);
 

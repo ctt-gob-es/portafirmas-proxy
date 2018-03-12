@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="nifCif" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="resultado" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,36 +29,36 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "nifCif"
+    "resultado"
 })
-@XmlRootElement(name = "validateUserResponse")
-public class ValidateUserResponse {
+@XmlRootElement(name = "updateNotifyPushResponse")
+public class UpdateNotifyPushResponse {
 
     @XmlElement(required = true)
-    protected String nifCif;
+    protected String resultado;
 
     /**
-     * Obtiene el valor de la propiedad nifCif.
+     * Obtiene el valor de la propiedad resultado.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getNifCif() {
-        return nifCif;
+    public String getResultado() {
+        return resultado;
     }
 
     /**
-     * Define el valor de la propiedad nifCif.
+     * Define el valor de la propiedad resultado.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setNifCif(String value) {
-        this.nifCif = value;
+    public void setResultado(String value) {
+        this.resultado = value;
     }
 
 }

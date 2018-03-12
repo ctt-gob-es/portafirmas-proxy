@@ -275,4 +275,41 @@ public interface MobileService {
         throws MobileException
     ;
 
+    /**
+     * 
+     * @param certificate
+     * @param estadoNotifyPush
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "resultado", targetNamespace = "")
+    @RequestWrapper(localName = "updateNotifyPush", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.UpdateNotifyPush")
+    @ResponseWrapper(localName = "updateNotifyPushResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.UpdateNotifyPushResponse")
+    public String updateNotifyPush(
+        @WebParam(name = "certificate", targetNamespace = "")
+        byte[] certificate,
+        @WebParam(name = "estadoNotifyPush", targetNamespace = "")
+        String estadoNotifyPush)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param certificate
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "valorNotifyPush", targetNamespace = "")
+    @RequestWrapper(localName = "estadoNotifyPush", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.EstadoNotifyPush")
+    @ResponseWrapper(localName = "estadoNotifyPushResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.EstadoNotifyPushResponse")
+    public String estadoNotifyPush(
+        @WebParam(name = "certificate", targetNamespace = "")
+        byte[] certificate)
+        throws MobileException
+    ;
+
 }

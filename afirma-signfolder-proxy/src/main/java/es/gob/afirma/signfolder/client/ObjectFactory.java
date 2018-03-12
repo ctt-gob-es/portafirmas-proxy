@@ -47,6 +47,7 @@ public class ObjectFactory {
     private final static QName _MobileRequestText_QNAME = new QName("", "text");
     private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry");
     private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
+    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate");
     private final static QName _MobileSignLineType_QNAME = new QName("", "type");
 
     /**
@@ -57,11 +58,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link QueryApplicationsMobile }
+     * Create an instance of {@link UpdateNotifyPushResponse }
      * 
      */
-    public QueryApplicationsMobile createQueryApplicationsMobile() {
-        return new QueryApplicationsMobile();
+    public UpdateNotifyPushResponse createUpdateNotifyPushResponse() {
+        return new UpdateNotifyPushResponse();
+    }
+
+    /**
+     * Create an instance of {@link EstadoNotifyPushResponse }
+     * 
+     */
+    public EstadoNotifyPushResponse createEstadoNotifyPushResponse() {
+        return new EstadoNotifyPushResponse();
     }
 
     /**
@@ -97,30 +106,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetDocumentsToSignResponse }
-     * 
-     */
-    public GetDocumentsToSignResponse createGetDocumentsToSignResponse() {
-        return new GetDocumentsToSignResponse();
-    }
-
-    /**
-     * Create an instance of {@link MobileDocumentList }
-     * 
-     */
-    public MobileDocumentList createMobileDocumentList() {
-        return new MobileDocumentList();
-    }
-
-    /**
-     * Create an instance of {@link RejectRequestResponse }
-     * 
-     */
-    public RejectRequestResponse createRejectRequestResponse() {
-        return new RejectRequestResponse();
-    }
-
-    /**
      * Create an instance of {@link QueryRequestList }
      * 
      */
@@ -153,6 +138,94 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link QueryApplicationsMobileResponse }
+     * 
+     */
+    public QueryApplicationsMobileResponse createQueryApplicationsMobileResponse() {
+        return new QueryApplicationsMobileResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileApplicationList }
+     * 
+     */
+    public MobileApplicationList createMobileApplicationList() {
+        return new MobileApplicationList();
+    }
+
+    /**
+     * Create an instance of {@link RejectRequest }
+     * 
+     */
+    public RejectRequest createRejectRequest() {
+        return new RejectRequest();
+    }
+
+    /**
+     * Create an instance of {@link GetDocumentsToSign }
+     * 
+     */
+    public GetDocumentsToSign createGetDocumentsToSign() {
+        return new GetDocumentsToSign();
+    }
+
+    /**
+     * Create an instance of {@link ApproveRequestResponse }
+     * 
+     */
+    public ApproveRequestResponse createApproveRequestResponse() {
+        return new ApproveRequestResponse();
+    }
+
+    /**
+     * Create an instance of {@link SignPreviewResponse }
+     * 
+     */
+    public SignPreviewResponse createSignPreviewResponse() {
+        return new SignPreviewResponse();
+    }
+
+    /**
+     * Create an instance of {@link QueryApplicationsMobile }
+     * 
+     */
+    public QueryApplicationsMobile createQueryApplicationsMobile() {
+        return new QueryApplicationsMobile();
+    }
+
+    /**
+     * Create an instance of {@link GetDocumentsToSignResponse }
+     * 
+     */
+    public GetDocumentsToSignResponse createGetDocumentsToSignResponse() {
+        return new GetDocumentsToSignResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileDocumentList }
+     * 
+     */
+    public MobileDocumentList createMobileDocumentList() {
+        return new MobileDocumentList();
+    }
+
+    /**
+     * Create an instance of {@link RejectRequestResponse }
+     * 
+     */
+    public RejectRequestResponse createRejectRequestResponse() {
+        return new RejectRequestResponse();
+    }
+
+    /**
+     * Create an instance of {@link UpdateNotifyPush }
+     * 
+     */
+    public UpdateNotifyPush createUpdateNotifyPush() {
+        return new UpdateNotifyPush();
+    }
+
+    /**
      * Create an instance of {@link RegisterSIMUserResponse }
      * 
      */
@@ -174,22 +247,6 @@ public class ObjectFactory {
      */
     public DocumentPreview createDocumentPreview() {
         return new DocumentPreview();
-    }
-
-    /**
-     * Create an instance of {@link QueryApplicationsMobileResponse }
-     * 
-     */
-    public QueryApplicationsMobileResponse createQueryApplicationsMobileResponse() {
-        return new QueryApplicationsMobileResponse();
-    }
-
-    /**
-     * Create an instance of {@link MobileApplicationList }
-     * 
-     */
-    public MobileApplicationList createMobileApplicationList() {
-        return new MobileApplicationList();
     }
 
     /**
@@ -265,14 +322,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link RejectRequest }
-     * 
-     */
-    public RejectRequest createRejectRequest() {
-        return new RejectRequest();
-    }
-
-    /**
      * Create an instance of {@link ValidateUser }
      * 
      */
@@ -289,14 +338,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetDocumentsToSign }
-     * 
-     */
-    public GetDocumentsToSign createGetDocumentsToSign() {
-        return new GetDocumentsToSign();
-    }
-
-    /**
      * Create an instance of {@link SaveSignResponse }
      * 
      */
@@ -305,19 +346,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ApproveRequestResponse }
+     * Create an instance of {@link EstadoNotifyPush }
      * 
      */
-    public ApproveRequestResponse createApproveRequestResponse() {
-        return new ApproveRequestResponse();
-    }
-
-    /**
-     * Create an instance of {@link SignPreviewResponse }
-     * 
-     */
-    public SignPreviewResponse createSignPreviewResponse() {
-        return new SignPreviewResponse();
+    public EstadoNotifyPush createEstadoNotifyPush() {
+        return new EstadoNotifyPush();
     }
 
     /**
@@ -555,6 +588,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
     public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
         return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
+    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
     }
 
     /**

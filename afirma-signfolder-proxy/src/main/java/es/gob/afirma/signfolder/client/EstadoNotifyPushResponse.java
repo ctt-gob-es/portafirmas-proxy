@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="nifCif" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="valorNotifyPush" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,36 +29,36 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "nifCif"
+    "valorNotifyPush"
 })
-@XmlRootElement(name = "validateUserResponse")
-public class ValidateUserResponse {
+@XmlRootElement(name = "estadoNotifyPushResponse")
+public class EstadoNotifyPushResponse {
 
     @XmlElement(required = true)
-    protected String nifCif;
+    protected String valorNotifyPush;
 
     /**
-     * Obtiene el valor de la propiedad nifCif.
+     * Obtiene el valor de la propiedad valorNotifyPush.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getNifCif() {
-        return nifCif;
+    public String getValorNotifyPush() {
+        return valorNotifyPush;
     }
 
     /**
-     * Define el valor de la propiedad nifCif.
+     * Define el valor de la propiedad valorNotifyPush.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setNifCif(String value) {
-        this.nifCif = value;
+    public void setValorNotifyPush(String value) {
+        this.valorNotifyPush = value;
     }
 
 }

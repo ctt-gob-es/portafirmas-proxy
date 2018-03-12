@@ -20,6 +20,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;sequence>
  *         &lt;element name="mobileSignerList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileStringList" minOccurs="0"/>
  *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="terminate" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -31,7 +32,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileSignLine", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
     "mobileSignerList",
-    "type"
+    "type",
+    "terminate"
 })
 public class MobileSignLine {
 
@@ -39,6 +41,8 @@ public class MobileSignLine {
     protected JAXBElement<MobileStringList> mobileSignerList;
     @XmlElementRef(name = "type", type = JAXBElement.class, required = false)
     protected JAXBElement<String> type;
+    @XmlElementRef(name = "terminate", type = JAXBElement.class, required = false)
+    protected JAXBElement<Boolean> terminate;
 
     /**
      * Obtiene el valor de la propiedad mobileSignerList.
@@ -86,6 +90,30 @@ public class MobileSignLine {
      */
     public void setType(JAXBElement<String> value) {
         this.type = value;
+    }
+
+    /**
+     * Obtiene el valor de la propiedad terminate.
+     * 
+     * @return
+     *     possible object is
+     *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
+     *     
+     */
+    public JAXBElement<Boolean> getTerminate() {
+        return terminate;
+    }
+
+    /**
+     * Define el valor de la propiedad terminate.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link JAXBElement }{@code <}{@link Boolean }{@code >}
+     *     
+     */
+    public void setTerminate(JAXBElement<Boolean> value) {
+        this.terminate = value;
     }
 
 }

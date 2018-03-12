@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="nifCif" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="certificate" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,36 +29,34 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "nifCif"
+    "certificate"
 })
-@XmlRootElement(name = "validateUserResponse")
-public class ValidateUserResponse {
+@XmlRootElement(name = "estadoNotifyPush")
+public class EstadoNotifyPush {
 
     @XmlElement(required = true)
-    protected String nifCif;
+    protected byte[] certificate;
 
     /**
-     * Obtiene el valor de la propiedad nifCif.
+     * Obtiene el valor de la propiedad certificate.
      * 
      * @return
      *     possible object is
-     *     {@link String }
-     *     
+     *     byte[]
      */
-    public String getNifCif() {
-        return nifCif;
+    public byte[] getCertificate() {
+        return certificate;
     }
 
     /**
-     * Define el valor de la propiedad nifCif.
+     * Define el valor de la propiedad certificate.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
-     *     
+     *     byte[]
      */
-    public void setNifCif(String value) {
-        this.nifCif = value;
+    public void setCertificate(byte[] value) {
+        this.certificate = value;
     }
 
 }

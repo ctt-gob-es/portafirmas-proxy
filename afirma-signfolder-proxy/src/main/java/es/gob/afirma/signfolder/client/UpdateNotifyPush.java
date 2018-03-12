@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="certificate" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
- *         &lt;element name="documentId" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="estadoNotifyPush" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -31,15 +31,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
     "certificate",
-    "documentId"
+    "estadoNotifyPush"
 })
-@XmlRootElement(name = "reportPreview")
-public class ReportPreview {
+@XmlRootElement(name = "updateNotifyPush")
+public class UpdateNotifyPush {
 
     @XmlElement(required = true)
     protected byte[] certificate;
     @XmlElement(required = true)
-    protected String documentId;
+    protected String estadoNotifyPush;
 
     /**
      * Obtiene el valor de la propiedad certificate.
@@ -64,27 +64,27 @@ public class ReportPreview {
     }
 
     /**
-     * Obtiene el valor de la propiedad documentId.
+     * Obtiene el valor de la propiedad estadoNotifyPush.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDocumentId() {
-        return documentId;
+    public String getEstadoNotifyPush() {
+        return estadoNotifyPush;
     }
 
     /**
-     * Define el valor de la propiedad documentId.
+     * Define el valor de la propiedad estadoNotifyPush.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDocumentId(String value) {
-        this.documentId = value;
+    public void setEstadoNotifyPush(String value) {
+        this.estadoNotifyPush = value;
     }
 
 }
