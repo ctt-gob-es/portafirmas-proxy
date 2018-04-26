@@ -14,15 +14,16 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,7 +40,6 @@ import org.xml.sax.SAXException;
 
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
-import es.gob.afirma.core.signers.AOSignConstants;
 import es.gob.afirma.core.signers.TriphaseData;
 import es.gob.afirma.signfolder.client.MobileApplication;
 import es.gob.afirma.signfolder.client.MobileApplicationList;
@@ -59,18 +59,6 @@ import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.client.MobileSignLine;
 import es.gob.afirma.signfolder.client.MobileStringList;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
-import es.gob.fire.client.BatchResult;
-import es.gob.fire.client.CreateBatchResult;
-import es.gob.fire.client.DuplicateDocumentException;
-import es.gob.fire.client.FireClient;
-import es.gob.fire.client.HttpForbiddenException;
-import es.gob.fire.client.HttpNetworkException;
-import es.gob.fire.client.HttpOperationException;
-import es.gob.fire.client.InvalidTransactionException;
-import es.gob.fire.client.NumDocumentsExceededException;
-import es.gob.fire.client.SignBatchResult;
-import es.gob.fire.client.SignOperationResult;
-import es.gob.fire.client.TransactionResult;
 
 /** Servicio Web para firma trif&aacute;sica.
  * @author Tom&aacute;s Garc&iacute;a-;er&aacute;s */
@@ -101,8 +89,8 @@ public final class ProxyService extends HttpServlet {
 	private static final String OPERATION_REGISTER_NOTIFICATION_SYSTEM = "13"; //$NON-NLS-1$
 //	private static final String OPERATION_CLAVE_LOGIN = "14"; //$NON-NLS-1$
 //	private static final String OPERATION_CLAVE_VALIDATE_LOGIN = "15"; //$NON-NLS-1$
-	private static final String OPERATION_CLAVEFIRMA_PRESIGNS = "16"; //$NON-NLS-1$
-	private static final String OPERATION_CLAVEFIRMA_POSTSIGNS = "17"; //$NON-NLS-1$
+//	private static final String OPERATION_CLAVEFIRMA_PRESIGNS = "16"; //$NON-NLS-1$
+//	private static final String OPERATION_CLAVEFIRMA_POSTSIGNS = "17"; //$NON-NLS-1$
 
 	private static final String CRYPTO_PARAM_NEED_DATA = "NEED_DATA"; //$NON-NLS-1$
 
@@ -119,8 +107,6 @@ public final class ProxyService extends HttpServlet {
 	static final Logger LOGGER;
 
 	private final DocumentBuilder documentBuilder;
-
-	private FireConnector fireConnector = null;
 
 	static {
 //		final InputStream is = ProxyService.class.getResourceAsStream("/log.properties"); //$NON-NLS-1$
@@ -161,12 +147,6 @@ public final class ProxyService extends HttpServlet {
 			LOGGER.warning("No se ha podido recuperar la URL del servicio de firma configurado en la variable " + SIGNATURE_SERVICE_URL + " del sistema: " + e);	 //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
-		try {
-			this.fireConnector = new FireConnector();
-		}
-		catch (final Exception e) {
-			LOGGER.log(Level.SEVERE, "No se ha podido cargar el cliente de acceso a FIRe. Compruebe que la configuracion establecida sea correcta", e);	 //$NON-NLS-1$
-		}
 	}
 
 	/** Realiza una operaci&oacute;n de firma en tres fases.
@@ -202,6 +182,42 @@ public final class ProxyService extends HttpServlet {
 			responser.print(ErrorManager.genError(ErrorManager.ERROR_MISSING_OPERATION_NAME, null));
 			return;
 		}
+
+		LOGGER.info("Operacion: " + (operation.equals(OPERATION_REQUEST_LOGIN) ?
+				"Solicitud de login" : operation.equals(OPERATION_VALIDATE_LOGIN) ?
+				"Validacion de login" : "Otra"));
+
+		LOGGER.info(" ====== CABECERAS DE LA PETICION ====== ");
+
+		final Enumeration<String> headers = request.getHeaderNames();
+		if (headers != null) {
+			while (headers.hasMoreElements()) {
+				final String name = headers.nextElement();
+				LOGGER.info(name + ": " + request.getHeader(name));
+			}
+		}
+		LOGGER.info(" ====================================== ");
+
+		LOGGER.info(" == Id de sesion solicitada: " + request.getRequestedSessionId());
+
+		final Cookie[] cookies = request.getCookies();
+		if (cookies == null) {
+			LOGGER.info("La peticion no incluye cookies");
+		}
+		else {
+			for (final Cookie cookie : cookies) {
+				LOGGER.info(" ----- Cookie encontrada ----- ");
+				LOGGER.info(" - Nombre: " + cookie.getName());
+				LOGGER.info(" - Value: " + cookie.getValue());
+				LOGGER.info(" - Path: " + cookie.getPath());
+				LOGGER.info(" - Version: " + cookie.getVersion());
+				LOGGER.info(" - Domain: " + cookie.getDomain());
+				LOGGER.info(" - Comment: " + cookie.getComment());
+				LOGGER.info(" ----------------------------- ");
+			}
+		}
+
+
 
 		final String data = request.getParameter(PARAMETER_NAME_DATA);
 		if (data == null) {
@@ -294,14 +310,14 @@ public final class ProxyService extends HttpServlet {
 						LOGGER.info("Solicitud de previsualizacion de un informe de firma"); //$NON-NLS-1$
 						ret = processSignReportPreview(session, xml);
 					}
-					else if (OPERATION_CLAVEFIRMA_PRESIGNS.equals(operation)) {
-						LOGGER.info("Solicitud de prefirmas con Clave Firma"); //$NON-NLS-1$
-						ret = processClaveFirmaPreSigns(session, xml);
-					}
-					else if (OPERATION_CLAVEFIRMA_POSTSIGNS.equals(operation)) {
-						LOGGER.info("Solicitud de postfirmas con Clave Firma"); //$NON-NLS-1$
-						ret = processClaveFirmaPostSigns(session, xml);
-					}
+//					else if (OPERATION_CLAVEFIRMA_PRESIGNS.equals(operation)) {
+//						LOGGER.info("Solicitud de prefirmas con Clave Firma"); //$NON-NLS-1$
+//						ret = processClaveFirmaPreSigns(session, xml);
+//					}
+//					else if (OPERATION_CLAVEFIRMA_POSTSIGNS.equals(operation)) {
+//						LOGGER.info("Solicitud de postfirmas con Clave Firma"); //$NON-NLS-1$
+//						ret = processClaveFirmaPostSigns(session, xml);
+//					}
 					else {
 						LOGGER.info("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
 						ret = ErrorManager.genError(ErrorManager.ERROR_UNSUPPORTED_OPERATION_NAME);
@@ -378,6 +394,10 @@ public final class ProxyService extends HttpServlet {
 		}
 
 		final HttpSession session = request.getSession();
+
+		LOGGER.info(" == CREAMOS LA SESION: " + session.getId());
+
+
 		// Se mantiene la sesion durante un dia
 		session.setMaxInactiveInterval(60*60*24);
 
@@ -472,7 +492,7 @@ public final class ProxyService extends HttpServlet {
 			session.setAttribute(SESSION_PARAM_DNI, dni);
 		}
 		catch (final Exception e) {
-			LOGGER.warning("Ocurrio un error durante la validacion de la firma de login: " + e); //$NON-NLS-1$
+			LOGGER.warning("Ocurrio un error durante la validacion de la firma de login. No se permitira el acceso: " + e); //$NON-NLS-1$
 			result.setError(e.getMessage());
 		}
 		return result;
@@ -1068,174 +1088,174 @@ public final class ProxyService extends HttpServlet {
 		return appRequests;
 	}
 
-	/**
-	 * Procesa las peticiones de firma con ClaveFirma. Se realiza la prefirma de cada uno
-	 * de los documentos de las peticiones indicadas, se envian a FIRe para que realice una
-	 * firma PKCS#1 y se vuelve la URL a la que este redirigio.
-	 * Si se produce alg&uacute;n error al procesar un documento de alguna de las peticiones, se establece como incorrecta
-	 * la petici&oacute;n al completo.
-	 * @param request Petici&oacute;n HTTP recibida.
-	 * @param xml XML con los datos para el proceso de firma.
-	 * @return XML con la URL de redirecci&oacute;n a FIRe.
-	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
-	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
-	 * @throws CertificateException Cuando ocurre alg&uacute;n problema con el certificado de firma.
-	 */
-	private String processClaveFirmaPreSigns(HttpSession session, final byte[] xml) throws SAXException, IOException, CertificateException {
-
-		final String userId = (String) session.getAttribute(SESSION_PARAM_DNI);
-		final byte[] cert = Base64.decode((String) session.getAttribute(SESSION_PARAM_CERT));
-
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
-		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc, cert);
-
-		// Generamos la prefirmas
-		preSign(triRequests);
-
-		// Enviamos las prefirmas a FIRe para preparar la firma
-		final SignOperationResult batchResult;
-		try {
-			batchResult = signWithFire(userId, triRequests);
-		}
-		catch (final Exception e) {
-			LOGGER.log(Level.SEVERE, "Error en el envio del lote de firma a FIRe", e); //$NON-NLS-1$
-			return XmlResponsesFactory.createClaveFirmaPreSignErrorResponse(e.getMessage());
-		}
-
-		// Devolvemos la URL de redireccion
-		return XmlResponsesFactory.createClaveFirmaPreSignResponse(
-				batchResult.getTransactionId(),
-				batchResult.getRedirectUrl(),
-				triRequests.toArray(new TriphaseRequest[triRequests.size()]));
-	}
-
-	/**
-	 * Procesa las peticiones de firma con ClaveFirma. Se realiza la prefirma de cada uno
-	 * de los documentos de las peticiones indicadas, se envian a FIRe para que realice una
-	 * firma PKCS#1 y se vuelve la URL a la que este redirigio.
-	 * Si se produce alg&uacute;n error al procesar un documento de alguna de las peticiones, se establece como incorrecta
-	 * la petici&oacute;n al completo.
-	 * @param request Petici&oacute;n HTTP recibida.
-	 * @param xml XML con los datos para el proceso de firma.
-	 * @return XML con la URL de redirecci&oacute;n a FIRe.
-	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
-	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
-	 * @throws CertificateException Cuando ocurre alg&uacute;n problema con el certificado de firma.
-	 */
-	private String processClaveFirmaPostSigns(HttpSession session, final byte[] xml) throws SAXException, IOException, CertificateException {
-
-		final String userId = (String) session.getAttribute(SESSION_PARAM_DNI);
-		final byte[] cert = Base64.decode((String) session.getAttribute(SESSION_PARAM_CERT));
-
-		// Obtenemos los datos de la peticion
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
-		final FirePreSignResult preSignResult = ClaveFirmaRequestsParser.parse(xmlDoc, cert);
-		final TriphaseRequestBean triPhaseRequest = preSignResult.getTriphaseRequestBean();
-
-		final String trId = preSignResult.getTransactionId();
-		if (trId == null) {
-			throw new IOException("No se ha enviado el identificador de transaccion"); //$NON-NLS-1$
-		}
-
-		LOGGER.info("Recuperamos de FIRe los resultados de la transaccion " + trId + " del usuario " + userId); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// Obtenemos el resultado global de la operacion de firma de ClaveFirma
-		final FireClient client = this.fireConnector.getFireClient();
-		BatchResult batchResult;
-		try {
-			batchResult = client.recoverBatchResult(trId, userId);
-		} catch (final Exception e) {
-			LOGGER.log(Level.SEVERE, "Ocurrio un error al recuperar los resultados de firma de Clave Firma", e); //$NON-NLS-1$
-			throw new IOException("Ocurrio un error al recuperar los resultados de firma de Clave Firma", e); //$NON-NLS-1$
-		}
-
-		// Obtenemos las firmas PKCS#1 de cada documento y las asignamos a los datos de firma
-		// trifasica de los propios documentos
-		for (final String docId : batchResult.keySet().toArray(new String[batchResult.size()])) {
-			final SignBatchResult result = batchResult.get(docId);
-			TransactionResult trResult = null;
-			if (result.isSigned()) {
-				try {
-					trResult = client.recoverBatchSign(trId, userId, docId);
-				}
-				catch (final Exception e) {
-					LOGGER.log(Level.WARNING, "Error al obtener una firma de Clave Firma. Se omitira esta firma.", e); //$NON-NLS-1$
-					trResult = null;
-				}
-			}
-			else {
-				LOGGER.info("Ocurrio un error al firmar el documento: " + docId); //$NON-NLS-1$
-			}
-			assignTriPhaseResult(triPhaseRequest, docId, trResult != null ? trResult.getResult() : null);
-		}
-
-		// Postfirmamos las firmas y las enviamos al Portafirmas web
-		postSign(triPhaseRequest);
-
-		// Componemos la respuesta al servicio
-		return XmlResponsesFactory.createPostsignResponse(triPhaseRequest);
-	}
-
-	/**
-	 * Asigna el resultado de la operacion trifasica (PKCS#1) a los datos de firma
-	 * trifasica de un documento concreto. Si no se pasa un resultado, se interpreta
-	 * que la operacion finalizo con errores.
-	 * @param trResult Datos de firma trifasica de todos los documentos.
-	 * @param docId Identificador del documento al que asignar el PKCS#1.
-	 * @param pkcs1 Resultado a asignar o {@code null} si se produjo alg&uacute;n error.
-	 */
-	private static void assignTriPhaseResult(final TriphaseRequestBean triRequests, final String docId, final byte[] pkcs1) {
-
-		for (final TriphaseRequest triPhase : triRequests) {
-			if (triPhase.isStatusOk()) {
-				for (final TriphaseSignDocumentRequest triSignDoc : triPhase) {
-					final String triSignDocId = triSignDoc.getId();
-					if (docId.equals(triSignDocId)) {
-						// Si se proporciona un PKCS#1 se asocia al documento,
-						if (pkcs1 != null) {
-							triSignDoc.getPartialResult().getTriSign(docId).addProperty("PK1", Base64.encode(pkcs1)); //$NON-NLS-1$
-						}
-						// Si no se proporciona un PKCS#1, establecemos que toda la
-						// operacion es erronea
-						else {
-							triPhase.setStatusOk(false);
-						}
-						return;
-					}
-
-				}
-			}
-		}
-	}
-
-	private SignOperationResult signWithFire(final String userId, final TriphaseRequestBean triRequests)
-			throws HttpForbiddenException, HttpNetworkException, IOException, HttpOperationException,
-			NumDocumentsExceededException, DuplicateDocumentException, InvalidTransactionException {
-
-		final FireClient client = this.fireConnector.getFireClient();
-		final Properties batchConfig = this.fireConnector.getBatchConfig();
-
-		LOGGER.info("Creamos un lote de firma en FIRe"); //$NON-NLS-1$
-		final CreateBatchResult result = client.createBatchProcess(userId, "sign", AOSignConstants.SIGN_FORMAT_PKCS1, "SHA1withRSA", null, null, batchConfig);  //$NON-NLS-1$//$NON-NLS-2$
-		final String trId = result.getTransactionId();
-
-		LOGGER.info("Creada la transaccion: " + trId); //$NON-NLS-1$
-
-		for (final TriphaseRequest singleRequest : triRequests) {
-			for (final TriphaseSignDocumentRequest signDocumentRequest : singleRequest) {
-
-				// En el proceso de firma de lote estamos firmando PKCS#1, por lo que es
-				// innecesario indicar operacion, formato o extraParams particulares para
-				// cada documento. Esto se tendra que hacer en las prefirma y postfirma.
-				final byte[] data = Base64.decode(signDocumentRequest.getPartialResult().getSign(0).getProperty("PRE")); //$NON-NLS-1$
-				client.addDocumentToBatch(trId, userId, signDocumentRequest.getId(), data, null);
-			}
-		}
-
-		LOGGER.info("Iniciamos la firma del lote"); //$NON-NLS-1$
-
-		return client.signBatch(trId, userId, false);
-	}
+//	/**
+//	 * Procesa las peticiones de firma con ClaveFirma. Se realiza la prefirma de cada uno
+//	 * de los documentos de las peticiones indicadas, se envian a FIRe para que realice una
+//	 * firma PKCS#1 y se vuelve la URL a la que este redirigio.
+//	 * Si se produce alg&uacute;n error al procesar un documento de alguna de las peticiones, se establece como incorrecta
+//	 * la petici&oacute;n al completo.
+//	 * @param request Petici&oacute;n HTTP recibida.
+//	 * @param xml XML con los datos para el proceso de firma.
+//	 * @return XML con la URL de redirecci&oacute;n a FIRe.
+//	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
+//	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
+//	 * @throws CertificateException Cuando ocurre alg&uacute;n problema con el certificado de firma.
+//	 */
+//	private String processClaveFirmaPreSigns(HttpSession session, final byte[] xml) throws SAXException, IOException, CertificateException {
+//
+//		final String userId = (String) session.getAttribute(SESSION_PARAM_DNI);
+//		final byte[] cert = Base64.decode((String) session.getAttribute(SESSION_PARAM_CERT));
+//
+//		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+//		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc, cert);
+//
+//		// Generamos la prefirmas
+//		preSign(triRequests);
+//
+//		// Enviamos las prefirmas a FIRe para preparar la firma
+//		final SignOperationResult batchResult;
+//		try {
+//			batchResult = signWithFire(userId, triRequests);
+//		}
+//		catch (final Exception e) {
+//			LOGGER.log(Level.SEVERE, "Error en el envio del lote de firma a FIRe", e); //$NON-NLS-1$
+//			return XmlResponsesFactory.createClaveFirmaPreSignErrorResponse(e.getMessage());
+//		}
+//
+//		// Devolvemos la URL de redireccion
+//		return XmlResponsesFactory.createClaveFirmaPreSignResponse(
+//				batchResult.getTransactionId(),
+//				batchResult.getRedirectUrl(),
+//				triRequests.toArray(new TriphaseRequest[triRequests.size()]));
+//	}
+//
+//	/**
+//	 * Procesa las peticiones de firma con ClaveFirma. Se realiza la prefirma de cada uno
+//	 * de los documentos de las peticiones indicadas, se envian a FIRe para que realice una
+//	 * firma PKCS#1 y se vuelve la URL a la que este redirigio.
+//	 * Si se produce alg&uacute;n error al procesar un documento de alguna de las peticiones, se establece como incorrecta
+//	 * la petici&oacute;n al completo.
+//	 * @param request Petici&oacute;n HTTP recibida.
+//	 * @param xml XML con los datos para el proceso de firma.
+//	 * @return XML con la URL de redirecci&oacute;n a FIRe.
+//	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
+//	 * @throws IOException Cuando ocurre algun problema de comunicaci&oacute;n con el servidor.
+//	 * @throws CertificateException Cuando ocurre alg&uacute;n problema con el certificado de firma.
+//	 */
+//	private String processClaveFirmaPostSigns(HttpSession session, final byte[] xml) throws SAXException, IOException, CertificateException {
+//
+//		final String userId = (String) session.getAttribute(SESSION_PARAM_DNI);
+//		final byte[] cert = Base64.decode((String) session.getAttribute(SESSION_PARAM_CERT));
+//
+//		// Obtenemos los datos de la peticion
+//		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+//		final FirePreSignResult preSignResult = ClaveFirmaRequestsParser.parse(xmlDoc, cert);
+//		final TriphaseRequestBean triPhaseRequest = preSignResult.getTriphaseRequestBean();
+//
+//		final String trId = preSignResult.getTransactionId();
+//		if (trId == null) {
+//			throw new IOException("No se ha enviado el identificador de transaccion"); //$NON-NLS-1$
+//		}
+//
+//		LOGGER.info("Recuperamos de FIRe los resultados de la transaccion " + trId + " del usuario " + userId); //$NON-NLS-1$ //$NON-NLS-2$
+//
+//		// Obtenemos el resultado global de la operacion de firma de ClaveFirma
+//		final FireClient client = this.fireConnector.getFireClient();
+//		BatchResult batchResult;
+//		try {
+//			batchResult = client.recoverBatchResult(trId, userId);
+//		} catch (final Exception e) {
+//			LOGGER.log(Level.SEVERE, "Ocurrio un error al recuperar los resultados de firma de Clave Firma", e); //$NON-NLS-1$
+//			throw new IOException("Ocurrio un error al recuperar los resultados de firma de Clave Firma", e); //$NON-NLS-1$
+//		}
+//
+//		// Obtenemos las firmas PKCS#1 de cada documento y las asignamos a los datos de firma
+//		// trifasica de los propios documentos
+//		for (final String docId : batchResult.keySet().toArray(new String[batchResult.size()])) {
+//			final SignBatchResult result = batchResult.get(docId);
+//			TransactionResult trResult = null;
+//			if (result.isSigned()) {
+//				try {
+//					trResult = client.recoverBatchSign(trId, userId, docId);
+//				}
+//				catch (final Exception e) {
+//					LOGGER.log(Level.WARNING, "Error al obtener una firma de Clave Firma. Se omitira esta firma.", e); //$NON-NLS-1$
+//					trResult = null;
+//				}
+//			}
+//			else {
+//				LOGGER.info("Ocurrio un error al firmar el documento: " + docId); //$NON-NLS-1$
+//			}
+//			assignTriPhaseResult(triPhaseRequest, docId, trResult != null ? trResult.getResult() : null);
+//		}
+//
+//		// Postfirmamos las firmas y las enviamos al Portafirmas web
+//		postSign(triPhaseRequest);
+//
+//		// Componemos la respuesta al servicio
+//		return XmlResponsesFactory.createPostsignResponse(triPhaseRequest);
+//	}
+//
+//	/**
+//	 * Asigna el resultado de la operacion trifasica (PKCS#1) a los datos de firma
+//	 * trifasica de un documento concreto. Si no se pasa un resultado, se interpreta
+//	 * que la operacion finalizo con errores.
+//	 * @param trResult Datos de firma trifasica de todos los documentos.
+//	 * @param docId Identificador del documento al que asignar el PKCS#1.
+//	 * @param pkcs1 Resultado a asignar o {@code null} si se produjo alg&uacute;n error.
+//	 */
+//	private static void assignTriPhaseResult(final TriphaseRequestBean triRequests, final String docId, final byte[] pkcs1) {
+//
+//		for (final TriphaseRequest triPhase : triRequests) {
+//			if (triPhase.isStatusOk()) {
+//				for (final TriphaseSignDocumentRequest triSignDoc : triPhase) {
+//					final String triSignDocId = triSignDoc.getId();
+//					if (docId.equals(triSignDocId)) {
+//						// Si se proporciona un PKCS#1 se asocia al documento,
+//						if (pkcs1 != null) {
+//							triSignDoc.getPartialResult().getTriSign(docId).addProperty("PK1", Base64.encode(pkcs1)); //$NON-NLS-1$
+//						}
+//						// Si no se proporciona un PKCS#1, establecemos que toda la
+//						// operacion es erronea
+//						else {
+//							triPhase.setStatusOk(false);
+//						}
+//						return;
+//					}
+//
+//				}
+//			}
+//		}
+//	}
+//
+//	private SignOperationResult signWithFire(final String userId, final TriphaseRequestBean triRequests)
+//			throws HttpForbiddenException, HttpNetworkException, IOException, HttpOperationException,
+//			NumDocumentsExceededException, DuplicateDocumentException, InvalidTransactionException {
+//
+//		final FireClient client = this.fireConnector.getFireClient();
+//		final Properties batchConfig = FireConnector.getBatchConfig();
+//
+//		LOGGER.info("Creamos un lote de firma en FIRe"); //$NON-NLS-1$
+//		final CreateBatchResult result = client.createBatchProcess(userId, "sign", AOSignConstants.SIGN_FORMAT_PKCS1, "SHA1withRSA", null, null, batchConfig);  //$NON-NLS-1$//$NON-NLS-2$
+//		final String trId = result.getTransactionId();
+//
+//		LOGGER.info("Creada la transaccion: " + trId); //$NON-NLS-1$
+//
+//		for (final TriphaseRequest singleRequest : triRequests) {
+//			for (final TriphaseSignDocumentRequest signDocumentRequest : singleRequest) {
+//
+//				// En el proceso de firma de lote estamos firmando PKCS#1, por lo que es
+//				// innecesario indicar operacion, formato o extraParams particulares para
+//				// cada documento. Esto se tendra que hacer en las prefirma y postfirma.
+//				final byte[] data = Base64.decode(signDocumentRequest.getPartialResult().getSign(0).getProperty("PRE")); //$NON-NLS-1$
+//				client.addDocumentToBatch(trId, userId, signDocumentRequest.getId(), data, null);
+//			}
+//		}
+//
+//		LOGGER.info("Iniciamos la firma del lote"); //$NON-NLS-1$
+//
+//		return client.signBatch(trId, userId, false);
+//	}
 
 	/**
 	 * Genera las prefirmas.
