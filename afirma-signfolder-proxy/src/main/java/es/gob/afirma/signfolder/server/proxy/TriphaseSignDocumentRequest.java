@@ -187,12 +187,12 @@ public final class TriphaseSignDocumentRequest {
 		 * Inicializa el objeto sin configuraci&oacute;n establecida.
 		 */
 		public TriphaseConfigDataBean() {
-			this.preSigns = new ArrayList<String>();
+			this.preSigns = new ArrayList<>();
 			this.needPreSign = null;
 			this.needData = null;
 			this.signCount = null;
-			this.sessions = new ArrayList<String>();
-			this.pk1s = new ArrayList<String>();
+			this.sessions = new ArrayList<>();
+			this.pk1s = new ArrayList<>();
 		}
 
 		/**
@@ -305,7 +305,9 @@ public final class TriphaseSignDocumentRequest {
 
 			final StringBuilder builder = new StringBuilder();
 			if (this.signCount != null)
-			builder.append(NODE_PART_1).append("sc").append(NODE_PART_2).append(this.signCount.intValue()).append(NODE_PART_3); //$NON-NLS-1$
+			 {
+				builder.append(NODE_PART_1).append("sc").append(NODE_PART_2).append(this.signCount.intValue()).append(NODE_PART_3); //$NON-NLS-1$
+			}
 
 			if (this.needData != null) {
 				builder.append(NODE_PART_1).append("nd").append(NODE_PART_2).append(this.needData.booleanValue()).append(NODE_PART_3); //$NON-NLS-1$

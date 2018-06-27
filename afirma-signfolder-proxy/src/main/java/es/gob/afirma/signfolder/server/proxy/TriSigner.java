@@ -126,9 +126,6 @@ public class TriSigner {
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
-//			LOGGER.info("URL de peticion de prefirma:");
-//			LOGGER.info(urlBuffer.toString());
-
 			docReq.setPartialResult(parseTriphaseResult(UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), UrlHttpMethod.POST)));
 			urlBuffer.setLength(0);
 		}
@@ -372,16 +369,16 @@ public class TriSigner {
 			throw new IllegalArgumentException("El XML de entrada no puede ser nulo"); //$NON-NLS-1$
 		}
 
-		final InputStream is = new ByteArrayInputStream(Base64.decode(triphaseResponse, 0, triphaseResponse.length, true));
 		Document doc;
-		try {
-			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+		try (InputStream is = new ByteArrayInputStream(Base64.decode(triphaseResponse, 0, triphaseResponse.length, true))) {
+			try {
+				doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+			}
+			catch (final Exception e) {
+				LOGGER.severe("Error al cargar la respuesta XML: " + e + "\n" + new String(triphaseResponse)); //$NON-NLS-1$ //$NON-NLS-2$
+				throw new IOException("Error al cargar la respuesta XML: " + e, e); //$NON-NLS-1$
+			}
 		}
-		catch (final Exception e) {
-			LOGGER.severe("Error al cargar la respuesta XML: " + e + "\n" + new String(triphaseResponse)); //$NON-NLS-1$ //$NON-NLS-2$
-			throw new IOException("Error al cargar la respuesta XML: " + e, e); //$NON-NLS-1$
-		}
-		is.close();
 
 		final Element rootElement = doc.getDocumentElement();
 		final NodeList childNodes = rootElement.getChildNodes();
@@ -401,7 +398,7 @@ public class TriSigner {
 
 		final NodeList childNodes = signsNode.getChildNodes();
 
-		final List<TriSign> signs = new ArrayList<TriSign>();
+		final List<TriSign> signs = new ArrayList<>();
 		int idx = nextNodeElementIndex(childNodes, 0);
 		while (idx != -1) {
 			final Node currentNode = childNodes.item(idx);
@@ -434,7 +431,7 @@ public class TriSigner {
 
 		final NodeList childNodes = paramsNode.getChildNodes();
 
-		final Map<String, String> params = new HashMap<String, String>();
+		final Map<String, String> params = new HashMap<>();
 		int idx = nextNodeElementIndex(childNodes, 0);
 		while (idx != -1) {
 			final Node paramNode = childNodes.item(idx);

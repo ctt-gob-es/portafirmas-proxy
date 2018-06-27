@@ -24,7 +24,6 @@ import es.gob.afirma.core.signers.TriphaseData;
 final class SignRequestsParser {
 
 	private static final String TRISIGN_REQUEST_NODE = "rqttri"; //$NON-NLS-1$
-	private static final String CERTIFICATE_NODE = "cert"; //$NON-NLS-1$
 	private static final String REQUESTS_LIST_NODE = "reqs"; //$NON-NLS-1$
 	private static final String TRANSACTION_ID_ATTR = "trid"; //$NON-NLS-1$
 
@@ -104,7 +103,7 @@ final class SignRequestsParser {
 			throw new IllegalArgumentException("La peticion de firma trifasica no contiene el nodo " + //$NON-NLS-1$
 					REQUESTS_LIST_NODE + " con el listado de peticiones de firma de documentos"); //$NON-NLS-1$
 		}
-		final List<TriphaseRequest> listTrisignRequests = new ArrayList<TriphaseRequest>();
+		final List<TriphaseRequest> listTrisignRequests = new ArrayList<>();
 		final NodeList requestsNode = requestNodes.item(nodeIndex).getChildNodes();
 		for (int i = 0; i < requestsNode.getLength(); i++) {
 			// Nos aseguramos de procesar solo nodos de tipo Element
@@ -139,7 +138,7 @@ final class SignRequestsParser {
 			// Datos de la peticion
 			final String ref;
 			final boolean statusOk;
-			final List<TriphaseSignDocumentRequest> listDocumentRequests = new ArrayList<TriphaseSignDocumentRequest>();
+			final List<TriphaseSignDocumentRequest> listDocumentRequests = new ArrayList<>();
 
 			// Cargamos los atributos
 			Node attributeNode = null;
@@ -340,7 +339,7 @@ final class SignRequestsParser {
 
 		static TriphaseData parse (final NodeList params, final String id) {
 
-			final Map<String, String> config = new HashMap<String, String>();
+			final Map<String, String> config = new HashMap<>();
 			try {
 				int numIndex = 0;
 				while ((numIndex = XmlUtils.nextNodeElementIndex(params, numIndex)) > -1) {

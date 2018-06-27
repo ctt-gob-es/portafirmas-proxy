@@ -27,8 +27,6 @@ public class ListRequestParser {
 	private final static String FILTER_NODE = "fltr"; //$NON-NLS-1$
 	private final static String FILTER_KEY_NODE = "key"; //$NON-NLS-1$
 	private final static String FILTER_VALUE_NODE = "value"; //$NON-NLS-1$
-	
-	private static final String SESSION_PARAM_CERT = "cert";
 
 	private final static String STATE_ATTRIBUTE = "state"; //$NON-NLS-1$
 	private final static String PAGE_ATTRIBUTE = "pg"; //$NON-NLS-1$
@@ -38,7 +36,7 @@ public class ListRequestParser {
 	private ListRequestParser() {
 		// No se permite el constructor por defecto
 	}
-	
+
 	/** Analiza un documento XML y, en caso de tener el formato correcto, obtiene de &eacute;l
 	 * un objeto de tipo {@link es.gob.afirma.signfolder.server.proxy.ListRequest}.
 	 * @param doc Documento XML.
@@ -132,7 +130,7 @@ public class ListRequestParser {
 	 * @return Listado de formatos de firma.
 	 */
 	private static String[] getFormats(final NodeList nodes) {
-		final List<String> formats = new ArrayList<String>();
+		final List<String> formats = new ArrayList<>();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			i = XmlUtils.nextNodeElementIndex(nodes, i);
 			if (i == -1) {
@@ -157,7 +155,7 @@ public class ListRequestParser {
 	 */
 	private static Map<String, String> getFilters(final NodeList nodes) {
 
-		final Map<String, String> filters = new HashMap<String, String>();
+		final Map<String, String> filters = new HashMap<>();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			i = XmlUtils.nextNodeElementIndex(nodes, i);
 			if (i == -1) {

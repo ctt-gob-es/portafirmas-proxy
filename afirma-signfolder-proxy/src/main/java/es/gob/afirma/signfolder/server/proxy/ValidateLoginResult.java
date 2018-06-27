@@ -18,7 +18,6 @@ class ValidateLoginResult {
 		this.logged = true;
 	}
 
-
 	boolean isLogged() {
 		return this.logged;
 	}

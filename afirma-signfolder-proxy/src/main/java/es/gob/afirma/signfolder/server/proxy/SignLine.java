@@ -19,28 +19,35 @@ public class SignLine {
 
 	private final String[] signers;
 	private SignLineType type = SignLineType.FIRMA;
-	private boolean processed = false;
 
+	/**
+	 * Construye la informaci&oacute;n b&aacute;sica de la l&iacute;nea de firma.
+	 * @param signers Listado de firmantes.
+	 */
 	public SignLine(String[] signers) {
 		this.signers = signers;
 	}
 
+	/**
+	 * Obtiene el listado de firmantes de la l&iacute;nea de firma.
+	 * @return Listado de firmantes.
+	 */
 	public String[] getSigners() {
 		return this.signers;
 	}
 
-	public boolean isProcessed() {
-		return this.processed;
-	}
-
-	public void setProcessed(boolean processed) {
-		this.processed = processed;
-	}
-
+	/**
+	 * Obtiene el tipo de l&iacute;nea de firma.
+	 * @return Tipo de l&iacute;nea de firma.
+	 */
 	public SignLineType getType() {
 		return this.type;
 	}
 
+	/**
+	 * Establece el tipo de l&iacute;nea de firma.
+	 * @param type Tipo de l&iacute;nea de firma.
+	 */
 	public void setType(SignLineType type) {
 		this.type = type;
 	}

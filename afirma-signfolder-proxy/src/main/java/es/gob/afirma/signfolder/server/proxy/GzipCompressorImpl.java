@@ -23,18 +23,14 @@ public class GzipCompressorImpl {
 	public static byte[] gzip(final byte[] data) {
 
 		final byte[] compressedData;
-		try {
+		try (
 			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			final GZIPOutputStream gzipOs = new GZIPOutputStream(baos);
+				) {
 			gzipOs.write(data);
 			gzipOs.finish();
 
 			compressedData = baos.toByteArray();
-			try {
-				gzipOs.close();
-			} catch (final Exception e) {
-				// No tratamos el error
-			}
 		} catch (final IOException e) {
 			// Este error no deberia ocurrir nunca
 			Logger.getLogger("es.gob.afirma").warning("Error al comprimir los datos. Se devuelven los datos originales: " + e); //$NON-NLS-1$ //$NON-NLS-2$
@@ -53,23 +49,15 @@ public class GzipCompressorImpl {
 	public static byte[] gunzip(final byte[] compressedData) throws IOException {
 
 		int n = 0;
+		byte[] data;
 		final byte[] buffer = new byte[BUFFER_SIZE];
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		final GZIPInputStream gzipIs = new GZIPInputStream(new ByteArrayInputStream(compressedData));
-
-		while ((n = gzipIs.read(buffer)) > 0) {
-			baos.write(buffer, 0, n);
-		}
-		try {
-			gzipIs.close();
-		} catch (final Exception e) {
-			// No tratamos el error
-		}
-		final byte[] data = baos.toByteArray();
-		try {
-			baos.close();
-		} catch (final Exception e) {
-			// No tratamos el error
+		try (	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				GZIPInputStream gzipIs = new GZIPInputStream(new ByteArrayInputStream(compressedData));
+				) {
+			while ((n = gzipIs.read(buffer)) > 0) {
+				baos.write(buffer, 0, n);
+			}
+			data = baos.toByteArray();
 		}
 		return data;
 	}

@@ -14,7 +14,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,7 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -182,42 +180,6 @@ public final class ProxyService extends HttpServlet {
 			responser.print(ErrorManager.genError(ErrorManager.ERROR_MISSING_OPERATION_NAME, null));
 			return;
 		}
-
-		LOGGER.info("Operacion: " + (operation.equals(OPERATION_REQUEST_LOGIN) ?
-				"Solicitud de login" : operation.equals(OPERATION_VALIDATE_LOGIN) ?
-				"Validacion de login" : "Otra"));
-
-		LOGGER.info(" ====== CABECERAS DE LA PETICION ====== ");
-
-		final Enumeration<String> headers = request.getHeaderNames();
-		if (headers != null) {
-			while (headers.hasMoreElements()) {
-				final String name = headers.nextElement();
-				LOGGER.info(name + ": " + request.getHeader(name));
-			}
-		}
-		LOGGER.info(" ====================================== ");
-
-		LOGGER.info(" == Id de sesion solicitada: " + request.getRequestedSessionId());
-
-		final Cookie[] cookies = request.getCookies();
-		if (cookies == null) {
-			LOGGER.info("La peticion no incluye cookies");
-		}
-		else {
-			for (final Cookie cookie : cookies) {
-				LOGGER.info(" ----- Cookie encontrada ----- ");
-				LOGGER.info(" - Nombre: " + cookie.getName());
-				LOGGER.info(" - Value: " + cookie.getValue());
-				LOGGER.info(" - Path: " + cookie.getPath());
-				LOGGER.info(" - Version: " + cookie.getVersion());
-				LOGGER.info(" - Domain: " + cookie.getDomain());
-				LOGGER.info(" - Comment: " + cookie.getComment());
-				LOGGER.info(" ----------------------------- ");
-			}
-		}
-
-
 
 		final String data = request.getParameter(PARAMETER_NAME_DATA);
 		if (data == null) {
@@ -395,9 +357,6 @@ public final class ProxyService extends HttpServlet {
 
 		final HttpSession session = request.getSession();
 
-		LOGGER.info(" == CREAMOS LA SESION: " + session.getId());
-
-
 		// Se mantiene la sesion durante un dia
 		session.setMaxInactiveInterval(60*60*24);
 
@@ -441,7 +400,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processValidateLogin(final HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
 
-		LOGGER.info("Validación del login del usuario"); //$NON-NLS-1$
+		LOGGER.info("Validacion del login del usuario"); //$NON-NLS-1$
 
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final ValidateLoginRequest loginRequest = ValidateLoginRequestParser.parse(doc);

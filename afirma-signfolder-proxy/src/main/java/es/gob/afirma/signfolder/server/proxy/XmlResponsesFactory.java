@@ -44,7 +44,7 @@ final class XmlResponsesFactory {
 				.append("\" cop=\"").append(docReq.getCryptoOperation()) //$NON-NLS-1$
 				.append("\" sigfrmt=\"").append(docReq.getSignatureFormat()) //$NON-NLS-1$
 				.append("\" mdalgo=\"").append(docReq.getMessageDigestAlgorithm()).append("\">") //$NON-NLS-1$ //$NON-NLS-2$
-				.append("<params>").append(docReq.getParams() != null ? docReq.getParams() : "").append("</params>") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				.append("<params>").append(docReq.getParams() != null ? escapeXmlCharacters(docReq.getParams()) : "").append("</params>") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				.append("<result>"); //$NON-NLS-1$
 				// Ahora mismo las firmas se envian de una en una, asi que usamos directamente la primera de ellas
 				final Map<String, String> triSign = docReq.getPartialResult().getTriSigns().get(0).getDict();
@@ -59,10 +59,13 @@ final class XmlResponsesFactory {
 			String exceptionb64 = null;
 			final Throwable t = triphaseRequest.getThrowable();
 			if (t != null) {
-				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				t.printStackTrace(new PrintWriter(baos));
-				exceptionb64 = Base64.encode(baos.toByteArray());
-				try { baos.close(); } catch (final IOException e) { /* No hacemos nada */ }
+				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+					t.printStackTrace(new PrintWriter(baos));
+					exceptionb64 = Base64.encode(baos.toByteArray());
+				}
+				catch (final IOException e) {
+					// No hacemos nada
+				}
 			}
 
 			if (exceptionb64 != null) {
@@ -191,7 +194,7 @@ final class XmlResponsesFactory {
 		if (requestDetails.getRejectReason() != null) {
 			sb.append("<rejt>").append(escapeXmlCharacters(requestDetails.getRejectReason())).append("</rejt>"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		sb.append("<ref>").append(requestDetails.getRef()).append("</ref>"); //$NON-NLS-1$ //$NON-NLS-2$
+		sb.append("<ref>").append(escapeXmlCharacters(requestDetails.getRef())).append("</ref>"); //$NON-NLS-1$ //$NON-NLS-2$
 
 		sb.append("<signlinestype>").append(requestDetails.getSignLinesFlow()).append("</signlinestype>"); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -312,7 +315,7 @@ final class XmlResponsesFactory {
 			sb.append(" dni='").append(validateLoginData.getDni()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		else {
-			sb.append(" er='").append(validateLoginData.getError()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append(" er='").append(escapeXmlCharacters(validateLoginData.getError().toString())).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		sb.append("/>"); //$NON-NLS-1$
 
@@ -332,7 +335,7 @@ final class XmlResponsesFactory {
 				.append(XML_HEADER)
 				.append("<reg ok='").append(registryResult.isRegistered()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (!registryResult.isRegistered()) {
-			sb.append(" err='").append(registryResult.getError()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append(" err='").append(escapeXmlCharacters(registryResult.getError())).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		sb.append("/>"); //$NON-NLS-1$
 
@@ -357,7 +360,7 @@ final class XmlResponsesFactory {
 	public static String createClaveFirmaPreSignErrorResponse(String err) {
 		return new StringBuilder(XML_HEADER)
 				.append("<cfpre ok='false' err='") //$NON-NLS-1$
-				.append(err).append("'/>").toString(); //$NON-NLS-1$
+				.append(escapeXmlCharacters(err)).append("'/>").toString(); //$NON-NLS-1$
 	}
 
 	/**
@@ -389,12 +392,12 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Sustituye los caracteres que pueden conllevar a la malformaci&oacute;n de un XML por sus
-	 * correspondientes versiones escapadas de HTML.
-	 * @param text Texto a escapar.
-	 * @return Cadena con los caracteres escapados.
+	 * Protege las cadenas que pueden crear malformaciones en un XML para que su
+	 * contenido no sea tratado por el procesador XML.
+	 * @param text Texto a proteger.
+	 * @return Cadena protegida.
 	 */
 	private static String escapeXmlCharacters(final String text) {
-		return text == null ? null : text.replace("<", "&_lt;").replace(">", "&_gt;");  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		return text == null ? null : "<![CDATA[" + text + "]]>";  //$NON-NLS-1$//$NON-NLS-2$
 	}
 }

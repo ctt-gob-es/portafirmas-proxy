@@ -31,7 +31,7 @@ public class SignRequest {
 
 	/** Fecha de caducidad de la petici&oacute;n. */
 	private final String expdate;
-	
+
 	/** Prioridad de la petici&oacute;n. */
 	private final String priority;
 
@@ -53,6 +53,7 @@ public class SignRequest {
 	 * @param sender Peticionario.
 	 * @param view Vista que se debe mostrar (sin revisar, vista...
 	 * @param date Fecha.
+	 * @param expdate Fecha de caducidad de la petici&oacute;n.
 	 * @param priority Prioridad.
 	 * @param workflow Si pertenece a un flujo de trabajo.
 	 * @param forward Si se ha reenviado esta petici&oacute;n.
@@ -117,7 +118,7 @@ public class SignRequest {
 	public String getExpDate() {
 		return this.expdate;
 	}
-	
+
 	/** Recupera la prioridad de la petici&oacute;n: 1(Normal), 2 (Alta), 3 (Muy alta) o 4 (Urgente).
 	 * @return Peticionario de la petici&oacute;n. */
 	public String getPriority() {

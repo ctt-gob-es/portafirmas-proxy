@@ -1,7 +1,6 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
 class NotificationRegistryParser {
 
@@ -42,22 +41,6 @@ class NotificationRegistryParser {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					NOTIFICATIONS_ID_REGISTRY + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
 		}
-
-		final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		/*final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
-		if (nodeIndex == -1) {
-			throw new IllegalArgumentException(
-					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
-							CERT_NODE);
-		}
-
-
-		final Element certNode = (Element) nodes.item(nodeIndex);
-		if (!CERT_NODE.equalsIgnoreCase(certNode.getNodeName())) {
-			throw new IllegalArgumentException(
-					"No se ha encontrado el nodo " + CERT_NODE + //$NON-NLS-1$
-					" en su lugar se encontro " + certNode.getNodeName()); //$NON-NLS-1$
-		}*/
 
 		return new NotificationRegistry(certEncoded, deviceId, platformId, idRegistry);
 	}

@@ -49,9 +49,9 @@ public class RejectsRequestParser {
 		}
 
 		// Establecemos el certificado para la autenticacion
-		
+
 		final NodeList rejectRequestNodes = doc.getDocumentElement().getChildNodes();
-		
+
 		int nodeIndex = XmlUtils.nextNodeElementIndex(rejectRequestNodes, 0);
 		/*final byte[] certEncoded;
 		if (nodeIndex != -1 && CERT_NODE.equalsIgnoreCase(rejectRequestNodes.item(nodeIndex).getNodeName())) {
@@ -88,7 +88,7 @@ public class RejectsRequestParser {
 		}
 
 		// Listado de peticiones a rechazar
-		final List<String> ids = new ArrayList<String>();
+		final List<String> ids = new ArrayList<>();
 		final NodeList requestNodes = rejectRequestNodes.item(nodeIndex).getChildNodes();
 		for (int i = 0; i < requestNodes.getLength(); i++) {
 			i = XmlUtils.nextNodeElementIndex(requestNodes, i);
