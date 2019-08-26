@@ -20,6 +20,8 @@ public class Detail {
 
 	private String subject = null;
 
+	private String text = null;
+
 	private String[] senders = null;
 
 	private String date = null;
@@ -120,6 +122,22 @@ public class Detail {
 	 */
 	public void setSubject(final String subject) {
 		this.subject = subject;
+	}
+
+	/**
+	 * Recupera el mensaje de texto asociado a la petici&oacute;n.
+	 * @return Texto de la petici&oacute;n.
+	 */
+	public String getText() {
+		return this.text;
+	}
+
+	/**
+	 * Establece el mensaje de texto asociado a la petici&oacute;n.
+	 * @param text Texto de la petici&oacute;n.
+	 */
+	public void setText(final String text) {
+		this.text = text;
 	}
 
 	/**
@@ -247,7 +265,7 @@ public class Detail {
 	 * Establece el flujo de las l&iacute;neas de firma.
 	 * @param signLinesFlow Flujo de l&iacute;neas de firma.
 	 */
-	public void setSignLinesFlow(String signLinesFlow) {
+	public void setSignLinesFlow(final String signLinesFlow) {
 		this.signLinesFlow = signLinesFlow;
 	}
 

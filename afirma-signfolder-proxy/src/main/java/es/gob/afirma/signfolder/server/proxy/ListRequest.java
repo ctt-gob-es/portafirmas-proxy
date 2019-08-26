@@ -18,28 +18,25 @@ public class ListRequest {
 	/** Estado de solicitud de firma rechazada. */
 	public static final String STATE_REJECTED = "rejected"; //$NON-NLS-1$
 
-	private final byte[] certEncoded;
-
 	private String state;
 
 	private final String[] formats;
 
 	private final Map<String, String> filters;
-	
+
 	private final int numPage;
-	
+
 	private final int pageSize;
 
 	/**
 	 * Construye una petici&oacute;n para obtener parte del listado de solicitudes de firma.
-	 * @param certEncoded Certificado para la autenticaci&oacute;n de la petici&oacute;n.
 	 * @param state Estado de las solicitudes requeridas.
 	 * @param formats Formatos de firma compatibles.
 	 * @param filters Filtros de solicitudes de firma.
 	 * @param numPage N&uacute;mero de pagina del listado.
 	 * @param pageSize Tama&ntilde;o de p&aacute;gina definido.
 	 */
-	public ListRequest(final byte[] certEncoded, final String state, final String[] formats, final Map<String, String> filters, final int numPage, final int pageSize) {
+	public ListRequest(final String state, final String[] formats, final Map<String, String> filters, final int numPage, final int pageSize) {
 		if (state == null || !STATE_UNRESOLVED.equalsIgnoreCase(state) &&
 				!STATE_SIGNED.equalsIgnoreCase(state) && !STATE_REJECTED.equalsIgnoreCase(state)) {
 			Logger.getLogger("es.gob.afirma").warning( //$NON-NLS-1$
@@ -51,19 +48,10 @@ public class ListRequest {
 			this.state = state;
 		}
 
-		this.certEncoded = certEncoded;
 		this.formats = formats;
 		this.filters = filters;
 		this.numPage = numPage;
 		this.pageSize = pageSize;
-	}
-
-	/**
-	 * Recupera el certificado codificado para la autenticaci&oacute;n de la petici&oacute;n.
-	 * @return Certificado codificado.
-	 */
-	public byte[] getCertEncoded() {
-		return this.certEncoded;
 	}
 
 	/**
@@ -97,7 +85,7 @@ public class ListRequest {
 	public int getNumPage() {
 		return this.numPage;
 	}
-	
+
 	/**
 	 * Recupera el tama&ntilde;o de p&aacute;gina configurado.
 	 * @return Tama&ntilde;o de p&aacute;gina.

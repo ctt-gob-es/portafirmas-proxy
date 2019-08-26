@@ -11,8 +11,6 @@ public final class RejectRequest extends ArrayList<String> {
 	/** Serial ID. */
 	private static final long serialVersionUID = 1L;
 
-	private final byte[] certEncoded;
-
 	private final String rejectReason;
 
 	/** Usamos un espacio como valor por defecto igual que el portafirmas web. */
@@ -20,23 +18,13 @@ public final class RejectRequest extends ArrayList<String> {
 
 	/**
 	 * Crea la solicitud de rechazo de una lista de peticiones de firma.
-	 * @param certEncoded Certificado codificado para la autenticaci&oacute;n
 	 * @param ids Identificadores de las peticiones a rechazar.
 	 * @param rejectReason Motivo del rechazo. Si no se indica, se establece el valor por defecto.
 	 */
-	public RejectRequest(final byte[] certEncoded, final List<String> ids, final String rejectReason) {
-		this.certEncoded = certEncoded;
+	public RejectRequest(final List<String> ids, final String rejectReason) {
 		this.addAll(ids);
 		// El servicio no permite valores nulos ni vacios como motivo de rechazo
 		this.rejectReason = rejectReason != null && rejectReason.length() != 0 ? rejectReason : DEFAULT_REASON;
-	}
-
-	/**
-	 * Recupera el certificado codificado para la autenticaci&oacute;n de la petici&oacute;n.
-	 * @return Certificado codificado.
-	 */
-	public byte[] getCertEncoded() {
-		return this.certEncoded;
 	}
 
 	/**

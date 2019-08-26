@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;enumeration value="XADES ENVELOPED"/>
  *     &lt;enumeration value="XADES ENVELOPING"/>
  *     &lt;enumeration value="PDF"/>
+ *     &lt;enumeration value="FACTURAE"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
@@ -45,7 +46,8 @@ public enum MobileSignFormat {
     XADES_ENVELOPED("XADES ENVELOPED"),
     @XmlEnumValue("XADES ENVELOPING")
     XADES_ENVELOPING("XADES ENVELOPING"),
-    PDF("PDF");
+    PDF("PDF"),
+    FACTURAE("FACTURAE");
     private final String value;
 
     MobileSignFormat(String v) {

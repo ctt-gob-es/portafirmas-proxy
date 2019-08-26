@@ -312,4 +312,87 @@ public interface MobileService {
         throws MobileException
     ;
 
+    /**
+     * 
+     * @param spReturn
+     * @param spUrl
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileAccesoClave
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "solicitudAccesoClaveRespuesta", targetNamespace = "")
+    @RequestWrapper(localName = "solicitudAccesoClave", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SolicitudAccesoClave")
+    @ResponseWrapper(localName = "solicitudAccesoClaveResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SolicitudAccesoClaveResponse")
+    public MobileAccesoClave solicitudAccesoClave(
+        @WebParam(name = "spUrl", targetNamespace = "")
+        String spUrl,
+        @WebParam(name = "spReturn", targetNamespace = "")
+        String spReturn)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param remoteHost
+     * @param samlresponse
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "nifCif", targetNamespace = "")
+    @RequestWrapper(localName = "procesarRespuestaClave", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.ProcesarRespuestaClave")
+    @ResponseWrapper(localName = "procesarRespuestaClaveResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.ProcesarRespuestaClaveResponse")
+    public String procesarRespuestaClave(
+        @WebParam(name = "samlresponse", targetNamespace = "")
+        String samlresponse,
+        @WebParam(name = "remoteHost", targetNamespace = "")
+        String remoteHost)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param idRequestList
+     * @param certificate
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileFireTrasactionResponse
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "fireTransactionResponse", targetNamespace = "")
+    @RequestWrapper(localName = "fireTransaction", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.FireTransaction")
+    @ResponseWrapper(localName = "fireTransactionResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.FireTransactionResponse")
+    public MobileFireTrasactionResponse fireTransaction(
+        @WebParam(name = "certificate", targetNamespace = "")
+        byte[] certificate,
+        @WebParam(name = "idRequestList", targetNamespace = "")
+        MobileStringList idRequestList)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param idRequestList
+     * @param certificate
+     * @param transactionId
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileFireRequestList
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "fireRequestList", targetNamespace = "")
+    @RequestWrapper(localName = "signFireCloud", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SignFireCloud")
+    @ResponseWrapper(localName = "signFireCloudResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SignFireCloudResponse")
+    public MobileFireRequestList signFireCloud(
+        @WebParam(name = "certificate", targetNamespace = "")
+        byte[] certificate,
+        @WebParam(name = "idRequestList", targetNamespace = "")
+        MobileStringList idRequestList,
+        @WebParam(name = "transactionId", targetNamespace = "")
+        String transactionId)
+        throws MobileException
+    ;
+
 }

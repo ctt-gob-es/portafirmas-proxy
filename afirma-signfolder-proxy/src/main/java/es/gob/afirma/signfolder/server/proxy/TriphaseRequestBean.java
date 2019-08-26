@@ -31,8 +31,13 @@ public final class TriphaseRequestBean extends ArrayList<TriphaseRequest> {
 			            final List<TriphaseRequest> triphaseRequests) throws CertificateException,
 	                                                                     IOException {
 
-		this.cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate( //$NON-NLS-1$
-			new ByteArrayInputStream(certEncoded));
+		if (certEncoded != null) {
+			this.cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate( //$NON-NLS-1$
+					new ByteArrayInputStream(certEncoded));
+		}
+		else {
+			this.cert = null;
+		}
 
 		if (triphaseRequests != null) {
 			this.addAll(triphaseRequests);
@@ -68,7 +73,7 @@ public final class TriphaseRequestBean extends ArrayList<TriphaseRequest> {
 	 * Establece el identificador de transacci&oacute;n.
 	 * @param trId Identificador de transacci&oacute;n.
 	 */
-	public void setTrId(String trId) {
+	public void setTrId(final String trId) {
 		this.trId = trId;
 	}
 }

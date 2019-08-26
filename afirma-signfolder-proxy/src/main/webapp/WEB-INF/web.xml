@@ -11,6 +11,19 @@
   	<servlet-name>VersionService</servlet-name>
   	<servlet-class>es.gob.afirma.signfolder.server.proxy.VersionService</servlet-class>
   </servlet>
+  <servlet>
+  	<description>Servicio para procesar el resultado de la autenticacion con Cl@ve</description>
+  	<display-name>ClaveLoginService</display-name>
+  	<servlet-name>ClaveLoginService</servlet-name>
+  	<servlet-class>es.gob.afirma.signfolder.server.proxy.ClaveLoginService</servlet-class>
+  </servlet>
+  <servlet>
+  	<description>
+  	</description>
+  	<display-name>ClaveResultService</display-name>
+  	<servlet-name>ClaveResultService</servlet-name>
+  	<servlet-class>es.gob.afirma.signfolder.server.proxy.ClaveResultService</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>ProxyService</servlet-name>
     <url-pattern>/pf</url-pattern>
@@ -18,5 +31,13 @@
   <servlet-mapping>
   	<servlet-name>VersionService</servlet-name>
   	<url-pattern>/version</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+  	<servlet-name>ClaveLoginService</servlet-name>
+  	<url-pattern>/claveLoginService</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+  	<servlet-name>ClaveResultService</servlet-name>
+  	<url-pattern>/claveResultService</url-pattern>
   </servlet-mapping>
 </web-app>

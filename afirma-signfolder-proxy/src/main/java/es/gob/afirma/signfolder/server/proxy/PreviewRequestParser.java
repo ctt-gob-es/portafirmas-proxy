@@ -21,7 +21,7 @@ public class PreviewRequestParser {
 	 * @param doc Documento XML.
 	 * @return Identificador de documento.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static PreviewRequest parse(final Document doc, final byte[] certEncoded) {
+	static PreviewRequest parse(final Document doc) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -40,6 +40,6 @@ public class PreviewRequestParser {
 					DOCUMENT_ID_ATTRIBUTE + " con el identificador del documento a previsualizar"); //$NON-NLS-1$
 		}
 
-		return new PreviewRequest(certEncoded, docId);
+		return new PreviewRequest(docId);
 	}
 }

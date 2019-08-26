@@ -9,7 +9,7 @@ class NotificationRegistryParser {
 	private static final String DEVICE_ID_ATTRIBUTE = "dvc"; //$NON-NLS-1$
 	private static final String NOTIFICATIONS_ID_REGISTRY = "tkn"; //$NON-NLS-1$
 
-	public static NotificationRegistry parse(Document doc, String certEncoded) {
+	public static NotificationRegistry parse(final Document doc) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -42,7 +42,6 @@ class NotificationRegistryParser {
 					NOTIFICATIONS_ID_REGISTRY + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
 		}
 
-		return new NotificationRegistry(certEncoded, deviceId, platformId, idRegistry);
+		return new NotificationRegistry(deviceId, platformId, idRegistry);
 	}
-
 }

@@ -22,7 +22,7 @@ class ValidateLoginResult {
 		return this.logged;
 	}
 
-	void setDni(String dni) {
+	void setDni(final String dni) {
 		this.dni = dni;
 	}
 
@@ -30,12 +30,12 @@ class ValidateLoginResult {
 		return this.dni;
 	}
 
-	void setError(String error) {
+	void setError(final String error) {
 		this.error = error;
 		this.logged = false;
 	}
 
-	Object getError() {
+	String getError() {
 		return this.error;
 	}
 }

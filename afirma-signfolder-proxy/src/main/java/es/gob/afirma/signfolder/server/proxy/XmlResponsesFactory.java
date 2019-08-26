@@ -180,6 +180,10 @@ final class XmlResponsesFactory {
 
 		sb.append("<subj>").append(escapeXmlCharacters(requestDetails.getSubject())).append("</subj>"); //$NON-NLS-1$ //$NON-NLS-2$
 
+		if (requestDetails.getText() != null) {
+			sb.append("<msg>").append(escapeXmlCharacters(requestDetails.getText())).append("</msg>"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
 		sb.append("<snders>"); //$NON-NLS-1$
 		for (final String sender : requestDetails.getSenders()) {
 			sb.append("<snder>").append(escapeXmlCharacters(sender)).append("</snder>"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -289,11 +293,21 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createRequestLoginResponse(LoginRequestData loginRequestData) {
+	public static String createRequestLoginResponse(final LoginRequestData loginRequestData) {
 		final StringBuilder sb = new StringBuilder()
 				.append(XML_HEADER)
 				.append("<lgnrq id='").append(loginRequestData.getId()).append("'>") //$NON-NLS-1$ //$NON-NLS-2$
 				.append(Base64.encode(loginRequestData.getData()))
+				.append("</lgnrq>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	public static String createRequestClaveLoginResponse(final String claveUrl) {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<lgnrq>") //$NON-NLS-1$
+				.append(escapeXmlCharacters(claveUrl))
 				.append("</lgnrq>"); //$NON-NLS-1$
 
 		return sb.toString();
@@ -307,7 +321,7 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createValidateLoginResponse(ValidateLoginResult validateLoginData) {
+	public static String createValidateLoginResponse(final ValidateLoginResult validateLoginData) {
 		final StringBuilder sb = new StringBuilder()
 				.append(XML_HEADER)
 				.append("<vllgnrq ok='").append(validateLoginData.isLogged()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -315,7 +329,7 @@ final class XmlResponsesFactory {
 			sb.append(" dni='").append(validateLoginData.getDni()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		else {
-			sb.append(" er='").append(escapeXmlCharacters(validateLoginData.getError().toString())).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append(" er='").append(validateLoginData.getError().toString()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		sb.append("/>"); //$NON-NLS-1$
 
@@ -330,12 +344,12 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createNotificationRegistryResponse(NotificationRegistryResult registryResult) {
+	public static String createNotificationRegistryResponse(final NotificationRegistryResult registryResult) {
 		final StringBuilder sb = new StringBuilder()
 				.append(XML_HEADER)
 				.append("<reg ok='").append(registryResult.isRegistered()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (!registryResult.isRegistered()) {
-			sb.append(" err='").append(escapeXmlCharacters(registryResult.getError())).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append(" err='").append(registryResult.getError()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		sb.append("/>"); //$NON-NLS-1$
 
@@ -348,47 +362,31 @@ final class XmlResponsesFactory {
 	 * @param url URL de redirecci&oacute;n.
 	 * @return XML con la respuesta de la operacion de prefirma con ClaveFirma.
 	 */
-	public static String createClaveFirmaPreSignResponse(String trId, String url) {
-		return createClaveFirmaPreSignResponse(trId, url, null);
-	}
+	public static String createFireSignResponse(final boolean status, final int errorType) {
 
-	/**
-	 * Construye la respuesta de error del servicio de prefirma con ClaveFirma.
-	 * @param err Mensaje de error si ocurrio alguno.
-	 * @return XML con la respuesta de la operacion de prefirma con ClaveFirma.
-	 */
-	public static String createClaveFirmaPreSignErrorResponse(String err) {
-		return new StringBuilder(XML_HEADER)
-				.append("<cfpre ok='false' err='") //$NON-NLS-1$
-				.append(escapeXmlCharacters(err)).append("'/>").toString(); //$NON-NLS-1$
-	}
-
-	/**
-	 * Construye la respuesta del servicio de prefirma con ClaveFirma.
-	 * @param trId Identificador de transacci&oacute;n o {@code null} si ocurri&oacute; un error.
-	 * @param url URL de redirecci&oacute;n.
-	 * @param triRequests Peticiones realizadas.
-	 * @return XML con la respuesta de la operacion de prefirma con ClaveFirma.
-	 */
-	public static String createClaveFirmaPreSignResponse(String trId, String url, TriphaseRequest[] triRequests) {
 		final StringBuilder resp =  new StringBuilder(XML_HEADER)
-		.append("<cfpre ok='true' ") //$NON-NLS-1$
-			.append("tr='").append(trId) //$NON-NLS-1$
-			.append("' url='").append(Base64.encode(url.getBytes())) //$NON-NLS-1$
-			.append("'>"); //$NON-NLS-1$
-
-		resp.append(XML_PRESIGN_OPEN);
-
-		if (triRequests != null) {
-			for (final TriphaseRequest triRequest : triRequests) {
-				resp.append(createSingleReqPresignNode(triRequest));
-			}
-			resp.append(XML_PRESIGN_CLOSE);
+		.append("<cfsig ok='").append(status).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (!status) {
+			resp.append(" er='").append(errorType).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-
-		resp.append("</cfpre>"); //$NON-NLS-1$
+		resp.append("/>"); //$NON-NLS-1$
 
 		return resp.toString();
+	}
+
+	/**
+	 * Construye el XML con el resultado de una operaci&oacute;n de datos de carga en FIRe.
+	 * @param requestInfo Resultado de carga de datos.
+	 * @return XML con el resultado de la operaci&oacute;n de carga.
+	 */
+	public static String createFireLoadDataResponse(final FireLoadDataResult requestInfo) {
+		final StringBuilder sb = new StringBuilder()
+				.append(XML_HEADER)
+				.append("<cfrqt ok='").append(requestInfo.isStatusOk()).append("'>") //$NON-NLS-1$ //$NON-NLS-2$
+				.append(escapeXmlCharacters(requestInfo.getUrlRedirect()))
+				.append("</cfrqt>"); //$NON-NLS-1$
+
+		return sb.toString();
 	}
 
 	/**

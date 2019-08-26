@@ -5,7 +5,6 @@ package es.gob.afirma.signfolder.server.proxy;
  */
 public class DetailRequest {
 
-	private final byte[] certEncoded;
 	private final String id;
 
 	/**
@@ -13,17 +12,8 @@ public class DetailRequest {
 	 * @param certEncoded Certificado codificado para autenticar la petici&oacute;n.
 	 * @param id Identificador de la petici&oacute;n.
 	 */
-	public DetailRequest(final byte[] certEncoded, final String id) {
-		this.certEncoded = certEncoded;
+	public DetailRequest(final String id) {
 		this.id = id;
-	}
-
-	/**
-	 * Recupera el certificado para la autenticaci&oacute;n de la petici&oacute;n.
-	 * @return Certificado codificado.
-	 */
-	public byte[] getCertEncoded() {
-		return this.certEncoded;
 	}
 
 	/**

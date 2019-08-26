@@ -42,7 +42,7 @@ public class ListRequestParser {
 	 * @param doc Documento XML.
 	 * @return Objeto con los datos del XML.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ListRequest parse(final Document doc, byte[] cert) {
+	static ListRequest parse(final Document doc) {
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
 		}
@@ -73,26 +73,9 @@ public class ListRequestParser {
 		final String pageSizeAttr = doc.getDocumentElement().getAttribute(PAGE_SIZE_ATTRIBUTE);
 		pageSize = pageSizeAttr == null ? DEFAULT_PAGE_SIZE : Integer.parseInt(pageSizeAttr);
 
-
-		final byte[] certEncoded;
-
 		// Establecemos el certificado para la autenticacion
 		final NodeList requestNodes = doc.getDocumentElement().getChildNodes();
 		int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
-		// TODO modificar para que no haga falta enviar la parte publica del certificado al portafirmas
-		certEncoded = cert;
-		/*if (nodeIndex != -1 && CERT_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
-			try {
-				certEncoded = Base64.decode(requestNodes.item(nodeIndex).getTextContent().trim());
-			} catch (final Exception e) {
-				throw new IllegalArgumentException(
-						"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-			}
-			nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
-		} else {
-			throw new IllegalArgumentException(
-					"No se ha encontrado el certificado para la autenticacion de la peticion de solicitudes de firma"); //$NON-NLS-1$
-		}*/
 
 		// En caso de haber formatos de firma soportados y filtros de peticiones, los establecemos
 		if (nodeIndex != -1 && FORMATS_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
@@ -110,7 +93,7 @@ public class ListRequestParser {
 					requestNodes.item(nodeIndex).getNodeName() + "' en la peticion de solicitudes de firma"); //$NON-NLS-1$
 		}
 
-		return new ListRequest(certEncoded, state, formats, filters, numPage, pageSize);
+		return new ListRequest(state, formats, filters, numPage, pageSize);
 	}
 
 	/**

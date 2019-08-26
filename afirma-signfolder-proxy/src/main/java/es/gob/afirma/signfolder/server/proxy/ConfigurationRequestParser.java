@@ -20,7 +20,7 @@ public class ConfigurationRequestParser {
 	 * @param doc Documento XML.
 	 * @return Identificador de documento.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ConfigurationRequest parse(final Document doc, final byte[] certEncoded) {
+	static ConfigurationRequest parse(final Document doc) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -31,29 +31,6 @@ public class ConfigurationRequestParser {
 					CONFIGURATION_REQUEST_NODE + "' y aparece: " + //$NON-NLS-1$
 					doc.getDocumentElement().getNodeName());
 		}
-
-		/*final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
-		if (nodeIndex == -1) {
-			throw new IllegalArgumentException(
-					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
-							CERT_NODE);
-		}
-		final Element certNode = (Element) nodes.item(nodeIndex);
-		if (!CERT_NODE.equalsIgnoreCase(certNode.getNodeName())) {
-			throw new IllegalArgumentException(
-					"No se ha encontrado el nodo " + CERT_NODE + //$NON-NLS-1$
-					" en su lugar se encontro " + certNode.getNodeName()); //$NON-NLS-1$
-		}
-
-		final byte[] certEncoded;
-		try {
-			certEncoded = Base64.decode(certNode.getTextContent().trim());
-		} catch (Exception e) {
-			throw new IllegalArgumentException(
-					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-		}*/
-		
-		return new ConfigurationRequest(certEncoded);
+		return new ConfigurationRequest();
 	}
 }

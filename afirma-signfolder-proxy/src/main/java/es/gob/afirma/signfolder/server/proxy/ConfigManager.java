@@ -30,6 +30,9 @@ public class ConfigManager {
 	/** Propiedad que establece la ruta del directorio temporal. */
 	private static final String PROPERTY_TEMP_DIR = "temp.dir"; //$NON-NLS-1$
 
+	/** Propiedad que establece la ruta del directorio temporal. */
+	private static final String PROPERTY_PROXY_BASE_URL = "proxy.server.url"; //$NON-NLS-1$
+
 	/** Propiedad que establece el endpoint del servicio del Portafirmas. */
 	private static final String PROPERTY_SIGNFOLDER_URL = "signfolder.ws.url"; //$NON-NLS-1$
 
@@ -182,5 +185,14 @@ public class ConfigManager {
 	 */
 	public static String getTempDir(){
 		return config.getProperty(PROPERTY_TEMP_DIR);
+	}
+
+	/**
+	 * Devuelve la URL base en la que se despliega el servicio proxy.
+	 * @return URL base del servicio terminada en '/' o {@code null} si no se configur&oacute; la URL base.
+	 */
+	public static String getProxyBaseUrl() {
+		final String url = config.getProperty(PROPERTY_PROXY_BASE_URL);
+		return url != null ? url.endsWith("/") ? url : url + "/" : null; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 }

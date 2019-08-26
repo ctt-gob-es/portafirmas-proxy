@@ -13,7 +13,7 @@ public class ApproveRequestParser {
 	private static final String APPROVE_REQUEST_NODE = "apprv"; //$NON-NLS-1$
 	private static final String REQUESTS_NODE = "reqs"; //$NON-NLS-1$
 	private static final String REQUEST_ID_ATTRIBUTE = "id"; //$NON-NLS-1$
-	
+
 	private ApproveRequestParser() {
 		// Se evita el uso del constructor
 	}
@@ -24,7 +24,7 @@ public class ApproveRequestParser {
 	 * @param certB64 Certificado guardado en sesi&oacute;n.
 	 * @return Solicitud de visto bueno.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ApproveRequestList parse(final Document doc, final byte[] cert) {
+	static ApproveRequestList parse(final Document doc) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
@@ -37,51 +37,36 @@ public class ApproveRequestParser {
 		}
 
 		final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
+		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
 					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
 							REQUESTS_NODE);
 		}
 		Element currentNode = (Element) nodes.item(nodeIndex);
-		/*if (!CERT_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
-			throw new IllegalArgumentException(
-					"No se ha encontrado el nodo " + CERT_NODE + //$NON-NLS-1$
-					" en su lugar se encontro " + currentNode.getNodeName()); //$NON-NLS-1$
-		}
-
-		final byte[] certEncoded;
-		try {
-			certEncoded = Base64.decode(currentNode.getTextContent().trim());
-		} catch (Exception e) {
-			throw new IllegalArgumentException(
-					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-		}
-		
-		nodeIndex = XmlUtils.nextNodeElementIndex(nodes, ++nodeIndex);*/
 		currentNode = (Element) nodes.item(nodeIndex);
 		if (!REQUESTS_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el nodo " + REQUESTS_NODE + //$NON-NLS-1$
 					" en su lugar se encontro " + currentNode.getNodeName()); //$NON-NLS-1$
 		}
-		
-		final ApproveRequestList appRequest = new ApproveRequestList(cert);
+
+		final ApproveRequestList appRequest = new ApproveRequestList();
 		final NodeList idsNodeList = currentNode.getChildNodes();
 		for (int i = 0; i < idsNodeList.getLength(); i++) {
 			i = XmlUtils.nextNodeElementIndex(idsNodeList, i);
 			if (i == -1) {
 				break;
 			}
-			
-			String id = ((Element) idsNodeList.item(i)).getAttribute(REQUEST_ID_ATTRIBUTE);
+
+			final String id = ((Element) idsNodeList.item(i)).getAttribute(REQUEST_ID_ATTRIBUTE);
 			if (id == null || id.length() == 0) {
 				throw new IllegalArgumentException(
 						"No se encontro el identificador de una peticion para su visto bueno"); //$NON-NLS-1$
 			}
 			appRequest.add(new ApproveRequest(id));
 		}
-		
+
 		return appRequest;
 	}
 }
