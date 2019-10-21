@@ -30,6 +30,12 @@ public class SessionParams {
 	/** Array con las referencias de las peticiones enviadas a firmar con FIRe. */
 	public static final String FIRE_REQUESTS = "fireRefs"; //$NON-NLS-1$
 
+	/** Identificador de sesion compartida. */
+	public static final String SHARED_SESSION_ID = "ssid"; //$NON-NLS-1$
+
+	/** Identificador del objeto con todos los datos de sesi&oacute;n. */
+	public static final String PROXY_SESSION = "psession"; //$NON-NLS-1$
+
 	public static final String INIT_TOKEN = "token"; //$NON-NLS-1$
 	public static final String CERT = "cert"; //$NON-NLS-1$
 	public static final String DNI = "dni"; //$NON-NLS-1$

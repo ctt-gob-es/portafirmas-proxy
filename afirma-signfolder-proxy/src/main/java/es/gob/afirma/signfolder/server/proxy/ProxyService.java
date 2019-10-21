@@ -69,6 +69,7 @@ import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.client.MobileSignLine;
 import es.gob.afirma.signfolder.client.MobileStringList;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
+import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
 
 /** Servicio Web para firma trif&aacute;sica.
  * @author Tom&aacute;s Garc&iacute;a-;er&aacute;s */
@@ -82,6 +83,8 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String PARAMETER_NAME_OPERATION = "op"; //$NON-NLS-1$
 	private static final String PARAMETER_NAME_DATA = "dat"; //$NON-NLS-1$
+	private static final String PARAMETER_NAME_SHARED_SESSION_ID = "ssid"; //$NON-NLS-1$
+
 
 	private static final String OPERATION_PRESIGN = "0"; //$NON-NLS-1$
 	private static final String OPERATION_POSTSIGN = "1"; //$NON-NLS-1$
@@ -113,11 +116,23 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String LOGIN_SIGNATURE_ALGORITHM = "SHA256withRSA"; //$NON-NLS-1$
 
+	private static final String PAGE_CLAVE_LOADING = "clave-loading.jsp"; //$NON-NLS-1$
+
 	static final Logger LOGGER = Logger.getLogger("es.gob.afirma"); //$NON-NLS-1$:
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private final DocumentBuilder documentBuilder;
+
+	static {
+		if (DEBUG) {
+			// Configuracion de un truststore con el certificado SSL del servicio del Portafirmas
+			System.setProperty("javax.net.ssl.trustStore", "C:\\Users\\carlos.gamuci\\Documents\\Afirma\\Repositorios_GitHub\\portafirmas-proxy\\afirma-signfolder-proxy\\src\\test\\resources\\redsara_ts.jks"); //$NON-NLS-1$ //$NON-NLS-2$
+			System.setProperty("javax.net.ssl.trustStorePassword", "111111"); //$NON-NLS-1$ //$NON-NLS-2$
+			System.setProperty("javax.net.ssl.trustStoreType", "JKS"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+	}
+
 
 	/** Construye un Servlet que sirve operaciones de firma trif&aacute;sica.
 	 * @throws ParserConfigurationException Cuando no puede crearse un <code>DocumentBuilder</code> XML */
@@ -237,7 +252,9 @@ public final class ProxyService extends HttpServlet {
 			xml = GzipCompressorImpl.gunzip(Base64.decode(data, true));
 		}
 		catch(final IOException e) {
-			LOGGER.info("Los datos de entrada no estan comprimidos: " + e); //$NON-NLS-1$
+			if (DEBUG) {
+				LOGGER.fine("Los datos de entrada no estan comprimidos: " + e); //$NON-NLS-1$
+			}
 			try {
 				xml = Base64.decode(data, true);
 			} catch (final Exception ex) {
@@ -246,21 +263,31 @@ public final class ProxyService extends HttpServlet {
 			}
 		}
 
-		LOGGER.info("XML de la peticion:\n" + new String(xml)); //$NON-NLS-1$
+		if (DEBUG) {
+			LOGGER.info("XML de la peticion:\n" + new String(xml)); //$NON-NLS-1$
+		}
 
 		Object ret;
 
 		try {
 			HttpSession session = null;
 			if (operationNeedLogin(operation)) {
-				session = request.getSession(false);
+				final String ssid = request.getParameter(PARAMETER_NAME_SHARED_SESSION_ID);
+				session = SessionCollector.getSession(request, ssid);
 				if (session == null || !Boolean.parseBoolean((String) session.getAttribute(SessionParams.VALID_SESSION))) {
 					LOGGER.warning("Se ha solicitado la siguiente operacion del proxy sin estar autenticado: " + operation); //$NON-NLS-1$
 					ret = ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST);
+					if (session != null) {
+						SessionCollector.removeSession(session);
+					}
+				}
+				else {
+					ret = processRequest(operation, xml, request, session);
 				}
 			}
-
-			ret = processRequest(operation, xml, request);
+			else {
+				ret = processRequest(operation, xml, request, session);
+			}
 
 		} catch(final SAXException e) {
 			LOGGER.log(Level.SEVERE, ErrorManager.genError(ErrorManager.ERROR_BAD_XML) + ": " + e, e); //$NON-NLS-1$
@@ -302,13 +329,18 @@ public final class ProxyService extends HttpServlet {
 			}
 		}
 		else {
-			LOGGER.info("XML de respuesta:\n" + ret); //$NON-NLS-1$
+			if (DEBUG) {
+				LOGGER.info("XML de respuesta:\n" + ret); //$NON-NLS-1$
+			}
 			responser.print((String) ret);
 		}
-		LOGGER.info("Fin peticion ProxyService"); //$NON-NLS-1$
+		if (DEBUG) {
+			LOGGER.info("Fin peticion ProxyService"); //$NON-NLS-1$
+		}
 	}
 
-	private Object processRequest(final String operation, final byte[] xml, final HttpServletRequest request)
+	private Object processRequest(final String operation, final byte[] xml,
+			final HttpServletRequest request, final HttpSession session)
 			throws CertificateException, SAXException, IOException, MobileException {
 
 		Object ret;
@@ -318,7 +350,8 @@ public final class ProxyService extends HttpServlet {
 		}
 		else if (OPERATION_VALIDATE_LOGIN.equals(operation)) {
 			LOGGER.info("Validacion de login"); //$NON-NLS-1$
-			ret = processValidateLogin(request, xml);
+			final String ssid = request.getParameter(PARAMETER_NAME_SHARED_SESSION_ID);
+			ret = processValidateLogin(request, xml, ssid);
 		}
 		else if (OPERATION_CLAVE_LOGIN.equals(operation)) {
 			LOGGER.info("Solicitud de login con Cl@ve"); //$NON-NLS-1$
@@ -326,62 +359,62 @@ public final class ProxyService extends HttpServlet {
 		}
 		else if (OPERATION_LOGOUT.equals(operation)) {
 			LOGGER.info("Logout"); //$NON-NLS-1$
-			ret = processLogout(request.getSession(false), xml);
+			ret = processLogout(session, xml);
 		}
 		else if (OPERATION_REGISTER_NOTIFICATION_SYSTEM.equals(operation)) {
 			LOGGER.info("Registro en el sistema de notificaciones"); //$NON-NLS-1$
-			ret = processNotificationRegistry(request.getSession(false), xml);
+			ret = processNotificationRegistry(session, xml);
 		}
 		else if (OPERATION_PRESIGN.equals(operation)) {
 			LOGGER.info("Solicitud de prefirma"); //$NON-NLS-1$
-			ret = processPreSigns(request.getSession(false), xml);
+			ret = processPreSigns(session, xml);
 		}
 		else if (OPERATION_POSTSIGN.equals(operation)) {
 			LOGGER.info("Solicitud de postfirma"); //$NON-NLS-1$
-			ret = processPostSigns(request.getSession(false), xml);
+			ret = processPostSigns(session, xml);
 		}
 		else if (OPERATION_REQUEST.equals(operation)) {
 			LOGGER.info("Solicitud del listado de peticiones"); //$NON-NLS-1$
-			ret = processRequestsList(request.getSession(false), xml);
+			ret = processRequestsList(session, xml);
 		}
 		else if (OPERATION_REJECT.equals(operation)) {
 			LOGGER.info("Solicitud de rechazo peticiones"); //$NON-NLS-1$
-			ret = processRejects(request.getSession(false), xml);
+			ret = processRejects(session, xml);
 		}
 		else if (OPERATION_DETAIL.equals(operation)) {
 			LOGGER.info("Solicitud de detalle de una peticion"); //$NON-NLS-1$
-			ret = processRequestDetail(request.getSession(false), xml);
+			ret = processRequestDetail(session, xml);
 		}
 		else if (OPERATION_DOCUMENT_PREVIEW.equals(operation)) {
 			LOGGER.info("Solicitud de previsualizacion de un documento"); //$NON-NLS-1$
-			ret = processDocumentPreview(request.getSession(false), xml);
+			ret = processDocumentPreview(session, xml);
 		}
 		else if (OPERATION_CONFIGURING.equals(operation)) {
 			LOGGER.info("Solicitud de la configuracion"); //$NON-NLS-1$
-			ret = processConfigueApp(request.getSession(false), xml);
+			ret = processConfigueApp(session, xml);
 		}
 		else if (OPERATION_APPROVE.equals(operation)) {
 			LOGGER.info("Solicitud de aprobacion de una peticion"); //$NON-NLS-1$
-			ret = processApproveRequest(request.getSession(false), xml);
+			ret = processApproveRequest(session, xml);
 		}
 		else if (OPERATION_SIGN_PREVIEW.equals(operation)) {
 			LOGGER.info("Solicitud de previsualizacion de una firma"); //$NON-NLS-1$
-			ret = processSignPreview(request.getSession(false), xml);
+			ret = processSignPreview(session, xml);
 		}
 		else if (OPERATION_REPORT_PREVIEW.equals(operation)) {
 			LOGGER.info("Solicitud de previsualizacion de un informe de firma"); //$NON-NLS-1$
-			ret = processSignReportPreview(request.getSession(false), xml);
+			ret = processSignReportPreview(session, xml);
 		}
 		else if (OPERATION_FIRE_LOAD_DATA.equals(operation)) {
 			LOGGER.info("Solicitud de carga de datos con FIRe"); //$NON-NLS-1$
-			ret = processFireLoadData(request.getSession(false), xml);
+			ret = processFireLoadData(session, xml);
 		}
 		else if (OPERATION_FIRE_SIGN.equals(operation)) {
 			LOGGER.info("Solicitud de firma con FIRe"); //$NON-NLS-1$
-			ret = processFireSign(request.getSession(false), xml);
+			ret = processFireSign(session, xml);
 		}
 		else {
-			LOGGER.info("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
+			LOGGER.warning("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
 			ret = ErrorManager.genError(ErrorManager.ERROR_UNSUPPORTED_OPERATION_NAME);
 		}
 
@@ -429,21 +462,26 @@ public final class ProxyService extends HttpServlet {
 			throw new SAXException("No se ha proporcionado una peticion de login valida", e); //$NON-NLS-1$
 		}
 
-		final HttpSession session = request.getSession();
+		HttpSession session = SessionCollector.getSession(request, null);
+		if (session != null) {
+			SessionCollector.removeSession(session);
+		}
 
-		// Se mantiene la sesion durante un dia
-		session.setMaxInactiveInterval(60*60*24);
-
-		// Reiniciamos la sesion en caso de que estuviese establecida
-		session.removeAttribute(SessionParams.VALID_SESSION);
+		session = SessionCollector.createSession(request);
 
 		final LoginRequestData loginRequestData = createLoginRequestData(session);
 
 		session.setAttribute(SessionParams.INIT_TOKEN, loginRequestData.getData());
 
+		// Si hay que compartir la sesion, se obtiene el ID de sesion compartida
+		String sessionId = null;
+		if (ConfigManager.isShareSessionEnabled() && ConfigManager.isShareSessionWithCertEnabled()) {
+			sessionId = SessionCollector.createSharedSession(session);
+		}
+
 		LOGGER.info("Devolvemos el identificador de sesion y los datos a firmar para su validacion: " + session.getId()); //$NON-NLS-1$
 
-		return XmlResponsesFactory.createRequestLoginResponse(loginRequestData);
+		return XmlResponsesFactory.createRequestLoginResponse(loginRequestData, sessionId);
 	}
 
 	/**
@@ -471,14 +509,14 @@ public final class ProxyService extends HttpServlet {
 	 * @throws SAXException Cuando ocurre alg&uacute;n error al procesar los XML.
 	 * @throws IOException Cuando ocurre alg&uacute;n problema de comunicaci&oacute;n con el servidor.
 	 */
-	private String processValidateLogin(final HttpServletRequest request,  final byte[] xml) throws SAXException, IOException {
+	private String processValidateLogin(final HttpServletRequest request,  final byte[] xml, final String ssid) throws SAXException, IOException {
 
 		LOGGER.info("Validacion del login del usuario"); //$NON-NLS-1$
 
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final ValidateLoginRequest loginRequest = ValidateLoginRequestParser.parse(doc);
 
-		final HttpSession session = request.getSession(false);
+		final HttpSession session = SessionCollector.getSession(request, ssid);
 
 		final ValidateLoginResult validateLoginResult = validateLoginData(session, loginRequest);
 
@@ -492,6 +530,8 @@ public final class ProxyService extends HttpServlet {
 			session.setAttribute(SessionParams.DNI, validateLoginResult.getDni());
 
 			session.removeAttribute(SessionParams.INIT_TOKEN);
+
+			SessionCollector.updateSession(session);
 		}
 
 		LOGGER.info("Devolvemos el resultado del proceso de login para la sesion " + //$NON-NLS-1$
@@ -571,26 +611,29 @@ public final class ProxyService extends HttpServlet {
 		}
 
 		// Si ya existe una sesion, la invalidamos
-		HttpSession session = request.getSession(false);
+		HttpSession session = SessionCollector.getSession(request, null);
 		if (session != null) {
-			session.invalidate();
+			SessionCollector.removeSession(session);
 		}
 
 		// Creamos una nueva sesion
-		session = request.getSession();
+		session = SessionCollector.createSession(request);
 
-		// Se mantiene la sesion durante un dia
-		session.setMaxInactiveInterval(60*60*24);
-
-		// Reiniciamos la sesion en caso de que estuviese establecida
-		session.removeAttribute(SessionParams.VALID_SESSION);
+		// Si hay que compartir la sesion, se obtiene el ID de sesion compartida
+		String sessionId = null;
+		if (ConfigManager.isShareSessionEnabled()) {
+			sessionId = SessionCollector.createSharedSession(session);
+		}
 
 		if (DEBUG) {
 			disabledSslSecurity();
 		}
 
-		String resultUrl = request.getRequestURL().substring(0, request.getRequestURL().lastIndexOf("/")); //$NON-NLS-1$
-		resultUrl += "/claveResultService"; //$NON-NLS-1$
+		final String baseUrl = getProxyBaseUrl(request);
+		String resultUrl = baseUrl + "claveResultService"; //$NON-NLS-1$
+		if (sessionId != null) {
+			resultUrl += "?" + PARAMETER_NAME_SHARED_SESSION_ID + "=" + sessionId; //$NON-NLS-1$ //$NON-NLS-2$
+		}
 
 		// Conectamos con el Portafirmas web
 		final MobileService service = new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort();
@@ -598,14 +641,14 @@ public final class ProxyService extends HttpServlet {
 
 		if (claveResponse.getClaveServiceUrl() == null) {
 			LOGGER.log(Level.WARNING, "Error en la solicitud de inicio de sesion con Cl@ve: No se recupero la URL"); //$NON-NLS-1$
-			session.invalidate();
+			SessionCollector.removeSession(session);
 			throw new IOException("No se recupero la URL de redireccion de Cl@ve"); //$NON-NLS-1$
 		}
 		session.setAttribute(SessionParams.CLAVE_URL, claveResponse.getClaveServiceUrl());
 
 		if (claveResponse.getSamlRequest() == null) {
 			LOGGER.log(Level.WARNING, "Error en la solicitud de inicio de sesion con Cl@ve: No se recupero el token SAML"); //$NON-NLS-1$
-			session.invalidate();
+			SessionCollector.removeSession(session);
 			throw new IOException("No se recupero el token de sesion de Cl@ve"); //$NON-NLS-1$
 		}
 		session.setAttribute(SessionParams.CLAVE_REQUEST_TOKEN, claveResponse.getSamlRequest());
@@ -624,9 +667,27 @@ public final class ProxyService extends HttpServlet {
 		final String authenticationId = generateAuthenticationId();
 		session.setAttribute(SessionParams.CLAVE_AUTHENTICATION_ID, authenticationId);
 
-		final String redirectionUrl = ConfigManager.getProxyBaseUrl() + "clave-loading.jsp"; //$NON-NLS-1$
+		// Se actualiza la sesion compatida con los nuevos datos asignados
+		SessionCollector.updateSession(session);
 
-		return XmlResponsesFactory.createRequestClaveLoginResponse(redirectionUrl);
+		// Obtenemos la URL de redireccion
+		String redirectionUrl = baseUrl + PAGE_CLAVE_LOADING;
+		if (sessionId != null) {
+			redirectionUrl += "?" + PARAMETER_NAME_SHARED_SESSION_ID + "=" + sessionId; //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
+		return XmlResponsesFactory.createRequestClaveLoginResponse(redirectionUrl, sessionId);
+	}
+
+	/**
+	 * Proporciona la URL base de las p&aacute;ginas y servicios del proxy.
+	 * @param request Petici&oacute;n realizada.
+	 * @return URL base del proxy terminada en '/'.
+	 */
+	private static String getProxyBaseUrl(final HttpServletRequest request) {
+		final String baseUrl = request.getRequestURL().substring(0, request.getRequestURL().lastIndexOf("/") + 1); //$NON-NLS-1$
+		return ConfigManager.getProxyBaseUrl() != null ?
+				ConfigManager.getProxyBaseUrl() : baseUrl;
 	}
 
 	/**
@@ -659,7 +720,7 @@ public final class ProxyService extends HttpServlet {
 		LOGGER.info("Solicitud de cierre de sesion del Portafirmas movil"); //$NON-NLS-1$
 
 		if (session != null) {
-			session.invalidate();
+			SessionCollector.removeSession(session);
 		}
 
 		LOGGER.info("Devolvemos el resultado del cierre de sesion"); //$NON-NLS-1$
@@ -687,7 +748,6 @@ public final class ProxyService extends HttpServlet {
 		signer.initVerify(cert.getPublicKey());
 		signer.update(data);
 
-		System.out.println(new String(data));
 		if (!signer.verify(pkcs1)) {
 			throw new SignatureException("La firma no se corresponde con la del token proporcionado o el certificado indicado"); //$NON-NLS-1$
 		}
@@ -1299,6 +1359,7 @@ public final class ProxyService extends HttpServlet {
 		if (loadDataResult.isStatusOk()) {
 			session.setAttribute(SessionParams.FIRE_TRID, loadDataResult.getTransactionId());
 			session.setAttribute(SessionParams.FIRE_REQUESTS, idRequestList.toArray(new String[0]));
+			SessionCollector.updateSession(session);
 		}
 
 		return XmlResponsesFactory.createFireLoadDataResponse(loadDataResult);
@@ -1482,7 +1543,7 @@ public final class ProxyService extends HttpServlet {
 						throw new Exception("No se encontro correlacion entre los documentos declarados en la peticion y los documentos descargados"); //$NON-NLS-1$
 					}
 
-					LOGGER.info("Procedemos a realizar la prefirma del documento" + docRequest.getId()); //$NON-NLS-1$
+					LOGGER.info("Procedemos a realizar la prefirma del documento " + docRequest.getId()); //$NON-NLS-1$
 					TriSigner.doPreSign(
 							docRequest,
 							triRequests.getCertificate(),

@@ -1,3 +1,4 @@
+<%@page import="es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector"%>
 <%@page import="java.util.logging.Logger"%>
 <%@page import="es.gob.afirma.signfolder.server.proxy.SessionParams"%>
 <%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
@@ -13,9 +14,18 @@
 			<span>Redirigiendo...</span>
 		</h3>
 	</div>
-	
 <%
-	if (session == null || session.getAttribute(SessionParams.INIT_WITH_CLAVE) != Boolean.TRUE) {
+
+	String ssid = request.getParameter("ssid");
+
+	// Cargamos la sesion que corresponde en lugar de aceptar la que nos llegue
+	session = SessionCollector.getSession(request, ssid);
+	
+	Logger.getLogger("es.gob.afirma").info("Id de sesion: " + (session != null ? session.getId() : null));
+	Logger.getLogger("es.gob.afirma").info("Valor Boolean.TRUE: " + Boolean.TRUE);
+	Logger.getLogger("es.gob.afirma").info("Valor INIT_WITH_CLAVE: " + session.getAttribute(SessionParams.INIT_WITH_CLAVE));
+	if (session == null || !Boolean.TRUE.equals(session.getAttribute(SessionParams.INIT_WITH_CLAVE))) {
+		Logger.getLogger("es.gob.afirma").warning("No se encontro la sesion o no se inicio con Clave");
 		response.sendRedirect("error.jsp?type=session");
 		return;
 	}
@@ -26,7 +36,8 @@
 	String forcedIdp = (String) session.getAttribute(SessionParams.CLAVE_FORCED_IDP);
 	
 	if (url == null || token == null) {
-		request.getRequestDispatcher("claveLoginService?r=false&type=session").forward(request, response);
+		Logger.getLogger("es.gob.afirma").warning("No se recibio la URL o el token de inicio de sesion para su envio a Clave");
+		response.sendRedirect("error.jsp?type=request");
 		return;
 	}
  %>

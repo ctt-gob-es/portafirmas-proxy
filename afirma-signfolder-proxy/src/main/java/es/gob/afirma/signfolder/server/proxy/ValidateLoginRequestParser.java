@@ -18,19 +18,20 @@ public class ValidateLoginRequestParser {
 	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
 	private static final String PKCS1_NODE = "pkcs1"; //$NON-NLS-1$
 
-	static ValidateLoginRequest parse(Document doc) {
-
+	static ValidateLoginRequest parse(final Document doc) {
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
 		}
 
-		if (!VALIDATE_LOGIN_REQUEST_NODE.equalsIgnoreCase(doc.getDocumentElement().getNodeName())) {
+		final Element rootElement = doc.getDocumentElement();
+
+		if (!VALIDATE_LOGIN_REQUEST_NODE.equalsIgnoreCase(rootElement.getNodeName())) {
 			throw new IllegalArgumentException("El elemento raiz del XML debe ser '" + //$NON-NLS-1$
 					VALIDATE_LOGIN_REQUEST_NODE + "' y aparece: " + //$NON-NLS-1$
-					doc.getDocumentElement().getNodeName());
+					rootElement.getNodeName());
 		}
 
-		final NodeList nodes = doc.getDocumentElement().getChildNodes();
+		final NodeList nodes = rootElement.getChildNodes();
 		int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(

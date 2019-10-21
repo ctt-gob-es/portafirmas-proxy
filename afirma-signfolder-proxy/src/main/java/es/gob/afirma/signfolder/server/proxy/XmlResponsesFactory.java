@@ -293,22 +293,33 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createRequestLoginResponse(final LoginRequestData loginRequestData) {
-		final StringBuilder sb = new StringBuilder()
-				.append(XML_HEADER)
-				.append("<lgnrq id='").append(loginRequestData.getId()).append("'>") //$NON-NLS-1$ //$NON-NLS-2$
-				.append(Base64.encode(loginRequestData.getData()))
-				.append("</lgnrq>"); //$NON-NLS-1$
+	public static String createRequestLoginResponse(final LoginRequestData loginRequestData, final String ssid) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER)
+		.append("<lgnrq id='").append(loginRequestData.getId()); //$NON-NLS-1$
+		if (ssid != null) {
+			sb.append("' ssid='").append(ssid); //$NON-NLS-1$
+		}
+		sb.append("'>") //$NON-NLS-1$
+		.append(Base64.encode(loginRequestData.getData()))
+		.append("</lgnrq>"); //$NON-NLS-1$
 
 		return sb.toString();
 	}
 
-	public static String createRequestClaveLoginResponse(final String claveUrl) {
+	public static String createRequestClaveLoginResponse(final String claveUrl, final String sessionId) {
 		final StringBuilder sb = new StringBuilder()
 				.append(XML_HEADER)
 				.append("<lgnrq>") //$NON-NLS-1$
+				.append("<url>") //$NON-NLS-1$
 				.append(escapeXmlCharacters(claveUrl))
-				.append("</lgnrq>"); //$NON-NLS-1$
+				.append("</url>"); //$NON-NLS-1$
+		if (sessionId != null) {
+			sb.append("<sessionId>") //$NON-NLS-1$
+			.append(sessionId)
+			.append("</sessionId>"); //$NON-NLS-1$
+		}
+		sb.append("</lgnrq>"); //$NON-NLS-1$
 
 		return sb.toString();
 	}

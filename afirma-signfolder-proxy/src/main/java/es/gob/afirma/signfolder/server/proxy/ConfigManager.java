@@ -28,9 +28,6 @@ public class ConfigManager {
 	private static final String PROPERTY_FORCED_EXTRAPARAMS = "forced.extraparams"; //$NON-NLS-1$
 
 	/** Propiedad que establece la ruta del directorio temporal. */
-	private static final String PROPERTY_TEMP_DIR = "temp.dir"; //$NON-NLS-1$
-
-	/** Propiedad que establece la ruta del directorio temporal. */
 	private static final String PROPERTY_PROXY_BASE_URL = "proxy.server.url"; //$NON-NLS-1$
 
 	/** Propiedad que establece el endpoint del servicio del Portafirmas. */
@@ -38,6 +35,25 @@ public class ConfigManager {
 
 	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
 	private static final String PROPERTY_TRIPHASE_SERVICE_URL = "triphase.server.url"; //$NON-NLS-1$
+
+	/** Propiedad que establece si deben compartirse las sesiones. */
+	private static final String PROPERTY_SHARED_ENABLED = "share.sessions.enable"; //$NON-NLS-1$
+
+	/** Propiedad que establece si deben compartirse las sesiones cuando usan certificado local. */
+	private static final String PROPERTY_SHARED_WITH_CERT_ENABLED = "share.sessions.withcertificate.enable"; //$NON-NLS-1$
+
+	/** Propiedad que establece la ruta del directorio en el que almacenar la informaci&oacute;n de
+	 * las sesiones compartidas. */
+	private static final String PROPERTY_SHARED_DIR = "share.sessions.dir"; //$NON-NLS-1$
+
+	/** Propiedad que establece el n&uacute;mero de accesos que se pueden realizar al directorio de
+	 * sesiones compartidas antes de lanzar el proceso de limpieza. */
+	private static final String PROPERTY_REQUESTS_TO_CLEAN = "share.sessions.requeststoclean"; //$NON-NLS-1$
+
+	/** N&uacute;mero de accesos que, por defecto, se pueden realizar al directorio de sesiones
+	 * compartidas antes de lanzar el proceso de limpieza. */
+	private static final int DEFAULT_VALUE_REQUESTS_TO_CLEAN = 1000;
+
 
 	private static Properties config = null;
 
@@ -178,21 +194,54 @@ public class ConfigManager {
 	}
 
 	/**
-	 * Devuelve el directorio temporal establecido en el fichero de
-	 * configuraci&oacute;n.
-	 * @return Ruta del directorio temporal o {@code null} si no se
-	 * estableci&oacute;.
-	 */
-	public static String getTempDir(){
-		return config.getProperty(PROPERTY_TEMP_DIR);
-	}
-
-	/**
 	 * Devuelve la URL base en la que se despliega el servicio proxy.
 	 * @return URL base del servicio terminada en '/' o {@code null} si no se configur&oacute; la URL base.
 	 */
 	public static String getProxyBaseUrl() {
 		final String url = config.getProperty(PROPERTY_PROXY_BASE_URL);
 		return url != null ? url.endsWith("/") ? url : url + "/" : null; //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Indica si la compartici&oacute;n de sesiones entre nodos esta habilitada.
+	 * @return {@code true} si la comparticion de sesiones esta habilitada, {@code false} en caso contrario.
+	 */
+	public static boolean isShareSessionEnabled(){
+		return Boolean.parseBoolean(config.getProperty(PROPERTY_SHARED_ENABLED));
+	}
+
+	/**
+	 * Indica si la compartici&oacute;n de sesiones entre nodos esta habilitada.
+	 * @return {@code true} si la comparticion de sesiones esta habilitada, {@code false} en caso contrario.
+	 */
+	public static boolean isShareSessionWithCertEnabled(){
+		return Boolean.parseBoolean(config.getProperty(PROPERTY_SHARED_WITH_CERT_ENABLED));
+	}
+
+	/**
+	 * Devuelve la ruta del directorio temporal compartido.
+	 * @return Ruta del directorio temporal compartido o {@code null} si no se ha configurado.
+	 */
+	public static String getTempDir(){
+		return config.getProperty(PROPERTY_SHARED_DIR);
+	}
+
+	/**
+	 * Devuelve el numero de peticiones que acceso al directorio de sesiones compartidas que se pueden realizar antes de lanzar
+	 * el proceso de limpieza de sesiones.
+	 * @return Ruta del directorio temporal compartido o {@code null} si no se ha configurado.
+	 */
+	public static int getRequestToClean(){
+
+		int numRequests;
+		final String request = config.getProperty(PROPERTY_REQUESTS_TO_CLEAN);
+		try {
+			numRequests = Integer.parseInt(request);
+		} catch (final Exception e) {
+			LOGGER.warning("No se ha indicado un numero valido de peticiones antes de la limpieza del directorio temporal (" + //$NON-NLS-1$
+					PROPERTY_REQUESTS_TO_CLEAN + "). Se usara el valor por defecto (" + DEFAULT_VALUE_REQUESTS_TO_CLEAN  + ")."); //$NON-NLS-1$ //$NON-NLS-2$
+			numRequests = DEFAULT_VALUE_REQUESTS_TO_CLEAN;
+		}
+		return numRequests;
 	}
 }
