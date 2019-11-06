@@ -72,7 +72,7 @@ import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
 
 /** Servicio Web para firma trif&aacute;sica.
- * @author Tom&aacute;s Garc&iacute;a-;er&aacute;s */
+ * @author Tom&aacute;s Garc&iacute;a-Mer&aacute;s */
 public final class ProxyService extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -847,7 +847,7 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Transforma una peticion de tipo TriphaseRequest en un MobileDocSignInfoList.
+	 * Transforma una petici&oacute;n de tipo TriphaseRequest en un MobileDocSignInfoList.
 	 * @param req Petici&oacute;n de firma con el resultado asociado a cada documento.
 	 * @return Listado de firmas de documentos.
 	 */
@@ -856,13 +856,15 @@ public final class ProxyService extends HttpServlet {
 		final MobileDocSignInfoList signInfoList = new MobileDocSignInfoList();
 		final List<MobileDocSignInfo> list = signInfoList.getMobileDocSignInfo();
 
-		MobileDocSignInfo signInfo;
 		for (final TriphaseSignDocumentRequest docReq : req) {
-			signInfo = new MobileDocSignInfo();
+			final MobileDocSignInfo signInfo = new MobileDocSignInfo();
 			signInfo.setDocumentId(docReq.getId());
 			signInfo.setSignFormat(docReq.getSignatureFormat());
-			signInfo.setSignature(new DataHandler(
-					new ByteArrayDataSource(docReq.getResult(), null)));
+			signInfo.setSignature(
+				new DataHandler(
+					new ByteArrayDataSource(docReq.getResult(), null)
+				)
+			);
 			list.add(signInfo);
 		}
 
@@ -926,12 +928,13 @@ public final class ProxyService extends HttpServlet {
 
 		// Solicitud de lista de peticiones
 		final MobileRequestList mobileRequestsList = service.queryRequestList(
-				dni.getBytes(),
-				listRequest.getState(),
-				Integer.toString(listRequest.getNumPage()),
-				Integer.toString(listRequest.getPageSize()),
-				formatsList,
-				filterList);
+			dni.getBytes(),
+			listRequest.getState(),
+			Integer.toString(listRequest.getNumPage()),
+			Integer.toString(listRequest.getPageSize()),
+			formatsList,
+			filterList
+		);
 
 		final SimpleDateFormat dateFormater = new SimpleDateFormat("dd/MM/yyyy"); //$NON-NLS-1$
 		final List<SignRequest> signRequests = new ArrayList<>(mobileRequestsList.getSize().intValue());
@@ -947,18 +950,21 @@ public final class ProxyService extends HttpServlet {
 					final MobileDocument doc = docList.get(j);
 
 					docs[j] = new SignRequestDocument(
-							doc.getIdentifier(),
-							doc.getName(),
-							doc.getSize().getValue(),
-							doc.getMime(),
-							doc.getOperationType(),
-							doc.getSignatureType().getValue().value(),
-							doc.getSignAlgorithm().getValue(),
-							prepareSignatureParamenters(doc.getSignatureParameters()));
+						doc.getIdentifier(),
+						doc.getName(),
+						doc.getSize().getValue(),
+						doc.getMime(),
+						doc.getOperationType(),
+						doc.getSignatureType().getValue().value(),
+						doc.getSignAlgorithm().getValue(),
+						prepareSignatureParamenters(doc.getSignatureParameters())
+					);
 				}
-			} catch (final Exception e) {
+			}
+			catch (final Exception e) {
 				final String id = request.getIdentifier() != null ?
-						request.getIdentifier().getValue() : "null";  //$NON-NLS-1$
+					request.getIdentifier().getValue() :
+						"null";  //$NON-NLS-1$
 				LOGGER.warning("Se ha encontrado un error al analizar los datos de los documentos de la peticion con ID '" + id + "' y no se mostrara: " + e.toString()); //$NON-NLS-1$ //$NON-NLS-2$
 				continue;
 			}
@@ -970,7 +976,7 @@ public final class ProxyService extends HttpServlet {
 					request.getView(),
 					dateFormater.format(request.getFentry().getValue().toGregorianCalendar().getTime()),
 					request.getFexpiration() != null ?
-							dateFormater.format(request.getFexpiration().getValue().toGregorianCalendar().getTime()) :
+						dateFormater.format(request.getFexpiration().getValue().toGregorianCalendar().getTime()) :
 							null,
 					request.getImportanceLevel().getValue(),
 					request.getWorkflow().getValue().booleanValue(),
@@ -1321,7 +1327,11 @@ public final class ProxyService extends HttpServlet {
 		for (final ApproveRequest appReq : appRequests) {
 			try {
 				service.approveRequest(dni.getBytes(), appReq.getRequestTagId());
-			} catch (final MobileException e) {
+			}
+			catch (final MobileException e) {
+				LOGGER.severe(
+					"Error en la aprobacion del listado de solicitudes: " + e //$NON-NLS-1$
+				);
 				appReq.setOk(false);
 			}
 		}
@@ -1330,7 +1340,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Procesa las peticiones de firma con FIRe. Se realiza la prefirma de cada uno
-	 * de los documentos de las peticiones indicadas, se envian a FIRe para que realice una
+	 * de los documentos de las peticiones indicadas, se env&iacute;an a FIRe para que realice una
 	 * firma PKCS#1 y se vuelve la URL a la que este redirigio.
 	 * Si se produce alg&uacute;n error al procesar un documento de alguna de las peticiones, se establece como incorrecta
 	 * la petici&oacute;n al completo.
@@ -1427,7 +1437,7 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Envia a firmar las peticiones cargadas en FIRe.
+	 * Env&iacute;a a firmar las peticiones cargadas en FIRe.
 	 * @param dni DNI del usuario.
 	 * @param transactionId Identificador de la transacci&oacute;n de FIRe.
 	 * @param requestRefs Listado de referencias de las peticiones enviadas a firmar.
@@ -1550,7 +1560,8 @@ public final class ProxyService extends HttpServlet {
 							ConfigManager.getTriphaseServiceUrl(),
 							ConfigManager.getForcedExtraParams());
 				}
-			} catch (final Exception mex) {
+			}
+			catch (final Exception mex) {
 				LOGGER.log(Level.SEVERE, "Error en la prefirma de la peticion " + //$NON-NLS-1$
 						singleRequest.getRef() + ": " + mex, mex); //$NON-NLS-1$
 				singleRequest.setStatusOk(false);
@@ -1562,7 +1573,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Genera las postfirmas.
 	 * @param triRequests Listado de datos trif&aacute;sicos con las prefirmas y firmas PKCS#1.
-	 * @param service Servicio de conexion con el proxy.
+	 * @param service Servicio de conexi&oacute;n con el proxy.
 	 */
 	private static void postSign(final TriphaseRequestBean triRequests) {
 
@@ -1638,12 +1649,14 @@ public final class ProxyService extends HttpServlet {
 
 					LOGGER.info("Procedemos a realizar la postfirma"); //$NON-NLS-1$
 					TriSigner.doPostSign(
-							docRequest,
-							triRequests.getCertificate(),
-							ConfigManager.getTriphaseServiceUrl(),
-							ConfigManager.getForcedExtraParams());
+						docRequest,
+						triRequests.getCertificate(),
+						ConfigManager.getTriphaseServiceUrl(),
+						ConfigManager.getForcedExtraParams()
+					);
 				}
-			} catch (final Exception ex) {
+			}
+			catch (final Exception ex) {
 				LOGGER.log(Level.WARNING, "Ocurrio un error al postfirmar un documento: " + ex, ex);  //$NON-NLS-1$
 				triRequest.setStatusOk(false);
 				continue;
@@ -1653,9 +1666,13 @@ public final class ProxyService extends HttpServlet {
 
 			// Guardamos las firmas de todos los documentos de cada peticion
 			try {
-				service.saveSign(triRequests.getCertificate().getEncoded(),
-						triRequest.getRef(), transformToWsParams(triRequest));
-			} catch (final Exception ex) {
+				service.saveSign(
+					triRequests.getCertificate().getEncoded(),
+					triRequest.getRef(),
+					transformToWsParams(triRequest)
+				);
+			}
+			catch (final Exception ex) {
 				LOGGER.warning(
 						"Ocurrio un error al guardar la peticion de firma " + triRequest.getRef() + //$NON-NLS-1$
 						": " + ex); //$NON-NLS-1$

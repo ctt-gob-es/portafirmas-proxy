@@ -154,11 +154,14 @@ public class TriSigner {
 			 try {
 				 try {
 					 paramsBytes = new String(Base64.decode(params), DEFAULT_ENCODING).replace("\\n", "\n").getBytes(DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-				 } catch (final UnsupportedEncodingException e) {
+				 }
+				 catch (final UnsupportedEncodingException e) {
+					 LOGGER.warning("El sistema no soporta la codificacion '" + DEFAULT_ENCODING + "': " + e); //$NON-NLS-1$ //$NON-NLS-2$
 					 paramsBytes = new String(Base64.decode(params)).replace("\\n", "\n").getBytes(); //$NON-NLS-1$ //$NON-NLS-2$
 				 }
 				 extraParams.load(new ByteArrayInputStream(paramsBytes));
-			 } catch (final IOException e) {
+			 }
+			 catch (final IOException e) {
 				 throw new AOException("Error al decodificar los parametros de firma", e); //$NON-NLS-1$
 			 }
 		 }
@@ -222,12 +225,12 @@ public class TriSigner {
 	 * @throws AOException Cuando ocurre un error al generar la postfirma.
 	 */
 	public static void doPostSign(final TriphaseSignDocumentRequest docReq,
-			final X509Certificate signerCert,
-			final String signServiceUrl,
-			final String forcedExtraParams) throws IOException, AOException {
-
+			                      final X509Certificate signerCert,
+			                      final String signServiceUrl,
+			                      final String forcedExtraParams) throws IOException,
+	                                                                     AOException {
 		// Configuramos el formato y la operacion criptografica adecuada
-		String cop;
+		final String cop;
 		final String format = normalizeSignatureFormat(docReq.getSignatureFormat());
 		if (AOSignConstants.SIGN_FORMAT_PADES.equals(format)) {
 			cop = CRYPTO_OPERATION_TYPE_SIGN;
@@ -252,8 +255,10 @@ public class TriSigner {
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
 			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
-			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
-			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
+			urlBuffer.append(HTTP_AND)
+				.append(PARAMETER_NAME_EXTRA_PARAM)
+				.append(HTTP_EQUALS)
+				.append(AOUtil.properties2Base64(extraParams));
 
 			// Datos de sesion en forma de properies codificado en Base64 URL SAFE
 			if (docReq.getPartialResult() != null) {
