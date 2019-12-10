@@ -3,8 +3,9 @@ package es.gob.afirma.signfolder.server.proxy;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -17,6 +18,8 @@ import es.gob.afirma.core.misc.Base64;
  * @author Carlos Gamuci
  */
 public class RejectsRequestParser {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RejectsRequestParser.class);
 
 	private final static String REJECT_REQUEST_NODE = "reqrjcts"; //$NON-NLS-1$
 	private final static String REJECTS_NODE = "rjcts"; //$NON-NLS-1$
@@ -61,7 +64,7 @@ public class RejectsRequestParser {
 				try {
 					reason = new String(Base64.decode(reason.trim()), Charset.forName(DEFAULT_ENCODING)).trim();
 				} catch (final Exception e) {
-					Logger.getLogger("es.gob.afirma").warning("No se ha podido decodificar la razon del rechazo: " + e);  //$NON-NLS-1$ //$NON-NLS-2$
+					LOGGER.warn("No se ha podido decodificar la razon del rechazo", e);  //$NON-NLS-1$
 					reason = null;
 				}
 			}

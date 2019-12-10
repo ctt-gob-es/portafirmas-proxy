@@ -11,10 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -70,7 +71,7 @@ public class TriSigner {
 	private static final String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
 
 	/** Manejador del log. */
-	private static final Logger LOGGER = Logger.getLogger("es.gob.afirma"); //$NON-NLS-1$
+	private static final Logger LOGGER = LoggerFactory.getLogger(TriSigner.class);
 
 	/**
 	 * Prefirma el documento de una petici&oacute;n y muta la propia peticion para almacenar en ella
@@ -126,14 +127,20 @@ public class TriSigner {
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
-			docReq.setPartialResult(parseTriphaseResult(UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), UrlHttpMethod.POST)));
+			final byte[] triphaseResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), UrlHttpMethod.POST);
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Respuesta de prefirma del servicio de firma:\n{}", new String(triphaseResult)); //$NON-NLS-1$
+			}
+			final TriphaseData triphaseData = loadTriphaseResponse(triphaseResult);
+			docReq.setPartialResult(triphaseData);
 			urlBuffer.setLength(0);
 		}
 		catch (final CertificateEncodingException e) {
-			throw new AOException("Error decodificando el certificado del firmante: " + e, e); //$NON-NLS-1$
+			throw new AOException("Error decodificando el certificado del firmante", e); //$NON-NLS-1$
 		}
 		catch (final IOException e) {
-			throw new AOException("Error en la llamada de prefirma al servidor: " + e, e); //$NON-NLS-1$
+			throw new AOException("Error en la llamada de prefirma al servidor", e); //$NON-NLS-1$
 		}
 	}
 
@@ -154,14 +161,11 @@ public class TriSigner {
 			 try {
 				 try {
 					 paramsBytes = new String(Base64.decode(params), DEFAULT_ENCODING).replace("\\n", "\n").getBytes(DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-				 }
-				 catch (final UnsupportedEncodingException e) {
-					 LOGGER.warning("El sistema no soporta la codificacion '" + DEFAULT_ENCODING + "': " + e); //$NON-NLS-1$ //$NON-NLS-2$
+				 } catch (final UnsupportedEncodingException e) {
 					 paramsBytes = new String(Base64.decode(params)).replace("\\n", "\n").getBytes(); //$NON-NLS-1$ //$NON-NLS-2$
 				 }
 				 extraParams.load(new ByteArrayInputStream(paramsBytes));
-			 }
-			 catch (final IOException e) {
+			 } catch (final IOException e) {
 				 throw new AOException("Error al decodificar los parametros de firma", e); //$NON-NLS-1$
 			 }
 		 }
@@ -225,12 +229,12 @@ public class TriSigner {
 	 * @throws AOException Cuando ocurre un error al generar la postfirma.
 	 */
 	public static void doPostSign(final TriphaseSignDocumentRequest docReq,
-			                      final X509Certificate signerCert,
-			                      final String signServiceUrl,
-			                      final String forcedExtraParams) throws IOException,
-	                                                                     AOException {
+			final X509Certificate signerCert,
+			final String signServiceUrl,
+			final String forcedExtraParams) throws IOException, AOException {
+
 		// Configuramos el formato y la operacion criptografica adecuada
-		final String cop;
+		String cop;
 		final String format = normalizeSignatureFormat(docReq.getSignatureFormat());
 		if (AOSignConstants.SIGN_FORMAT_PADES.equals(format)) {
 			cop = CRYPTO_OPERATION_TYPE_SIGN;
@@ -255,10 +259,8 @@ public class TriSigner {
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
 			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
-			urlBuffer.append(HTTP_AND)
-				.append(PARAMETER_NAME_EXTRA_PARAM)
-				.append(HTTP_EQUALS)
-				.append(AOUtil.properties2Base64(extraParams));
+			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
+			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
 			// Datos de sesion en forma de properies codificado en Base64 URL SAFE
 			if (docReq.getPartialResult() != null) {
@@ -272,23 +274,20 @@ public class TriSigner {
 				urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_DOCID).append(HTTP_EQUALS).append(content);
 			}
 
-//			LOGGER.info("URL de peticion de postfirma:");
-//			LOGGER.info(urlBuffer.toString());
-
 			triSignFinalResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), UrlHttpMethod.POST);
 			urlBuffer.setLength(0);
 		}
 		catch (final CertificateEncodingException e) {
-			throw new AOException("Error decodificando el certificado del firmante: " + e, e); //$NON-NLS-1$
+			throw new AOException("Error decodificando el certificado del firmante", e); //$NON-NLS-1$
 		}
 		catch (final IOException e) {
-			throw new AOException("Error en la llamada de postfirma al servidor: " + e, e); //$NON-NLS-1$
+			throw new AOException("Error en la llamada de postfirma al servidor", e); //$NON-NLS-1$
 		}
 
 		// Analizamos la respuesta del servidor
 		final String stringTrimmedResult = new String(triSignFinalResult).trim();
 		if (!stringTrimmedResult.startsWith(SUCCESS)) {
-			throw new AOException("La firma trifasica no ha finalizado correctamente: " + new String(triSignFinalResult)); //$NON-NLS-1$
+			throw new AOException("La firma trifasica no ha finalizado correctamente"); //$NON-NLS-1$
 		}
 
 		// Los datos no se devuelven, se quedan en el servidor
@@ -296,8 +295,7 @@ public class TriSigner {
 			docReq.setResult(Base64.decode(stringTrimmedResult.replace(SUCCESS + " NEWID=", ""), true)); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		catch (final IOException e) {
-			LOGGER.warning("El resultado de NEWID del servidor no estaba en Base64: " + e); //$NON-NLS-1$
-			throw new AOException("El resultado devuelto por el servidor no es correcto", e); //$NON-NLS-1$
+			throw new AOException("El resultado de NEWID del servidor no estaba en Base64", e); //$NON-NLS-1$
 		}
 	}
 
@@ -347,10 +345,6 @@ public class TriSigner {
 		return normalizedOp;
 	}
 
-	private static TriphaseData parseTriphaseResult(final byte[] triphaseResult) throws IOException {
-		LOGGER.info("Respuesta de prefirma del servicio de firma:\n" + new String(triphaseResult)); //$NON-NLS-1$
-		return loadTriphaseResponse(triphaseResult);
-	}
 
 	/** Obtiene una sesi&oacute;n de firma trif&aacute;sica a partir de un XML que lo describe.
 	 * Un ejemplo de XML podr&iacute;a ser el siguiente:
@@ -380,8 +374,7 @@ public class TriSigner {
 				doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
 			}
 			catch (final Exception e) {
-				LOGGER.severe("Error al cargar la respuesta XML: " + e + "\n" + new String(triphaseResponse)); //$NON-NLS-1$ //$NON-NLS-2$
-				throw new IOException("Error al cargar la respuesta XML: " + e, e); //$NON-NLS-1$
+				throw new IOException("Error al cargar la respuesta XML", e); //$NON-NLS-1$
 			}
 		}
 

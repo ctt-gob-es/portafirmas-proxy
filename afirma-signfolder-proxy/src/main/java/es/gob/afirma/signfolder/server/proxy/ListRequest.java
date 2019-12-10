@@ -1,13 +1,17 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import java.util.Map;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Petici&oacute;n de solicitudes de firma.
  * @author Carlos Gamuci
  */
 public class ListRequest {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ListRequest.class);
 
 	/** Estado de solicitud de firma pendiente de firmar. */
 	public static final String STATE_UNRESOLVED = "unresolved"; //$NON-NLS-1$
@@ -39,9 +43,8 @@ public class ListRequest {
 	public ListRequest(final String state, final String[] formats, final Map<String, String> filters, final int numPage, final int pageSize) {
 		if (state == null || !STATE_UNRESOLVED.equalsIgnoreCase(state) &&
 				!STATE_SIGNED.equalsIgnoreCase(state) && !STATE_REJECTED.equalsIgnoreCase(state)) {
-			Logger.getLogger("es.gob.afirma").warning( //$NON-NLS-1$
-					"La peticion de solicitudes de firma requirio aquellas con el estado '" + //$NON-NLS-1$
-					state + "'. Se devolveran las del estado " + STATE_UNRESOLVED); //$NON-NLS-1$
+			LOGGER.info("Se han solicitado las peticiones con un estado invalido. Se devolveran las del estado " //$NON-NLS-1$
+				+ STATE_UNRESOLVED);
 			this.state = STATE_UNRESOLVED;
 		}
 		else {

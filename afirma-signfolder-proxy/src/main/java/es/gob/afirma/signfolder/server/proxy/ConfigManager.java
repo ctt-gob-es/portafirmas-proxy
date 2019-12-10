@@ -6,14 +6,16 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manejador que gestiona la configuraci&oacute;n de la aplicaci&oacute;n.
  */
 public class ConfigManager {
 
-	private static final Logger LOGGER = Logger.getLogger(ConfigManager.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManager.class);
 
 	/** Nombre del fichero de configuraci&oacute;n. */
 	private static final String CONFIG_FILE = "pfmovil.properties" ; //$NON-NLS-1$
@@ -75,7 +77,7 @@ public class ConfigManager {
 			if (configDir != null) {
 				final File configFile = new File(configDir, CONFIG_FILE).getCanonicalFile();
 				if (!configFile.isFile() || !configFile.canRead()) {
-					LOGGER.warning(
+					LOGGER.warn(
 							"No se encontro el fichero " + CONFIG_FILE + " en el directorio configurado en la variable " + //$NON-NLS-1$ //$NON-NLS-2$
 									ENVIRONMENT_VAR_CONFIG_DIR + ": " + configFile.getAbsolutePath() + //$NON-NLS-1$
 									"\nSe buscara en el CLASSPATH."); //$NON-NLS-1$
@@ -94,14 +96,14 @@ public class ConfigManager {
 			is.close();
 		}
 		catch(final NullPointerException e){
-			LOGGER.severe("No se ha encontrado el fichero de configuracion: " + e); //$NON-NLS-1$
+			LOGGER.error("No se ha encontrado el fichero de configuracion: " + e); //$NON-NLS-1$
 			if (is != null) {
 				try { is.close(); } catch (final Exception ex) { /* No hacemos nada */ }
 			}
 			throw new RuntimeException("No se ha encontrado el fichero de propiedades " + CONFIG_FILE, e); //$NON-NLS-1$
 		}
 		catch (final Exception e) {
-			LOGGER.severe("No se pudo cargar el fichero de configuracion " + CONFIG_FILE); //$NON-NLS-1$
+			LOGGER.error("No se pudo cargar el fichero de configuracion " + CONFIG_FILE); //$NON-NLS-1$
 			if (is != null) {
 				try { is.close(); } catch (final Exception ex) { /* No hacemos nada */ }
 			}
@@ -122,22 +124,22 @@ public class ConfigManager {
 		loadConfig();
 
 		if (config == null) {
-			LOGGER.severe("No se ha encontrado el fichero de configuracion de la conexion"); //$NON-NLS-1$
+			LOGGER.error("No se ha encontrado el fichero de configuracion de la conexion"); //$NON-NLS-1$
 			throw new RuntimeException("No se ha encontrado el fichero de configuracion de la conexion"); //$NON-NLS-1$
 		}
 
 		try {
 			if (getSignfolderUrl() == null) {
-				LOGGER.severe("No se ha establecido la URL del servicio del Portafirmas"); //$NON-NLS-1$
+				LOGGER.error("No se ha establecido la URL del servicio del Portafirmas"); //$NON-NLS-1$
 				throw new RuntimeException("No se ha establecido la URL del servicio del Portafirmas"); //$NON-NLS-1$
 			}
 		} catch (final Exception e) {
-			LOGGER.severe("La URL del servicio del Portafirmas no esta bien formada"); //$NON-NLS-1$
+			LOGGER.error("La URL del servicio del Portafirmas no esta bien formada"); //$NON-NLS-1$
 			throw new RuntimeException("La URL del servicio del Portafirmas no esta bien formada"); //$NON-NLS-1$
 		}
 
 		if (getTriphaseServiceUrl() == null) {
-			LOGGER.severe("No se ha establecido la URL del servicio de firma trifasica"); //$NON-NLS-1$
+			LOGGER.error("No se ha establecido la URL del servicio de firma trifasica"); //$NON-NLS-1$
 			throw new RuntimeException("No se ha establecido la URL del servicio de firma trifasica"); //$NON-NLS-1$
 		}
 	}
@@ -151,7 +153,7 @@ public class ConfigManager {
 			return null;
 		}
 		try {
-			return new URL(config.getProperty(PROPERTY_SIGNFOLDER_URL));
+			return new URL(getProperty(PROPERTY_SIGNFOLDER_URL));
 		}
 		catch (final Exception e) {
 			throw new RuntimeException("La URL del servicio del portafirmas no esta bien formada", e); //$NON-NLS-1$
@@ -163,12 +165,12 @@ public class ConfigManager {
 	 * @return URL del servicio de firma trif&aacute;sica o {@code null} si no se ha establecido.
 	 */
 	public static String getTriphaseServiceUrl(){
-		String url = config.getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
+		String url = getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
 		if (url.contains(TOMCAT_HTTP_PORT_VARIABLE)) {
 
 			final String configuredPort = System.getProperty(JAVA_HTTP_PORT_VARIABLE);
 			if (configuredPort == null) {
-				LOGGER.severe("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
+				LOGGER.error("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
 				throw new RuntimeException("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
 			}
 			url = url.replace(TOMCAT_HTTP_PORT_VARIABLE, configuredPort);
@@ -190,7 +192,7 @@ public class ConfigManager {
 	 * @return Cadena con los ExtraParams en forma clave=valor y separados por '\n'.
 	 */
 	public static String getForcedExtraParams(){
-		return config.getProperty(PROPERTY_FORCED_EXTRAPARAMS);
+		return getProperty(PROPERTY_FORCED_EXTRAPARAMS);
 	}
 
 	/**
@@ -198,7 +200,7 @@ public class ConfigManager {
 	 * @return URL base del servicio terminada en '/' o {@code null} si no se configur&oacute; la URL base.
 	 */
 	public static String getProxyBaseUrl() {
-		final String url = config.getProperty(PROPERTY_PROXY_BASE_URL);
+		final String url = getProperty(PROPERTY_PROXY_BASE_URL);
 		return url != null ? url.endsWith("/") ? url : url + "/" : null; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
@@ -207,7 +209,7 @@ public class ConfigManager {
 	 * @return {@code true} si la comparticion de sesiones esta habilitada, {@code false} en caso contrario.
 	 */
 	public static boolean isShareSessionEnabled(){
-		return Boolean.parseBoolean(config.getProperty(PROPERTY_SHARED_ENABLED));
+		return Boolean.parseBoolean(getProperty(PROPERTY_SHARED_ENABLED));
 	}
 
 	/**
@@ -215,15 +217,15 @@ public class ConfigManager {
 	 * @return {@code true} si la comparticion de sesiones esta habilitada, {@code false} en caso contrario.
 	 */
 	public static boolean isShareSessionWithCertEnabled(){
-		return Boolean.parseBoolean(config.getProperty(PROPERTY_SHARED_WITH_CERT_ENABLED));
+		return Boolean.parseBoolean(getProperty(PROPERTY_SHARED_WITH_CERT_ENABLED));
 	}
 
 	/**
 	 * Devuelve la ruta del directorio temporal compartido.
 	 * @return Ruta del directorio temporal compartido o {@code null} si no se ha configurado.
 	 */
-	public static String getTempDir(){
-		return config.getProperty(PROPERTY_SHARED_DIR);
+	public static String getTempDir() {
+		return getProperty(PROPERTY_SHARED_DIR);
 	}
 
 	/**
@@ -231,17 +233,53 @@ public class ConfigManager {
 	 * el proceso de limpieza de sesiones.
 	 * @return Ruta del directorio temporal compartido o {@code null} si no se ha configurado.
 	 */
-	public static int getRequestToClean(){
+	public static int getRequestToClean() {
 
 		int numRequests;
-		final String request = config.getProperty(PROPERTY_REQUESTS_TO_CLEAN);
+		final String request = getProperty(PROPERTY_REQUESTS_TO_CLEAN);
 		try {
 			numRequests = Integer.parseInt(request);
 		} catch (final Exception e) {
-			LOGGER.warning("No se ha indicado un numero valido de peticiones antes de la limpieza del directorio temporal (" + //$NON-NLS-1$
+			LOGGER.warn("No se ha indicado un numero valido de peticiones antes de la limpieza del directorio temporal (" + //$NON-NLS-1$
 					PROPERTY_REQUESTS_TO_CLEAN + "). Se usara el valor por defecto (" + DEFAULT_VALUE_REQUESTS_TO_CLEAN  + ")."); //$NON-NLS-1$ //$NON-NLS-2$
 			numRequests = DEFAULT_VALUE_REQUESTS_TO_CLEAN;
 		}
 		return numRequests;
+	}
+
+	public static String getProperty(final String prop) {
+		return config != null ? mapSystemProperties(config.getProperty(prop)) : null;
+	}
+
+	private static final String SYS_PROP_PREFIX = "${"; //$NON-NLS-1$
+
+	private static final String SYS_PROP_SUFIX = "}"; //$NON-NLS-1$
+
+	/**
+	 * Mapea las propiedades del sistema que haya en el texto que se referencien en
+	 * la forma: {@propiedad}
+	 * @param text Texto en el que se pueden encontrar las referencias a las propiedades
+	 * del sistema.
+	 * @return Cadena con las particulas traducidas a los valores indicados como propiedades
+	 * del sistema.
+	 */
+	private static String mapSystemProperties(final String text) {
+
+		if (text == null) {
+			return null;
+		}
+
+		int pos = -1;
+		int pos2 = 0;
+		String mappedText = text;
+		while ((pos = mappedText.indexOf(SYS_PROP_PREFIX, pos + 1)) > -1 && pos2 > -1) {
+			pos2 = mappedText.indexOf(SYS_PROP_SUFIX, pos + SYS_PROP_PREFIX.length());
+			if (pos2 > pos) {
+				final String prop = mappedText.substring(pos + SYS_PROP_PREFIX.length(), pos2);
+				final String value = System.getProperty(prop, ""); //$NON-NLS-1$
+				mappedText = mappedText.replace(SYS_PROP_PREFIX + prop + SYS_PROP_SUFIX, value);
+			}
+		}
+		return mappedText;
 	}
 }

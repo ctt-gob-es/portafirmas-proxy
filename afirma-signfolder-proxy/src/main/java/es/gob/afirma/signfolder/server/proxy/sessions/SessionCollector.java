@@ -10,11 +10,12 @@
 package es.gob.afirma.signfolder.server.proxy.sessions;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import es.gob.afirma.signfolder.server.proxy.ConfigManager;
 import es.gob.afirma.signfolder.server.proxy.SessionParams;
@@ -31,14 +32,14 @@ import es.gob.afirma.signfolder.server.proxy.SessionParams;
  */
 public final class SessionCollector {
 
-	private static final Logger LOGGER = Logger.getLogger(SessionCollector.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(SessionCollector.class);
 
 	/** Peri&oacute;do m&aacute;ximo de inactividad. */
 	private static final int MAX_INACTIVE_INTERVAL = 8 * 60 * 60; // 8 Horas
 
 	private static final SessionDAO dao;
 
-	private static boolean shareSession;
+	private static final boolean shareSession;
 
     static {
 
@@ -46,25 +47,13 @@ public final class SessionCollector {
     		ConfigManager.checkInitialized();
     	}
     	catch (final Exception e) {
-    		LOGGER.log(Level.SEVERE, "No se pudo cargar la configuracion del servicio proxy", e); //$NON-NLS-1$
+    		LOGGER.error("No se pudo cargar la configuracion del servicio proxy", e); //$NON-NLS-1$
     		throw e;
 		}
 
-    	try {
-    		dao = SessionDAO.getInstance();
-    	}
-    	catch (final Exception e) {
-    		LOGGER.log(Level.SEVERE, "No se puedo inicializar el gestion de sesiones", e); //$NON-NLS-1$
-    		throw e;
-		}
+    	dao = SessionDAO.getInstance();
 
-    	try {
-    		shareSession = ConfigManager.isShareSessionEnabled();
-    	}
-    	catch (final Exception e) {
-    		LOGGER.log(Level.WARNING, "No se pudo comprobar si se desea compartir la sesion entre nodos", e); //$NON-NLS-1$
-    		shareSession = false;
-    	}
+    	shareSession = ConfigManager.isShareSessionEnabled();
     }
 
     /**
@@ -74,25 +63,23 @@ public final class SessionCollector {
 	 * @return Sesi&oacute;n creada.
 	 */
 	public static HttpSession createSession(final HttpServletRequest request) {
+		LOGGER.debug("Creamos sesion"); //$NON-NLS-1$
     	final HttpSession session = request.getSession();
     	session.setMaxInactiveInterval(MAX_INACTIVE_INTERVAL);
     	return session;
 	}
 
     /**
-	 * Crea una nueva sesi&oacute;n compartida.
+	 * Crea una nueva sesi&oacute;n compartida a partir de la sesion actual.
 	 * @param session Sesi&oacute;n que se desea compartir.
 	 * @return Identificador de la sesi&oacute;n compartida.
 	 * @throws IOException Cuando no se puede compartir la sesi&oacute;n.
 	 */
 	public static String createSharedSession(final HttpSession session) throws IOException {
-
-		// Creamos la sesion compartida y guardamos en la misma los datos que haya actualmente y
-		// el identificador que se le asigna
+		LOGGER.debug("Creamos sesion compartida"); //$NON-NLS-1$
 		final String ssid = dao.createSharedSession();
 		session.setAttribute(SessionParams.SHARED_SESSION_ID, ssid);
 		dao.writeSession(session, ssid);
-
 		return ssid;
 	}
 
@@ -103,11 +90,12 @@ public final class SessionCollector {
 	public static void updateSession(final HttpSession session) {
 		if (shareSession) {
 			final String ssid = (String) session.getAttribute(SessionParams.SHARED_SESSION_ID);
+			LOGGER.debug("Actualizamos la sesion compartida: " + ssid); //$NON-NLS-1$
 			if (ssid != null) {
 				try {
 					dao.writeSession(session, ssid);
 				} catch (final IOException e) {
-					LOGGER.warning("Error al actualizar la sesion compartida " + ssid); //$NON-NLS-1$
+					LOGGER.warn("Error al actualizar la sesion compartida " + ssid, e); //$NON-NLS-1$
 				}
 			}
 		}
@@ -126,8 +114,8 @@ public final class SessionCollector {
 
 		HttpSession session = request.getSession(false);
 
-		if (ssid != null && shareSession && !isValidatedSession(session)) {
-
+		if (ssid != null && shareSession) {
+			LOGGER.debug("Cargamos la sesion compartida: " + ssid); //$NON-NLS-1$
 			SessionInfo sessionInfo;
 			try {
 				sessionInfo = dao.recoverSessionInfo(ssid);
@@ -143,27 +131,14 @@ public final class SessionCollector {
 				session = request.getSession();
 				final long interval = sessionInfo.getExpirationDate() - System.currentTimeMillis();
 				if (interval <= 0) {
-					LOGGER.warning("La sesion de la peticion " + ssid + " ha caducado"); //$NON-NLS-1$ //$NON-NLS-2$
+					LOGGER.warn("La sesion de la peticion " + ssid + " ha caducado"); //$NON-NLS-1$ //$NON-NLS-2$
 					return null;
 				}
 				session.setMaxInactiveInterval(MAX_INACTIVE_INTERVAL);
 			}
-
 			sessionInfo.save(session);
 		}
 		return session;
-	}
-
-	/**
-	 * Indica si una sesi&oacute;n con certificado local se ha validado.
-	 * @param session Sesi&oacute;n que se desea comprobar.
-	 * @return {@code true} si la sesi&oacute;n est&aacute; validada, {@code false} si la
-	 * sesi&oacute;n es nula, si se inicio con certificado en la nube o si a&uacute;n no se ha
-	 * validado.
-	 */
-	private static boolean isValidatedSession(final HttpSession session) {
-		return session != null &&
-				Boolean.parseBoolean((String) session.getAttribute(SessionParams.VALID_SESSION));
 	}
 
     /**
@@ -176,6 +151,8 @@ public final class SessionCollector {
     		return;
     	}
 
+    	LOGGER.debug("Eliminamos la sesion"); //$NON-NLS-1$
+
     	// Obtenemos el identificador de sesion compartida (si lo hay)
     	final String ssid = (String) session.getAttribute(SessionParams.SHARED_SESSION_ID);
 
@@ -184,13 +161,7 @@ public final class SessionCollector {
 
     	// Eliminamos la sesion compartida
     	if (ssid != null) {
-    		removeSharedSession(ssid);
-    	}
-    }
-
-    static void removeSharedSession(final String ssid) {
-    	LOGGER.info("Ejecutamos el borrado del directorio compartido"); //$NON-NLS-1$
-    	if (ssid != null) {
+    		LOGGER.debug("Eliminamos la sesion compartida: " + ssid); //$NON-NLS-1$
     		dao.removeSession(ssid);
     	}
     }

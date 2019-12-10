@@ -3,9 +3,11 @@ package es.gob.afirma.signfolder.server.proxy;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementaci&oacute;n de un compresor de datos.
@@ -14,6 +16,8 @@ import java.util.zip.GZIPOutputStream;
 public class GzipCompressorImpl {
 
 	private static final int BUFFER_SIZE = 1024;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(GzipCompressorImpl.class);
 
 	/**
 	 * Comprime datos en un GZIP.
@@ -33,7 +37,7 @@ public class GzipCompressorImpl {
 			compressedData = baos.toByteArray();
 		} catch (final IOException e) {
 			// Este error no deberia ocurrir nunca
-			Logger.getLogger("es.gob.afirma").warning("Error al comprimir los datos. Se devuelven los datos originales: " + e); //$NON-NLS-1$ //$NON-NLS-2$
+			LOGGER.warn("Error al comprimir los datos. Se devuelven los datos originales: " + e); //$NON-NLS-1$
 			return data;
 		}
 

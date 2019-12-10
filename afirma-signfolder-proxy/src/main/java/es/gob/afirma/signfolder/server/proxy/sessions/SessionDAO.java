@@ -12,10 +12,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import es.gob.afirma.signfolder.server.proxy.ConfigManager;
 
@@ -25,7 +26,7 @@ public class SessionDAO {
 
 	private static final long DEFAULT_MAX_SESSION_PERIOD = 8 * 60 * 60 * 1000; // 8 horas
 
-	private static final Logger LOGGER = Logger.getLogger("es.gob.afirma"); //$NON-NLS-1$
+	private static final Logger LOGGER = LoggerFactory.getLogger(SessionDAO.class);
 
 	private static SessionDAO instance = null;
 
@@ -60,16 +61,40 @@ public class SessionDAO {
 		}
 		else {
 			// Al iniciar el DAO limpiamos las sesiones caducadas que existiesen previamente
-			new CleanerThread(this.dir).start();
+			try {
+				new CleanerThread(this.dir).start();
+			}
+			catch (final Exception e) {
+				LOGGER.warn("Error durante la limpieza del directorio temporal", e); //$NON-NLS-1$
+			}
 		}
 	}
 
-	/** Crea la sesion compartida. */
+
+	/**
+	 * Crea una nueva sesi&oacute;n compartida.
+	 * @return Identificador de la sesi&oacute;n compartida.
+	 * @throws IOException Cuando no se puede crear la sesi&oacute;n compartida.
+	 */
+	public String createSharedSession() throws IOException {
+		String uuid;
+		do {
+			uuid = UUID.randomUUID().toString();
+		}
+		while (!new File(this.dir, uuid).createNewFile());
+
+		return uuid;
+	}
+
+	/** Actualiza la sesi&oacute;n compartida.
+	 * @param session Sesi&oacute;n con los datos a volcar.
+	 * @param sessionId Identificador de la sesi&oacute;n compartida. */
 	public void writeSession(final HttpSession session, final String sessionId) throws IOException {
 
 		final File sharedFile = new File(this.dir, sessionId);
 		if (!sharedFile.isFile()) {
-			throw new IOException("No se ha encontrado la sesion compartida"); //$NON-NLS-1$
+			LOGGER.warn("No se ha encontrado la sesion compartida: " + sessionId); //$NON-NLS-1$
+			throw new IOException("No se ha encontrado la sesion compartida: " + sessionId); //$NON-NLS-1$
 		}
 
 		// Se guardan todos los datos de la sesion
@@ -120,34 +145,19 @@ public class SessionDAO {
 				new CleanerThread(this.dir).start();
 			}
 		}
-
-
 		return sessionInfo;
 	}
 
 	/**
-	 * Crea una nueva sesi&oacute;n compartida.
-	 * @return Identificador de la sesi&oacute;n compartida.
-	 * @throws IOException Cuando no se puede crear la sesi&oacute;n compartida.
+	 * Elimina una sesi&oacute;n compartida.
+	 * @param ssid Identificador de la sesi&oacute;n compartida.
 	 */
-	public String createSharedSession() throws IOException {
-		String uuid;
-		do {
-			uuid = UUID.randomUUID().toString();
-		}
-		while (!new File(this.dir, uuid).createNewFile());
-
-		return uuid;
-	}
-
-
 	public void removeSession(final String ssid) {
 		try {
 			Files.deleteIfExists(new File(this.dir, ssid).toPath());
 		} catch (final IOException e) {
-			// No hacemos nada
+			LOGGER.warn("No se pudo eliminar la sesion compartida: " + ssid); //$NON-NLS-1$
 		}
-		System.out.println("Eliminamos la sesion compartida: " + ssid);
 	}
 
 	/**
@@ -155,7 +165,7 @@ public class SessionDAO {
 	 */
 	class CleanerThread extends Thread {
 
-		private final Logger LOGGER_THREAD = Logger.getLogger(CleanerThread.class.getName());
+		private final Logger LOGGER_THREAD = LoggerFactory.getLogger(CleanerThread.class);
 
 		private final File cleaningDir;
 
@@ -171,14 +181,14 @@ public class SessionDAO {
 		@Override
 		public void run() {
 
-			this.LOGGER_THREAD.info("Se inicia el hilo de limpieza de los ficheros de sesion"); //$NON-NLS-1$
+			this.LOGGER_THREAD.debug("Se inicia el hilo de limpieza de los ficheros de sesion"); //$NON-NLS-1$
 
 			File[] files;
 			try {
 				files = this.cleaningDir.listFiles();
 			}
 			catch (final Exception e) {
-				this.LOGGER_THREAD.log(Level.WARNING, "No se pudo realizar la limpieza del directorio de sesiones", e); //$NON-NLS-1$
+				this.LOGGER_THREAD.warn("No se pudo realizar la limpieza del directorio de sesiones", e); //$NON-NLS-1$
 				return;
 			}
 
@@ -188,7 +198,7 @@ public class SessionDAO {
 					try {
 						Files.deleteIfExists(file.toPath());
 					} catch (final IOException e) {
-						// No hacemos nada
+						this.LOGGER_THREAD.warn("No se pudo eliminar un fichero del directorio de sesiones: " + file.getName(), e); //$NON-NLS-1$
 					}
 				}
 			}
