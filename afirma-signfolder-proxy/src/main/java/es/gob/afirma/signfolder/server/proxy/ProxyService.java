@@ -256,7 +256,6 @@ public final class ProxyService extends HttpServlet {
 			}
 		}
 
-
 		final Responser responser = new Responser(response);
 
 		final String operation = request.getParameter(PARAMETER_NAME_OPERATION);
@@ -814,12 +813,12 @@ public final class ProxyService extends HttpServlet {
 		final MobileSIMUser user = new MobileSIMUser();
 		user.setIdDispositivo(registry.getDeviceId());	// Identificador unico del dispositivo
 		user.setPlataforma(registry.getPlatform());		// Plataforma de notificacion ("GCM" para Android y "APNS" para iOS)
-		user.setIdRegistro(registry.getIdRegistry());
+		user.setIdRegistro(registry.getIdRegistry());	// Token de registro
 
 		LOGGER.info("Registro de dispositivo: \nDispositivo: {}\nPlataforma: {}\nToken de registro: {}", //$NON-NLS-1$
 				user.getIdDispositivo(), user.getPlataforma(), user.getIdRegistro());
 
-		final MobileSIMUserStatus status = getService().registerSIMUser(dni, user);
+		final MobileSIMUserStatus status = getService().registerSIMUser(dni.getBytes(), user);
 
 		LOGGER.info("Resultado del registro:\nResultado: {}\nTexto: {}\nDetalle: {}", //$NON-NLS-1$
 				status.getDetails(), status.getStatusCode(), status.getStatusText(), status.getDetails());

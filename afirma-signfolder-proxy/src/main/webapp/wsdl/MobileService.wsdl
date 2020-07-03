@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="MobileService" targetNamespace="urn:juntadeandalucia:cice:pfirma:mobile:v2.0" xmlns:pfirma="urn:juntadeandalucia:cice:pfirma:mobile:v2.0" xmlns:request="urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:type="urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions name="MobileService" targetNamespace="urn:juntadeandalucia:cice:pfirma:mobile:v2.0" xmlns:pfirma="urn:juntadeandalucia:cice:pfirma:mobile:v2.0" xmlns:request="urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:type="urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <wsdl:types>
 <xsd:schema targetNamespace="urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0" xmlns:pfirma="urn:juntadeandalucia:cice:pfirma:mobile:v2.0" xmlns:request="urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:type="urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
@@ -182,7 +182,7 @@
 			<xsd:element name="registerSIMUser">
 				<xsd:complexType>
 					<xsd:sequence>
-						<xsd:element name="certificate" type="xsd:string"/>
+						<xsd:element name="certificate" type="xsd:base64Binary"/>
 						<xsd:element name="register" type="type:mobileSIMUser"/>
 					</xsd:sequence>
 				</xsd:complexType>
@@ -279,98 +279,145 @@
 				</xsd:complexType>
 			</xsd:element>
 			
+			<xsd:element name="fireTransaction">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="certificate" type="xsd:base64Binary"/>
+						<xsd:element name="idRequestList" type="type:mobileStringList"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+
+			<xsd:element name="fireTransactionResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="fireTransactionResponse" type="type:mobileFireTrasactionResponse"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			
+			<xsd:element name="signFireCloud">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="certificate" type="xsd:base64Binary"/>
+						<xsd:element name="idRequestList" type="type:mobileStringList"/>
+						<xsd:element minOccurs="0" name="transactionId" nillable="false" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+
+			<xsd:element name="signFireCloudResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="fireRequestList" type="type:mobileFireRequestList"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			
 		</xsd:schema>
   </wsdl:types>
-  <wsdl:message name="validateUserResponse">
-    <wsdl:part element="request:validateUserResponse" name="validateUserResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="queryRequestListResponse">
-    <wsdl:part element="request:queryRequestListResponse" name="queryRequestListResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="solicitudAccesoClave">
-    <wsdl:part element="request:solicitudAccesoClave" name="solicitudAccesoClave">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="procesarRespuestaClaveResponse">
-    <wsdl:part element="request:procesarRespuestaClaveResponse" name="procesarRespuestaClaveResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="mobileException">
-    <wsdl:part element="type:mobileError" name="mobileException">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="rejectRequestResponse">
-    <wsdl:part element="request:rejectRequestResponse" name="rejectRequestResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="registerSIMUser">
-    <wsdl:part element="request:registerSIMUser" name="registerSIMUser">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="queryApplicationsMobileResponse">
-    <wsdl:part element="request:queryApplicationsMobileResponse" name="queryApplicationsMobileResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="estadoNotifyPush">
-    <wsdl:part element="request:estadoNotifyPush" name="estadoNotifyPush">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="queryRequest">
-    <wsdl:part element="request:queryRequest" name="queryRequest">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="rejectRequest">
-    <wsdl:part element="request:rejectRequest" name="rejectRequest">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="queryRequestList">
-    <wsdl:part element="request:queryRequestList" name="queryRequestList">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="reportPreviewResponse">
-    <wsdl:part element="request:reportPreviewResponse" name="reportPreviewResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="registerSIMUserResponse">
-    <wsdl:part element="request:registerSIMUserResponse" name="registerSIMUserResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="reportPreview">
-    <wsdl:part element="request:reportPreview" name="reportPreview">
+  <wsdl:message name="approveRequestResponse">
+    <wsdl:part element="request:approveRequestResponse" name="approveRequestResponse">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="signPreviewResponse">
     <wsdl:part element="request:signPreviewResponse" name="signPreviewResponse">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="queryApplicationsMobile">
-    <wsdl:part element="request:queryApplicationsMobile" name="queryApplicationsMobile">
+  <wsdl:message name="mobileException">
+    <wsdl:part element="type:mobileError" name="mobileException">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="signPreview">
-    <wsdl:part element="request:signPreview" name="signPreview">
+  <wsdl:message name="rejectRequest">
+    <wsdl:part element="request:rejectRequest" name="rejectRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="signFireCloudResponse">
+    <wsdl:part element="request:signFireCloudResponse" name="signFireCloudResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="fireTransaction">
+    <wsdl:part element="request:fireTransaction" name="fireTransaction">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDocumentsToSign">
+    <wsdl:part element="request:getDocumentsToSign" name="getDocumentsToSign">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="queryRequestList">
+    <wsdl:part element="request:queryRequestList" name="queryRequestList">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="validateUserResponse">
+    <wsdl:part element="request:validateUserResponse" name="validateUserResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="queryApplicationsMobileResponse">
+    <wsdl:part element="request:queryApplicationsMobileResponse" name="queryApplicationsMobileResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="solicitudAccesoClaveResponse">
+    <wsdl:part element="request:solicitudAccesoClaveResponse" name="solicitudAccesoClaveResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="updateNotifyPushResponse">
+    <wsdl:part element="request:updateNotifyPushResponse" name="updateNotifyPushResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="reportPreviewResponse">
+    <wsdl:part element="request:reportPreviewResponse" name="reportPreviewResponse">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="estadoNotifyPushResponse">
     <wsdl:part element="request:estadoNotifyPushResponse" name="estadoNotifyPushResponse">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="approveRequest">
-    <wsdl:part element="request:approveRequest" name="approveRequest">
+  <wsdl:message name="queryRequestResponse">
+    <wsdl:part element="request:queryRequestResponse" name="queryRequestResponse">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="saveSignResponse">
     <wsdl:part element="request:saveSignResponse" name="saveSignResponse">
     </wsdl:part>
   </wsdl:message>
+  <wsdl:message name="estadoNotifyPush">
+    <wsdl:part element="request:estadoNotifyPush" name="estadoNotifyPush">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="signFireCloud">
+    <wsdl:part element="request:signFireCloud" name="signFireCloud">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="procesarRespuestaClaveResponse">
+    <wsdl:part element="request:procesarRespuestaClaveResponse" name="procesarRespuestaClaveResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="queryRequest">
+    <wsdl:part element="request:queryRequest" name="queryRequest">
+    </wsdl:part>
+  </wsdl:message>
   <wsdl:message name="validateUser">
     <wsdl:part element="request:validateUser" name="validateUser">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="updateNotifyPushResponse">
-    <wsdl:part element="request:updateNotifyPushResponse" name="updateNotifyPushResponse">
+  <wsdl:message name="documentPreviewResponse">
+    <wsdl:part element="request:documentPreviewResponse" name="documentPreviewResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="solicitudAccesoClave">
+    <wsdl:part element="request:solicitudAccesoClave" name="solicitudAccesoClave">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="fireTransactionResponse">
+    <wsdl:part element="request:fireTransactionResponse" name="fireTransactionResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="registerSIMUserResponse">
+    <wsdl:part element="request:registerSIMUserResponse" name="registerSIMUserResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="queryRequestListResponse">
+    <wsdl:part element="request:queryRequestListResponse" name="queryRequestListResponse">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="documentPreview">
@@ -381,36 +428,40 @@
     <wsdl:part element="request:saveSign" name="saveSign">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="documentPreviewResponse">
-    <wsdl:part element="request:documentPreviewResponse" name="documentPreviewResponse">
+  <wsdl:message name="signPreview">
+    <wsdl:part element="request:signPreview" name="signPreview">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="getDocumentsToSign">
-    <wsdl:part element="request:getDocumentsToSign" name="getDocumentsToSign">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="queryRequestResponse">
-    <wsdl:part element="request:queryRequestResponse" name="queryRequestResponse">
-    </wsdl:part>
-  </wsdl:message>
-  <wsdl:message name="updateNotifyPush">
-    <wsdl:part element="request:updateNotifyPush" name="updateNotifyPush">
+  <wsdl:message name="reportPreview">
+    <wsdl:part element="request:reportPreview" name="reportPreview">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="procesarRespuestaClave">
     <wsdl:part element="request:procesarRespuestaClave" name="procesarRespuestaClave">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="approveRequestResponse">
-    <wsdl:part element="request:approveRequestResponse" name="approveRequestResponse">
+  <wsdl:message name="approveRequest">
+    <wsdl:part element="request:approveRequest" name="approveRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="registerSIMUser">
+    <wsdl:part element="request:registerSIMUser" name="registerSIMUser">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="queryApplicationsMobile">
+    <wsdl:part element="request:queryApplicationsMobile" name="queryApplicationsMobile">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="getDocumentsToSignResponse">
     <wsdl:part element="request:getDocumentsToSignResponse" name="getDocumentsToSignResponse">
     </wsdl:part>
   </wsdl:message>
-  <wsdl:message name="solicitudAccesoClaveResponse">
-    <wsdl:part element="request:solicitudAccesoClaveResponse" name="solicitudAccesoClaveResponse">
+  <wsdl:message name="rejectRequestResponse">
+    <wsdl:part element="request:rejectRequestResponse" name="rejectRequestResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="updateNotifyPush">
+    <wsdl:part element="request:updateNotifyPush" name="updateNotifyPush">
     </wsdl:part>
   </wsdl:message>
   <wsdl:portType name="MobileService">
@@ -538,6 +589,22 @@
       <wsdl:input message="pfirma:procesarRespuestaClave" name="procesarRespuestaClave">
     </wsdl:input>
       <wsdl:output message="pfirma:procesarRespuestaClaveResponse" name="procesarRespuestaClaveResponse">
+    </wsdl:output>
+      <wsdl:fault message="pfirma:mobileException" name="mobileException">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="fireTransaction">
+      <wsdl:input message="pfirma:fireTransaction" name="fireTransaction">
+    </wsdl:input>
+      <wsdl:output message="pfirma:fireTransactionResponse" name="fireTransactionResponse">
+    </wsdl:output>
+      <wsdl:fault message="pfirma:mobileException" name="mobileException">
+    </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="signFireCloud">
+      <wsdl:input message="pfirma:signFireCloud" name="signFireCloud">
+    </wsdl:input>
+      <wsdl:output message="pfirma:signFireCloudResponse" name="signFireCloudResponse">
     </wsdl:output>
       <wsdl:fault message="pfirma:mobileException" name="mobileException">
     </wsdl:fault>
@@ -737,10 +804,35 @@
         <soap:fault name="mobileException" use="literal"/>
       </wsdl:fault>
     </wsdl:operation>
+    <wsdl:operation name="fireTransaction">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="fireTransaction">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="fireTransactionResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="mobileException">
+        <soap:fault name="mobileException" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="signFireCloud">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="signFireCloud">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="signFireCloudResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="mobileException">
+        <soap:fault name="mobileException" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
   </wsdl:binding>
   <wsdl:service name="MobileService">
-    <wsdl:port binding="pfirma:MobileServiceSoapBinding" name="MobileServicePort">
-      <soap:address location="https://pf.preappjava.seap.minhap.es/pf/servicesv2/MobileService"/>
+		<wsdl:port name="MobileServicePort"
+			binding="pfirma:MobileServiceSoapBinding">
+			<soap:address location="http://dominio/MobileServicePort" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

@@ -324,14 +324,6 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createRequestLoginErrorResponse() {
-		final StringBuilder sb = new StringBuilder()
-				.append(XML_HEADER)
-				.append("<lgnrq err='Error' />"); //$NON-NLS-1$
-
-		return sb.toString();
-	}
-
 	public static String createValidateLoginResponse(final ValidateLoginResult validateLoginData) {
 		final StringBuilder sb = new StringBuilder()
 				.append(XML_HEADER)

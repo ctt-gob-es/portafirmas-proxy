@@ -252,7 +252,7 @@ public interface MobileService {
     @ResponseWrapper(localName = "registerSIMUserResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RegisterSIMUserResponse")
     public MobileSIMUserStatus registerSIMUser(
         @WebParam(name = "certificate", targetNamespace = "")
-        String certificate,
+        byte[] certificate,
         @WebParam(name = "register", targetNamespace = "")
         MobileSIMUser register)
         throws MobileException

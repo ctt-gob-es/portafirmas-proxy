@@ -23,8 +23,10 @@ public class ConfigManager {
 	/** Variable de entorno que determina el directorio en el que buscar el fichero de configuraci&oacute;n. */
 	private static final String ENVIRONMENT_VAR_CONFIG_DIR = "pfmovil.config.path"; //$NON-NLS-1$
 
-	private static final String JAVA_HTTP_PORT_VARIABLE = "tomcat.httpport"; //$NON-NLS-1$
-	private static final String TOMCAT_HTTP_PORT_VARIABLE = "${" + JAVA_HTTP_PORT_VARIABLE + "}"; //$NON-NLS-1$ //$NON-NLS-2$
+
+	private static final String SYS_PROP_PREFIX = "${"; //$NON-NLS-1$
+
+	private static final String SYS_PROP_SUFIX = "}"; //$NON-NLS-1$
 
 	/** Propiedad que establece los extraparams que deben forzarse en las operaciones de firma. */
 	private static final String PROPERTY_FORCED_EXTRAPARAMS = "forced.extraparams"; //$NON-NLS-1$
@@ -165,17 +167,7 @@ public class ConfigManager {
 	 * @return URL del servicio de firma trif&aacute;sica o {@code null} si no se ha establecido.
 	 */
 	public static String getTriphaseServiceUrl(){
-		String url = getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
-		if (url.contains(TOMCAT_HTTP_PORT_VARIABLE)) {
-
-			final String configuredPort = System.getProperty(JAVA_HTTP_PORT_VARIABLE);
-			if (configuredPort == null) {
-				LOGGER.error("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
-				throw new RuntimeException("Se ha utilizado la expresion de configuracion del puerto del servidor y no se ha encontrado en el sistema la definicion de la variable: " + JAVA_HTTP_PORT_VARIABLE); //$NON-NLS-1$
-			}
-			url = url.replace(TOMCAT_HTTP_PORT_VARIABLE, configuredPort);
-		}
-		return url;
+		return getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
 	}
 
 	/**
@@ -251,17 +243,13 @@ public class ConfigManager {
 		return config != null ? mapSystemProperties(config.getProperty(prop)) : null;
 	}
 
-	private static final String SYS_PROP_PREFIX = "${"; //$NON-NLS-1$
-
-	private static final String SYS_PROP_SUFIX = "}"; //$NON-NLS-1$
-
 	/**
 	 * Mapea las propiedades del sistema que haya en el texto que se referencien en
-	 * la forma: {@propiedad}
+	 * la forma: ${propiedad}
 	 * @param text Texto en el que se pueden encontrar las referencias a las propiedades
 	 * del sistema.
 	 * @return Cadena con las particulas traducidas a los valores indicados como propiedades
-	 * del sistema.
+	 * del sistema. Si no se encuentra la propiedad definida, no se modificar&aacute;
 	 */
 	private static String mapSystemProperties(final String text) {
 
@@ -276,8 +264,10 @@ public class ConfigManager {
 			pos2 = mappedText.indexOf(SYS_PROP_SUFIX, pos + SYS_PROP_PREFIX.length());
 			if (pos2 > pos) {
 				final String prop = mappedText.substring(pos + SYS_PROP_PREFIX.length(), pos2);
-				final String value = System.getProperty(prop, ""); //$NON-NLS-1$
-				mappedText = mappedText.replace(SYS_PROP_PREFIX + prop + SYS_PROP_SUFIX, value);
+				final String value = System.getProperty(prop, null);
+				if (value != null) {
+					mappedText = mappedText.replace(SYS_PROP_PREFIX + prop + SYS_PROP_SUFIX, value);
+				}
 			}
 		}
 		return mappedText;

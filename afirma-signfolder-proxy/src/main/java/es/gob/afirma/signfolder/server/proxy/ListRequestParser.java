@@ -1,14 +1,12 @@
 package es.gob.afirma.signfolder.server.proxy;
 
-import java.io.ByteArrayInputStream;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -32,6 +30,7 @@ public class ListRequestParser {
 	private final static String PAGE_ATTRIBUTE = "pg"; //$NON-NLS-1$
 	private final static String PAGE_SIZE_ATTRIBUTE = "sz"; //$NON-NLS-1$
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ListRequestParser.class);
 
 	private ListRequestParser() {
 		// No se permite el constructor por defecto
@@ -77,34 +76,23 @@ public class ListRequestParser {
 		final NodeList requestNodes = doc.getDocumentElement().getChildNodes();
 		int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
 
-		// En caso de haber formatos de firma soportados y filtros de peticiones, los establecemos
-		if (nodeIndex != -1 && FORMATS_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
-			formats = getFormats(requestNodes.item(nodeIndex).getChildNodes());
+		while (nodeIndex != -1) {
+			// En caso de haber formatos de firma soportados y filtros de peticiones, los establecemos
+			final String nodeName = requestNodes.item(nodeIndex).getNodeName();
+			if (FORMATS_NODE.equalsIgnoreCase(nodeName)) {
+				formats = getFormats(requestNodes.item(nodeIndex).getChildNodes());
+			}
+			else if (FILTERS_NODE.equalsIgnoreCase(nodeName)) {
+				filters = getFilters(requestNodes.item(nodeIndex).getChildNodes());
+			}
+			else {
+				LOGGER.warn("Se ignorara el nodo '{}' de la peticion de solicitudes de firma", //$NON-NLS-1$
+						nodeName);
+			}
 			nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
-		}
-
-		if (nodeIndex != -1 && FILTERS_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
-			filters = getFilters(requestNodes.item(nodeIndex).getChildNodes());
-			nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
-		}
-
-		if (nodeIndex != -1) {
-			throw new IllegalArgumentException("Se ha encontrado el nodo '" + //$NON-NLS-1$
-					requestNodes.item(nodeIndex).getNodeName() + "' en la peticion de solicitudes de firma"); //$NON-NLS-1$
 		}
 
 		return new ListRequest(state, formats, filters, numPage, pageSize);
-	}
-
-	/**
-	 * Genera un certificado a trav&eacute;s de su codificaci&oacute;n.
-	 * @param certEncoded Certificado codificado.
-	 * @return Certificado.
-	 * @throws CertificateException Cuando no se ha proporcionado un certificado codificado.
-	 */
-	public static Certificate getCertificate(final String certEncoded) throws CertificateException {
-		return CertificateFactory.getInstance("X.509").generateCertificate( //$NON-NLS-1$
-				new ByteArrayInputStream(certEncoded.getBytes()));
 	}
 
 	/**

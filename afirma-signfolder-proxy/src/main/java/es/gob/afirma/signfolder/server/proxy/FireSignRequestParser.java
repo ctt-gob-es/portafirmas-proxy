@@ -1,8 +1,5 @@
 package es.gob.afirma.signfolder.server.proxy;
 
-import java.io.IOException;
-import java.security.cert.CertificateException;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -24,10 +21,8 @@ final class FireSignRequestParser {
 	 * cada una.
 	 * @param doc Documento XML.
 	 * @return Identificador de transacci&oacute;n.
-	 * @throws IOException Si ocurren problemas decodificando el certificado desde Base64
-	 * @throws CertificateException Si ocurren problemas creando el certificado
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static void parse(final Document doc) throws CertificateException, IOException {
+	static void parse(final Document doc) {
 
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$

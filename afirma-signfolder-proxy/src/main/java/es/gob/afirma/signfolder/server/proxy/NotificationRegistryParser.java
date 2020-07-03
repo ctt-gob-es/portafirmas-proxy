@@ -23,21 +23,21 @@ class NotificationRegistryParser {
 
 		// Recogermos el identificador de la plataforma de notificacion
 		final String platformId = doc.getDocumentElement().getAttribute(PLATFORM_ID_ATTRIBUTE);
-		if (platformId == null) {
+		if (platformId == null || platformId.isEmpty()) {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					PLATFORM_ID_ATTRIBUTE + " con el identificador la plataforma de notificacion"); //$NON-NLS-1$
 		}
 
 		// Recogermos el identificador del dispositivo del usuario
 		final String deviceId = doc.getDocumentElement().getAttribute(DEVICE_ID_ATTRIBUTE);
-		if (deviceId == null) {
+		if (deviceId == null || deviceId.isEmpty()) {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					DEVICE_ID_ATTRIBUTE + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
 		}
 
 		// Recogermos el identificador de de registro en el servicio de notificaciones de Google
 		final String idRegistry = doc.getDocumentElement().getAttribute(NOTIFICATIONS_ID_REGISTRY);
-		if (idRegistry == null) {
+		if (idRegistry == null || idRegistry.isEmpty()) {
 			throw new IllegalArgumentException("No se ha indicado el atributo " +  //$NON-NLS-1$
 					NOTIFICATIONS_ID_REGISTRY + " con el identificador del dispositivo del usuario"); //$NON-NLS-1$
 		}

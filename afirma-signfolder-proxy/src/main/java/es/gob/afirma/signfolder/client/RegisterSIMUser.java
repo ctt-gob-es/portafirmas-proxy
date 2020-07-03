@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="certificate" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="certificate" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
  *         &lt;element name="register" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileSIMUser"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
@@ -37,7 +37,7 @@ import javax.xml.bind.annotation.XmlType;
 public class RegisterSIMUser {
 
     @XmlElement(required = true)
-    protected String certificate;
+    protected byte[] certificate;
     @XmlElement(required = true)
     protected MobileSIMUser register;
 
@@ -46,10 +46,9 @@ public class RegisterSIMUser {
      * 
      * @return
      *     possible object is
-     *     {@link String }
-     *     
+     *     byte[]
      */
-    public String getCertificate() {
+    public byte[] getCertificate() {
         return certificate;
     }
 
@@ -58,10 +57,9 @@ public class RegisterSIMUser {
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
-     *     
+     *     byte[]
      */
-    public void setCertificate(String value) {
+    public void setCertificate(byte[] value) {
         this.certificate = value;
     }
 
