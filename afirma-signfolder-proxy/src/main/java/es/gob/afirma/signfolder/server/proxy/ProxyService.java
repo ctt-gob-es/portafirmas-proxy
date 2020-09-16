@@ -115,6 +115,7 @@ public final class ProxyService extends HttpServlet {
 	private static final String OPERATION_FIND_USER = "19"; //$NON-NLS-1$
 	private static final String OPERATION_VERIFY = "20"; //$NON-NLS-1$
 	private static final String OPERATION_CREATE_ROLE = "21"; //$NON-NLS-1$
+	private static final String OPERATION_CONFIGURING_NEW = "22"; //$NON-NLS-1$
 
 	private static final String[] OPERATIONS_CREATE_SESSION = new String[] { OPERATION_REQUEST_LOGIN,
 			OPERATION_CLAVE_LOGIN };
@@ -440,6 +441,9 @@ public final class ProxyService extends HttpServlet {
 		} else if (OPERATION_CREATE_ROLE.equals(operation)) {
 			LOGGER.info("Solicitud de creación de rol."); //$NON-NLS-1$
 			ret = processCreateRole(session, xml);
+		} else if (OPERATION_CONFIGURING_NEW.equals(operation)) {
+			LOGGER.info("Solicitud de la configuracion"); //$NON-NLS-1$
+			ret = processConfigueNewApp(session, xml);
 		} else {
 			LOGGER.warn("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
 			ret = ErrorManager.genError(ErrorManager.ERROR_UNSUPPORTED_OPERATION_NAME);
@@ -1345,6 +1349,22 @@ public final class ProxyService extends HttpServlet {
 		return new DocumentData(document.getIdentifier(), document.getName(), document.getMime(), contentIs);
 	}
 
+	/**
+	 * Procesa la petición de recuperación de la configuración de aplicación.
+	 * 
+	 * @param session
+	 *            Sesión de usuario.
+	 * @param xml
+	 *            Petición recibida.
+	 * @return Un XML con la configuración de la aplicación solicitada.
+	 * @throws SAXException
+	 *             Cuando ocurre un error de parseo de petición.
+	 * @throws IOException
+	 *             Cuando ocurre un error de lectura/escritura.
+	 * @throws MobileException
+	 *             Cuando ocurre un error durante la comunicación con
+	 *             portafirmas-web.
+	 */
 	private String processConfigueApp(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
 
@@ -1355,6 +1375,34 @@ public final class ProxyService extends HttpServlet {
 		final AppConfiguration appConfig = loadConfiguration(dni, request);
 
 		return XmlResponsesFactory.createConfigurationResponse(appConfig);
+	}
+
+	/**
+	 * Procesa la petición de recuperación de la configuración de aplicación.
+	 * 
+	 * @param session
+	 *            Sesión de usuario.
+	 * @param xml
+	 *            Petición recibida.
+	 * @return Un XML con la configuración de la aplicación solicitada.
+	 * @throws SAXException
+	 *             Cuando ocurre un error de parseo de petición.
+	 * @throws IOException
+	 *             Cuando ocurre un error de lectura/escritura.
+	 * @throws MobileException
+	 *             Cuando ocurre un error durante la comunicación con
+	 *             portafirmas-web.
+	 */
+	private String processConfigueNewApp(final HttpSession session, final byte[] xml)
+			throws SAXException, IOException, MobileException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final ConfigurationRequest request = ConfigurationRequestParser.parse(doc);
+
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+		final AppConfiguration appConfig = loadConfiguration(dni, request);
+
+		return XmlResponsesFactory.createConfigurationNewResponse(appConfig);
 	}
 
 	/**
@@ -1382,7 +1430,7 @@ public final class ProxyService extends HttpServlet {
 		final List<String> appIds = new ArrayList<>();
 		final List<String> appNames = new ArrayList<>();
 		final List<String> roles = new ArrayList<>();
-		
+
 		for (final MobileApplication app : appList.getApplicationList()) {
 			appIds.add(app.getId());
 			appNames.add(app.getName() != null ? app.getName() : app.getId());

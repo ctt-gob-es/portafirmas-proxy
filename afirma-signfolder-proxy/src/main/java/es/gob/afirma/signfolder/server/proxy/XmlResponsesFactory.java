@@ -286,6 +286,30 @@ final class XmlResponsesFactory {
 			sb.append(escapeXmlCharacters(appConfig.getAppNamesList().get(i)));
 			sb.append("</app>"); //$NON-NLS-1$
 		}
+		sb.append("</appConf>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	/**
+	 * Crea un XML con la informaci&oacute;n para configurar la
+	 * aplicaci&oacute;n.
+	 * 
+	 * @param appConfig
+	 *            Configuraci&oacute;n..
+	 * @return XML con la configuraci&oacute;n..
+	 */
+	static String createConfigurationNewResponse(final AppConfiguration appConfig) {
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER);
+
+		sb.append("<appConf>"); //$NON-NLS-1$
+		for (int i = 0; i < appConfig.getAppIdsList().size(); i++) {
+			sb.append("<app id=\"").append(appConfig.getAppIdsList().get(i)).append("\">"); //$NON-NLS-1$//$NON-NLS-2$
+			sb.append(escapeXmlCharacters(appConfig.getAppNamesList().get(i)));
+			sb.append("</app>"); //$NON-NLS-1$
+		}
 		if (appConfig.getRolesList() != null && appConfig.getRolesList().size() > 0) {
 			sb.append("<roles>"); //$NON-NLS-1$
 			List<String> rls = appConfig.getRolesList();
