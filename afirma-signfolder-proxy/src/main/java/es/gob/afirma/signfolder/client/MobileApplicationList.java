@@ -34,6 +34,8 @@ import javax.xml.bind.annotation.XmlType;
 public class MobileApplicationList {
 
     protected List<MobileApplication> applicationList;
+    
+    protected List<String> roles;
 
     /**
      * Gets the value of the applicationList property.
@@ -63,5 +65,13 @@ public class MobileApplicationList {
         }
         return this.applicationList;
     }
+
+	/**
+	 * Gets the value of the roles property.
+	 * @return the roles list.
+	 */
+	public List<String> getRoles() {
+		return roles;
+	}
 
 }

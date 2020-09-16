@@ -286,6 +286,16 @@ final class XmlResponsesFactory {
 			sb.append(escapeXmlCharacters(appConfig.getAppNamesList().get(i)));
 			sb.append("</app>"); //$NON-NLS-1$
 		}
+		if (appConfig.getRolesList() != null && appConfig.getRolesList().size() > 0) {
+			sb.append("<roles>"); //$NON-NLS-1$
+			List<String> rls = appConfig.getRolesList();
+			for (int e = 0; e < rls.size(); e++) {
+				sb.append("<role>"); //$NON-NLS-1$
+				sb.append(rls.get(e));
+				sb.append("</role>"); //$NON-NLS-1$
+			}
+			sb.append("</roles>"); //$NON-NLS-1$
+		}
 		sb.append("</appConf>"); //$NON-NLS-1$
 
 		return sb.toString();

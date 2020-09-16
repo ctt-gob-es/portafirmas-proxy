@@ -1381,12 +1381,15 @@ public final class ProxyService extends HttpServlet {
 
 		final List<String> appIds = new ArrayList<>();
 		final List<String> appNames = new ArrayList<>();
+		final List<String> roles = new ArrayList<>();
+		
 		for (final MobileApplication app : appList.getApplicationList()) {
 			appIds.add(app.getId());
 			appNames.add(app.getName() != null ? app.getName() : app.getId());
 		}
+		roles.addAll(appList.getRoles());
 
-		return new AppConfiguration(appIds, appNames);
+		return new AppConfiguration(appIds, appNames, roles);
 	}
 
 	private String processApproveRequest(final HttpSession session, final byte[] xml) throws SAXException, IOException {
