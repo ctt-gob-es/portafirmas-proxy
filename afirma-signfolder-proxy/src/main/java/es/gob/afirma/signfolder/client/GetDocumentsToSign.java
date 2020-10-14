@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="certificate" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
+ *         &lt;element name="dni" type="{http://www.w3.org/2001/XMLSchema}base64Binary"/>
  *         &lt;element name="requestTagId" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
@@ -30,37 +30,37 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "certificate",
+    "dni",
     "requestTagId"
 })
 @XmlRootElement(name = "getDocumentsToSign")
 public class GetDocumentsToSign {
 
     @XmlElement(required = true)
-    protected byte[] certificate;
+    protected byte[] dni;
     @XmlElement(required = true)
     protected String requestTagId;
 
     /**
-     * Obtiene el valor de la propiedad certificate.
+     * Obtiene el valor de la propiedad dni.
      * 
      * @return
      *     possible object is
      *     byte[]
      */
-    public byte[] getCertificate() {
-        return certificate;
+    public byte[] getDni() {
+        return dni;
     }
 
     /**
-     * Define el valor de la propiedad certificate.
+     * Define el valor de la propiedad dni.
      * 
      * @param value
      *     allowed object is
      *     byte[]
      */
-    public void setCertificate(byte[] value) {
-        this.certificate = value;
+    public void setDni(byte[] value) {
+        this.dni = value;
     }
 
     /**

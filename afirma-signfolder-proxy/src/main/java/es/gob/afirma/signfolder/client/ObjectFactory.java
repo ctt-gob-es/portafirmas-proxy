@@ -27,9 +27,6 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
-    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate");
-    private final static QName _MobileSignLineType_QNAME = new QName("", "type");
     private final static QName _MobileDocumentData_QNAME = new QName("", "data");
     private final static QName _MobileDocumentSize_QNAME = new QName("", "size");
     private final static QName _MobileDocumentSignatureType_QNAME = new QName("", "signatureType");
@@ -49,6 +46,9 @@ public class ObjectFactory {
     private final static QName _MobileRequestApplication_QNAME = new QName("", "application");
     private final static QName _MobileRequestText_QNAME = new QName("", "text");
     private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry");
+    private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
+    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate");
+    private final static QName _MobileSignLineType_QNAME = new QName("", "type");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: es.gob.afirma.signfolder.client
@@ -63,6 +63,30 @@ public class ObjectFactory {
      */
     public UpdateNotifyPushResponse createUpdateNotifyPushResponse() {
         return new UpdateNotifyPushResponse();
+    }
+
+    /**
+     * Create an instance of {@link ValidarPeticionResponse }
+     * 
+     */
+    public ValidarPeticionResponse createValidarPeticionResponse() {
+        return new ValidarPeticionResponse();
+    }
+
+    /**
+     * Create an instance of {@link ConfiguracionUsuarioMobileResponse }
+     * 
+     */
+    public ConfiguracionUsuarioMobileResponse createConfiguracionUsuarioMobileResponse() {
+        return new ConfiguracionUsuarioMobileResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileConfiguracionUsuario }
+     * 
+     */
+    public MobileConfiguracionUsuario createMobileConfiguracionUsuario() {
+        return new MobileConfiguracionUsuario();
     }
 
     /**
@@ -266,6 +290,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ConfiguracionUsuarioMobile }
+     * 
+     */
+    public ConfiguracionUsuarioMobile createConfiguracionUsuarioMobile() {
+        return new ConfiguracionUsuarioMobile();
+    }
+
+    /**
      * Create an instance of {@link RegisterSIMUserResponse }
      * 
      */
@@ -370,6 +402,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ValidarPeticion }
+     * 
+     */
+    public ValidarPeticion createValidarPeticion() {
+        return new ValidarPeticion();
+    }
+
+    /**
      * Create an instance of {@link ValidateUser }
      * 
      */
@@ -458,19 +498,27 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link MobileFormatoFirma }
-     * 
-     */
-    public MobileFormatoFirma createMobileFormatoFirma() {
-        return new MobileFormatoFirma();
-    }
-
-    /**
      * Create an instance of {@link MobileFireDocumentList }
      * 
      */
     public MobileFireDocumentList createMobileFireDocumentList() {
         return new MobileFireDocumentList();
+    }
+
+    /**
+     * Create an instance of {@link MobileFiltroEtiquetaList }
+     * 
+     */
+    public MobileFiltroEtiquetaList createMobileFiltroEtiquetaList() {
+        return new MobileFiltroEtiquetaList();
+    }
+
+    /**
+     * Create an instance of {@link MobileRoleList }
+     * 
+     */
+    public MobileRoleList createMobileRoleList() {
+        return new MobileRoleList();
     }
 
     /**
@@ -482,11 +530,75 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link MobileRequestFilter }
+     * 
+     */
+    public MobileRequestFilter createMobileRequestFilter() {
+        return new MobileRequestFilter();
+    }
+
+    /**
+     * Create an instance of {@link MobileFireDocument }
+     * 
+     */
+    public MobileFireDocument createMobileFireDocument() {
+        return new MobileFireDocument();
+    }
+
+    /**
+     * Create an instance of {@link MobileFiltroGenerico }
+     * 
+     */
+    public MobileFiltroGenerico createMobileFiltroGenerico() {
+        return new MobileFiltroGenerico();
+    }
+
+    /**
+     * Create an instance of {@link MobileFiltroEtiqueta }
+     * 
+     */
+    public MobileFiltroEtiqueta createMobileFiltroEtiqueta() {
+        return new MobileFiltroEtiqueta();
+    }
+
+    /**
+     * Create an instance of {@link MobileFormatoFirma }
+     * 
+     */
+    public MobileFormatoFirma createMobileFormatoFirma() {
+        return new MobileFormatoFirma();
+    }
+
+    /**
+     * Create an instance of {@link MobileRole }
+     * 
+     */
+    public MobileRole createMobileRole() {
+        return new MobileRole();
+    }
+
+    /**
+     * Create an instance of {@link MobileFiltroTipoList }
+     * 
+     */
+    public MobileFiltroTipoList createMobileFiltroTipoList() {
+        return new MobileFiltroTipoList();
+    }
+
+    /**
      * Create an instance of {@link MobileFormatoFirmaList }
      * 
      */
     public MobileFormatoFirmaList createMobileFormatoFirmaList() {
         return new MobileFormatoFirmaList();
+    }
+
+    /**
+     * Create an instance of {@link MobileFiltroMesList }
+     * 
+     */
+    public MobileFiltroMesList createMobileFiltroMesList() {
+        return new MobileFiltroMesList();
     }
 
     /**
@@ -498,27 +610,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link MobileRequestFilter }
-     * 
-     */
-    public MobileRequestFilter createMobileRequestFilter() {
-        return new MobileRequestFilter();
-    }
-
-    /**
      * Create an instance of {@link MobileDocSignInfo }
      * 
      */
     public MobileDocSignInfo createMobileDocSignInfo() {
         return new MobileDocSignInfo();
-    }
-
-    /**
-     * Create an instance of {@link MobileFireDocument }
-     * 
-     */
-    public MobileFireDocument createMobileFireDocument() {
-        return new MobileFireDocument();
     }
 
     /**
@@ -538,30 +634,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
+     * Create an instance of {@link MobileFiltroAnioList }
      * 
      */
-    @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
-    public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
-        return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
-    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
-        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "type", scope = MobileSignLine.class)
-    public JAXBElement<String> createMobileSignLineType(String value) {
-        return new JAXBElement<String>(_MobileSignLineType_QNAME, String.class, MobileSignLine.class, value);
+    public MobileFiltroAnioList createMobileFiltroAnioList() {
+        return new MobileFiltroAnioList();
     }
 
     /**
@@ -734,6 +811,33 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "", name = "fentry", scope = MobileRequest.class)
     public JAXBElement<XMLGregorianCalendar> createMobileRequestFentry(XMLGregorianCalendar value) {
         return new JAXBElement<XMLGregorianCalendar>(_MobileRequestFentry_QNAME, XMLGregorianCalendar.class, MobileRequest.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
+    public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
+        return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
+    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "type", scope = MobileSignLine.class)
+    public JAXBElement<String> createMobileSignLineType(String value) {
+        return new JAXBElement<String>(_MobileSignLineType_QNAME, String.class, MobileSignLine.class, value);
     }
 
 }

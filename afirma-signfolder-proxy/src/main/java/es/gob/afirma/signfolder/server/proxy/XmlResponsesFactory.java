@@ -7,6 +7,18 @@ import java.util.List;
 import java.util.Map;
 
 import es.gob.afirma.core.misc.Base64;
+import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
+import es.gob.afirma.signfolder.client.MobileApplication;
+import es.gob.afirma.signfolder.client.MobileApplicationList;
+import es.gob.afirma.signfolder.client.MobileConfiguracionUsuario;
+import es.gob.afirma.signfolder.client.MobileFiltroAnioList;
+import es.gob.afirma.signfolder.client.MobileFiltroEtiqueta;
+import es.gob.afirma.signfolder.client.MobileFiltroEtiquetaList;
+import es.gob.afirma.signfolder.client.MobileFiltroGenerico;
+import es.gob.afirma.signfolder.client.MobileFiltroMesList;
+import es.gob.afirma.signfolder.client.MobileFiltroTipoList;
+import es.gob.afirma.signfolder.client.MobileRole;
+import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 
 /**
@@ -291,40 +303,6 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	/**
-	 * Crea un XML con la informaci&oacute;n para configurar la
-	 * aplicaci&oacute;n.
-	 * 
-	 * @param appConfig
-	 *            Configuraci&oacute;n..
-	 * @return XML con la configuraci&oacute;n..
-	 */
-	static String createConfigurationNewResponse(final AppConfiguration appConfig) {
-
-		final StringBuilder sb = new StringBuilder();
-		sb.append(XML_HEADER);
-
-		sb.append("<appConf>"); //$NON-NLS-1$
-		for (int i = 0; i < appConfig.getAppIdsList().size(); i++) {
-			sb.append("<app id=\"").append(appConfig.getAppIdsList().get(i)).append("\">"); //$NON-NLS-1$//$NON-NLS-2$
-			sb.append(escapeXmlCharacters(appConfig.getAppNamesList().get(i)));
-			sb.append("</app>"); //$NON-NLS-1$
-		}
-		if (appConfig.getRolesList() != null && appConfig.getRolesList().size() > 0) {
-			sb.append("<roles>"); //$NON-NLS-1$
-			List<String> rls = appConfig.getRolesList();
-			for (int e = 0; e < rls.size(); e++) {
-				sb.append("<role>"); //$NON-NLS-1$
-				sb.append(rls.get(e));
-				sb.append("</role>"); //$NON-NLS-1$
-			}
-			sb.append("</roles>"); //$NON-NLS-1$
-		}
-		sb.append("</appConf>"); //$NON-NLS-1$
-
-		return sb.toString();
-	}
-
 	public static String createApproveRequestsResponse(final ApproveRequestList approveRequests) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
@@ -443,46 +421,281 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Genera la respuesta XML del servicio de recuperación de usuarios por
-	 * role.
+	 * Genera la respuesta XML del servicio de recuperación de la configuración
+	 * de usuario.
 	 * 
 	 * @param result
 	 *            Resultado obtenido de Portafirmas Web.
 	 * @return la respuesta XML para Portafirmas Android.
 	 */
-	public static String createGetUserByRoleResponse(GetUserByRoleResult result) {
+	public static String createGetUserConfigurationResponse(GetUserConfigResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
-		sb.append("<rsgtrl");
-		sb.append(" n=\"");
-		sb.append(result.getRoles().size());
-		sb.append("\">");
+		sb.append("<rsgtsrcg>"); //$NON-NLS-1$
 		if (result.isError()) {
-			sb.append("<err>");
+			sb.append("<err>"); //$NON-NLS-1$
 			String msg;
 			switch (result.getErrorType()) {
 			case 1:
-				msg = "Error de comunicación con Portafirmas Web";
+				msg = "Error de comunicación con Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 2:
-				msg = "Eror en la petición realizada a Portafirmas Web";
+				msg = "Eror en la petición realizada a Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 3:
-				msg = "Error en el procesado de la petición/respuesta de Portafirmas Web";
+				msg = "Error en el procesado de la petición/respuesta de Portafirmas Web"; //$NON-NLS-1$
 				break;
 			default:
-				msg = "Error desconocido";
+				msg = "Error desconocido"; //$NON-NLS-1$
 
 			}
 			sb.append(msg);
-			sb.append("</err>");
+			sb.append("</err>"); //$NON-NLS-1$
 		} else {
-			sb.append("roles");
-			addRolesToResult(sb, result.getRoles());
-			sb.append("/roles");
+			addRolesToResult(sb, result.getConfiguration().getRolesList().get(0).getRole());
+			addSIMConfig(sb, result.getConfiguration().getParametrosSIMConfigurados().get(0));
+			addUserWithVerifiers(sb, result.getConfiguration().getUsuarioConValidadores().get(0));
+			addPushNotifications(sb, result.getConfiguration().getValorNotifyPush().get(0));
+			addFilters(sb, result.getConfiguration());
 		}
-		sb.append("</rsgtrl>");
+		sb.append("</rsgtsrcg>"); //$NON-NLS-1$
 		return sb.toString();
+	}
+
+	/**
+	 * Añade la lista de filtros.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param configuration
+	 *            Configuración de usuario donde está la lista de filtros.
+	 */
+	private static void addFilters(StringBuilder sb, MobileConfiguracionUsuario configuration) {
+		if (configuration.getMobileFiltroAnioList() != null || configuration.getMobileFiltroApplicationList() != null
+				|| configuration.getMobileFiltroEtiquetaList() != null || configuration.getMobileFiltroMesList() != null
+				|| configuration.getMobileFiltroTipoList() != null) {
+			sb.append("<fltrs>"); //$NON-NLS-1$
+			addFiltersYear(sb, configuration.getMobileFiltroAnioList());
+			addFiltersMonths(sb, configuration.getMobileFiltroMesList());
+			addFiltersTags(sb, configuration.getMobileFiltroEtiquetaList());
+			addFiltersTypes(sb, configuration.getMobileFiltroTipoList());
+			addFiltersApplications(sb, configuration.getMobileFiltroApplicationList());
+			sb.append("</fltrs>"); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Añade la lista de filtros de aplicaciones.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param mobileFiltroApplicationList
+	 *            Lista de filtros de aplicaciones.
+	 */
+	private static void addFiltersApplications(StringBuilder sb,
+			List<MobileApplicationList> mobileFiltroApplicationList) {
+		if (mobileFiltroApplicationList != null && mobileFiltroApplicationList.get(0) != null
+				&& mobileFiltroApplicationList.get(0).getApplication() != null
+				&& mobileFiltroApplicationList.get(0).getApplication().get(0) != null) {
+			sb.append("<pps>"); //$NON-NLS-1$
+			for (MobileApplication appFilter : mobileFiltroApplicationList.get(0).getApplication()) {
+				sb.append("<pp>"); //$NON-NLS-1$
+				if (appFilter.getId() != null) {
+					sb.append("<ppId"); //$NON-NLS-1$
+					sb.append(appFilter.getId());
+					sb.append("</ppId"); //$NON-NLS-1$
+				}
+				if (appFilter.getName() != null) {
+					sb.append("<ppName>"); //$NON-NLS-1$
+					sb.append(appFilter.getName());
+					sb.append("</ppName>"); //$NON-NLS-1$
+				}
+				sb.append("</pp>"); //$NON-NLS-1$
+			}
+			sb.append("</pps>"); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Añade la lista de filtros de tipos.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param mobileFiltroTipoList
+	 *            Lista de filtros de tipos.
+	 */
+	private static void addFiltersTypes(StringBuilder sb, List<MobileFiltroTipoList> mobileFiltroTipoList) {
+		if (mobileFiltroTipoList != null && mobileFiltroTipoList.get(0) != null
+				&& mobileFiltroTipoList.get(0).getApplication() != null
+				&& mobileFiltroTipoList.get(0).getApplication().get(0) != null) {
+			sb.append("<tps>"); //$NON-NLS-1$
+			for (MobileFiltroGenerico typeFilter : mobileFiltroTipoList.get(0).getApplication()) {
+				sb.append("<tp>"); //$NON-NLS-1$
+				if (typeFilter.getId() != null) {
+					sb.append("<tpId>"); //$NON-NLS-1$
+					sb.append(typeFilter.getId());
+					sb.append("</tpId>"); //$NON-NLS-1$
+				}
+				if (typeFilter.getDescripcion() != null) {
+					sb.append("<tpDescription>"); //$NON-NLS-1$
+					sb.append(typeFilter.getDescripcion());
+					sb.append("</tpDescription>"); //$NON-NLS-1$
+				}
+				sb.append("</tp>"); //$NON-NLS-1$
+			}
+			sb.append("</tps>"); //$NON-NLS-1$
+		}
+
+	}
+
+	/**
+	 * Añade la lista de filtros de etiquetas.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param mobileFiltroEtiquetaList
+	 *            Lista de filtros de etiquetas.
+	 */
+	private static void addFiltersTags(StringBuilder sb, List<MobileFiltroEtiquetaList> mobileFiltroEtiquetaList) {
+		if (mobileFiltroEtiquetaList != null && mobileFiltroEtiquetaList.get(0) != null
+				&& mobileFiltroEtiquetaList.get(0).getApplication() != null
+				&& mobileFiltroEtiquetaList.get(0).getApplication().get(0) != null) {
+			sb.append("<tgs>"); //$NON-NLS-1$
+			for (MobileFiltroEtiqueta tagFilter : mobileFiltroEtiquetaList.get(0).getApplication()) {
+				sb.append("<tg>"); //$NON-NLS-1$
+				if (tagFilter.getId() != null) {
+					sb.append("<tgId>"); //$NON-NLS-1$
+					sb.append(tagFilter.getId());
+					sb.append("</tgId>"); //$NON-NLS-1$
+				}
+				if (tagFilter.getDescripcion() != null) {
+					sb.append("<tgDescription>"); //$NON-NLS-1$
+					sb.append(tagFilter.getDescripcion());
+					sb.append("</tgDescription>"); //$NON-NLS-1$
+				}
+				if (tagFilter.getColor() != null) {
+					sb.append("<tgColor>"); //$NON-NLS-1$
+					sb.append(tagFilter.getColor());
+					sb.append("</tgColor>"); //$NON-NLS-1$
+				}
+				sb.append("</tg>"); //$NON-NLS-1$
+			}
+			sb.append("</tgs>"); //$NON-NLS-1$
+		}
+
+	}
+
+	/**
+	 * Añade la lista de filtros de meses.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param mobileFiltroMesList
+	 *            Lista de filtros de meses.
+	 */
+	private static void addFiltersMonths(StringBuilder sb, List<MobileFiltroMesList> mobileFiltroMesList) {
+		if (mobileFiltroMesList != null && mobileFiltroMesList.get(0) != null
+				&& mobileFiltroMesList.get(0).getApplication() != null
+				&& mobileFiltroMesList.get(0).getApplication().get(0) != null) {
+			sb.append("<mnths>"); //$NON-NLS-1$
+			for (MobileFiltroGenerico monthFilter : mobileFiltroMesList.get(0).getApplication()) {
+				sb.append("<mnth>"); //$NON-NLS-1$
+				if (monthFilter.getId() != null) {
+					sb.append("<mnthId>"); //$NON-NLS-1$
+					sb.append(monthFilter.getId());
+					sb.append("</mnthId>"); //$NON-NLS-1$
+				}
+				if (monthFilter.getDescripcion() != null) {
+					sb.append("<mnthDescription>"); //$NON-NLS-1$
+					sb.append(monthFilter.getDescripcion());
+					sb.append("</mnthDescription>"); //$NON-NLS-1$
+				}
+				sb.append("</mnth>"); //$NON-NLS-1$
+			}
+			sb.append("</mnths>"); //$NON-NLS-1$
+		}
+
+	}
+
+	/**
+	 * Añade la lista de filtros de años.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param mobileFiltroAnioList
+	 *            Lista de filtros de años.
+	 */
+	private static void addFiltersYear(StringBuilder sb, List<MobileFiltroAnioList> mobileFiltroAnioList) {
+		if (mobileFiltroAnioList != null && mobileFiltroAnioList.get(0) != null
+				&& mobileFiltroAnioList.get(0).getApplication() != null
+				&& mobileFiltroAnioList.get(0).getApplication().get(0) != null) {
+			sb.append("<yrs>"); //$NON-NLS-1$
+			for (MobileFiltroGenerico yearFilter : mobileFiltroAnioList.get(0).getApplication()) {
+				sb.append("<yr>"); //$NON-NLS-1$
+				if (yearFilter.getId() != null) {
+					sb.append("<YrId>"); //$NON-NLS-1$
+					sb.append(yearFilter.getId());
+					sb.append("<YrId>"); //$NON-NLS-1$
+				}
+				if (yearFilter.getDescripcion() != null) {
+					sb.append("<YrDescription>"); //$NON-NLS-1$
+					sb.append(yearFilter.getDescripcion());
+					sb.append("</YrDescription>"); //$NON-NLS-1$
+				}
+				sb.append("</yr>"); //$NON-NLS-1$
+			}
+			sb.append("</yrs>"); //$NON-NLS-1$
+		}
+
+	}
+
+	/**
+	 * Añade el valor que indica si se tienen activas las notificaciones PUSH.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param value
+	 *            Valor a añadir.
+	 */
+	private static void addPushNotifications(StringBuilder sb, String value) {
+		if (value != null) {
+			sb.append("<ntpsh>"); //$NON-NLS-1$
+			sb.append(value);
+			sb.append("</ntpsh>"); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Añade el valor que indica si el usuario tiene validadores.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param value
+	 *            Valor a añadir.
+	 */
+	private static void addUserWithVerifiers(StringBuilder sb, String value) {
+		if (value != null) {
+			sb.append("<srvrf>"); //$NON-NLS-1$
+			sb.append(value);
+			sb.append("</srvrf>"); //$NON-NLS-1$
+		}
+
+	}
+
+	/**
+	 * Añade el valor de la configuración SIM de portafirmas-web.
+	 * 
+	 * @param sb
+	 *            Objeto que representa el XML en construcción.
+	 * @param value
+	 *            Valor de la configuración SIM.
+	 */
+	private static void addSIMConfig(StringBuilder sb, String value) {
+		if (value != null) {
+			sb.append("<smcg>"); //$NON-NLS-1$
+			sb.append(value);
+			sb.append("</smcg>"); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -494,99 +707,61 @@ final class XmlResponsesFactory {
 	 * @param roles
 	 *            Lista de usuarios a añadir.
 	 */
-	private static void addRolesToResult(StringBuilder sb, List<Role> roles) {
+	private static void addRolesToResult(StringBuilder sb, List<MobileRole> roles) {
 		if (roles != null) {
+			sb.append("<rls>"); //$NON-NLS-1$
 			for (int i = 0; i < roles.size(); i++) {
-				sb.append("<role>");
-				Role role = roles.get(i);
-				sb.append("<name>");
-				sb.append(role.getName());
-				sb.append("</name>");
-				sb.append("<surname>");
-				sb.append(role.getSurname());
-				sb.append("</surname>");
-				sb.append("<secondSurname>");
-				sb.append(role.getSecondSurname());
-				sb.append("</secondSurname>");
-				sb.append("<LDAPUser>");
-				sb.append(role.getLDAPUser());
-				sb.append("</LDAPUser>");
-				sb.append("<ID>");
-				sb.append(role.getID());
-				sb.append("</ID>");
-				sb.append("<position>");
-				sb.append(role.getPosition());
-				sb.append("</position>");
-				sb.append("<headquarter>");
-				sb.append(role.getHeadquarter());
-				sb.append("</headquarter>");
-				if (role.getProfiles() != null && role.getProfiles().size() > 0) {
-					sb.append("<profiles>");
-					for (int e = 0; e < role.getProfiles().size(); e++) {
-						sb.append("<profile>");
-						sb.append(role.getProfiles().get(e).getValue());
-						sb.append("</profile>");
-					}
-					sb.append("</profiles>");
-				}
-				if (role.getDataContact() != null && role.getDataContact().size() > 0) {
-					sb.append("<dataContacts>");
-					for (int a = 0; a < role.getDataContact().size(); a++) {
-						sb.append("<dataContact>");
-						sb.append("<email>");
-						sb.append(role.getDataContact().get(a).getEmail());
-						sb.append("</email>");
-						sb.append("<notify>");
-						sb.append(role.getDataContact().get(a).isNotify());
-						sb.append("</notify>");
-						sb.append("</dataContact>");
-					}
-					sb.append("</dataContacts>");
-				}
-				sb.append("<attachSignature>");
-				sb.append(role.isAttachSignature());
-				sb.append("</attachSignature>");
-				sb.append("<attachReport>");
-				sb.append(role.isAttachReport());
-				sb.append("</attachReport>");
-				sb.append("<pageSize>");
-				sb.append(role.getPageSize());
-				sb.append("</pageSize>");
-				sb.append("<applyAppFilter>");
-				sb.append(role.isApplyAppFilter());
-				sb.append("</applyAppFilter>");
-				sb.append("<showPreviousSigner>");
-				sb.append(role.isShowPreviousSigner());
-				sb.append("</showPreviousSigner>");
-				sb.append("<verifierIdentifier>");
-				sb.append(role.getVerifierIdentifier());
-				sb.append("</verifierIdentifier>");
-				sb.append("<verifierName>");
-				sb.append(role.getVerifierName());
-				sb.append("</verifierName>");
-				sb.append("<status>");
-				sb.append(role.getStatus());
-				sb.append("</status>");
-				sb.append("<sentReceived>");
-				sb.append(role.getSentReceived());
-				sb.append("</sentReceived>");
-				sb.append("<type>");
-				sb.append(role.getType());
-				sb.append("</type>");
-				sb.append("<senderReceiver>");
-				sb.append(role.getSenderReceiver());
-				sb.append("</senderReceiver>");
-				sb.append("<initDate>");
-				sb.append(role.getInitDate());
-				sb.append("</initDate>");
-				sb.append("<authorization>");
-				sb.append(role.getAuthorization());
-				sb.append("</authorization>");
-				sb.append("<endDate>");
-				sb.append(role.getEndDate());
-				sb.append("</endDate>");
-				sb.append("</role>");
+				sb.append("<role>"); //$NON-NLS-1$
+				MobileRole role = roles.get(i);
+				sb.append("<id>"); //$NON-NLS-1$
+				sb.append(role.getIdRole());
+				sb.append("</id>"); //$NON-NLS-1$
+				sb.append("<roleName>"); //$NON-NLS-1$
+				sb.append(role.getNameRole());
+				sb.append("</roleName>"); //$NON-NLS-1$
+				sb.append("<userName>"); //$NON-NLS-1$
+				sb.append(role.getNameUsuario());
+				sb.append("</userName>"); //$NON-NLS-1$
+				sb.append("<dni>"); //$NON-NLS-1$
+				sb.append(role.getDniUsuario());
+				sb.append("</dni>"); //$NON-NLS-1$
+				// TODO: Código asociado a la gestión de las etiquetas de roles.
+				// Descomentar cuando se requiera dicha funcionalidad.
+				// if (role.getMobileFiltroEtiquetaList() != null &&
+				// !role.getMobileFiltroEtiquetaList().isEmpty()
+				// && role.getMobileFiltroEtiquetaList().get(0).getApplication()
+				// != null
+				// &&
+				// !role.getMobileFiltroEtiquetaList().get(0).getApplication().isEmpty())
+				// {
+				// sb.append("<filters>"); //$NON-NLS-1$
+				// for (MobileFiltroEtiqueta tag :
+				// role.getMobileFiltroEtiquetaList().get(0).getApplication()) {
+				// if (tag != null) {
+				// sb.append("<filter>"); //$NON-NLS-1$
+				// if (tag.getId() != null) {
+				// sb.append("<fltId>"); //$NON-NLS-1$
+				// sb.append(tag.getId());
+				// sb.append("</fltId>"); //$NON-NLS-1$
+				// }
+				// if (tag.getDescripcion() != null) {
+				// sb.append("<description>"); //$NON-NLS-1$
+				// sb.append(tag.getDescripcion());
+				// sb.append("</description>"); //$NON-NLS-1$
+				// }
+				// if (tag.getColor() != null) {
+				// sb.append("<color>"); //$NON-NLS-1$
+				// sb.append(tag.getColor());
+				// sb.append("</color>"); //$NON-NLS-1$
+				// }
+				// sb.append("</filter>"); //$NON-NLS-1$
+				// }
+				// }
+				// sb.append("</filters>"); //$NON-NLS-1$
+				// }
+				sb.append("</role>"); //$NON-NLS-1$
 			}
+			sb.append("</rls>"); //$NON-NLS-1$
 		}
 	}
 
@@ -600,35 +775,35 @@ final class XmlResponsesFactory {
 	public static String createGetUserResponse(GetUserResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
-		sb.append("<rsgtsr");
-		sb.append(" n=\"");
+		sb.append("<rsgtsr"); //$NON-NLS-1$
+		sb.append(" n=\""); //$NON-NLS-1$
 		sb.append(result.getUsers().size());
-		sb.append("\">");
+		sb.append("\">"); //$NON-NLS-1$
 		if (result.isError()) {
-			sb.append("<err>");
+			sb.append("<err>"); //$NON-NLS-1$
 			String msg;
 			switch (result.getErrorType()) {
 			case 1:
-				msg = "Error de comunicación con Portafirmas Web";
+				msg = "Error de comunicación con Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 2:
-				msg = "Error en la petición realizada a Portafirmas Web";
+				msg = "Error en la petición realizada a Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 3:
-				msg = "Error en el procesado de la petición/respuesta de Portafirmas Web";
+				msg = "Error en el procesado de la petición/respuesta de Portafirmas Web"; //$NON-NLS-1$
 				break;
 			default:
-				msg = "Error desconocido";
+				msg = "Error desconocido"; //$NON-NLS-1$
 
 			}
 			sb.append(msg);
-			sb.append("</err>");
+			sb.append("</err>"); //$NON-NLS-1$
 		} else {
-			sb.append("<rsgtus>");
+			sb.append("<rsgtus>"); //$NON-NLS-1$
 			addUsersToResult(sb, result.getUsers());
-			sb.append("</rsgtus>");
+			sb.append("</rsgtus>"); //$NON-NLS-1$
 		}
-		sb.append("</rsgtsr>");
+		sb.append("</rsgtsr>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 
@@ -644,7 +819,7 @@ final class XmlResponsesFactory {
 	private static void addUsersToResult(StringBuilder sb, List<User> users) {
 		if (users != null) {
 			for (int i = 0; i < users.size(); i++) {
-				sb.append("<user>");
+				sb.append("<user>"); 
 				User user = users.get(i);
 				sb.append("<name>");
 				sb.append(user.getName());
@@ -714,37 +889,47 @@ final class XmlResponsesFactory {
 	 * Método que genera la respuesta para el servicio de validación de
 	 * peticiones.
 	 * 
-	 * @param result
+	 * @param results
 	 *            Resultado de la operación recibida por portafirmas-web.
 	 * @return resultado a enviar al portafirmas-móvil.
 	 */
-	public static String createVerifyPetitionsResponse(VerifyPetitionsResult result) {
+	public static String createVerifyPetitionsResponse(List<VerifyPetitionResult> results) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
-		sb.append("<verifrp>");
-		sb.append("<verify");
-		// Atributo OK.
-		sb.append(" ok=\"");
-		sb.append(result.isResult());
-		sb.append("\">");
-		// Mensaje de error.
-		if (result.getErrorType() == 1 || result.getErrorType() == 2 || result.getErrorType() == 3) {
-			sb.append("<errorMsg>");
-			switch (result.getErrorType()) {
-			case 1:
-				sb.append("Error de comunicación con Portafirmas Web");
-				break;
-			case 2:
-				sb.append("Error en la petición realizada a Portafirmas Web");
-				break;
-			case 3:
-				sb.append("Error en el procesado de la petición/respuesta de Portafirmas Web");
-				break;
+		sb.append("<verifrp>"); //$NON-NLS-1$
+		if (results != null && !results.isEmpty()) {
+			for (VerifyPetitionResult result : results) {
+				sb.append("<verify"); //$NON-NLS-1$
+				// Atributo id.
+				sb.append(" id=\""); //$NON-NLS-1$
+				sb.append(result.getId());
+				sb.append("\">"); //$NON-NLS-1$
+
+				// Mensaje de respuesta.
+				if (result.getResult() != null) {
+					sb.append(result.getResult());
+				}
+
+				// Mensaje de error.
+				if (result.getErrorType() == 1 || result.getErrorType() == 2 || result.getErrorType() == 3) {
+					sb.append("<errorMsg>"); //$NON-NLS-1$
+					switch (result.getErrorType()) {
+					case 1:
+						sb.append("Error de comunicación con Portafirmas Web"); //$NON-NLS-1$
+						break;
+					case 2:
+						sb.append("Error en la petición realizada a Portafirmas Web"); //$NON-NLS-1$
+						break;
+					case 3:
+						sb.append("Error en el procesado de la petición/respuesta de Portafirmas Web"); //$NON-NLS-1$
+						break;
+					}
+					sb.append("</errorMsg>"); //$NON-NLS-1$
+				}
+				sb.append("</verify>"); //$NON-NLS-1$
 			}
-			sb.append("</errorMsg>");
 		}
-		sb.append("</verify>");
-		sb.append("</verifrp>");
+		sb.append("</verifrp>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 
@@ -782,6 +967,44 @@ final class XmlResponsesFactory {
 		}
 		sb.append("</resp>");
 		sb.append("</crtnwrl>");
+		return sb.toString();
+	}
+
+	/**
+	 * Método que genera la respuesta para el servicio de obtener el estado de
+	 * las notificaciones push.
+	 * 
+	 * @param result
+	 *            Resultado de la operación recibida por portafirmas-web.
+	 * @return resultado a enviar al portafirmas-móvil.
+	 */
+	public static String createGetPushStatusResponse(EstadoNotifyPushResponse result) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER);
+		sb.append("<pshsttsrs>"); //$NON-NLS-1$
+		if (result.getValorNotifyPush() != null) {
+			sb.append(result.getValorNotifyPush());
+		}
+		sb.append("</pshsttsrs>"); //$NON-NLS-1$
+		return sb.toString();
+	}
+
+	/**
+	 * Método que genera la respuesta para el servicio de actualización del
+	 * estado de las notificaciones push.
+	 * 
+	 * @param result
+	 *            Resultado de la operación recibida por portafirmas-web.
+	 * @return resultado a enviar al portafirmas-móvil.
+	 */
+	public static String createUpdatePushStatusResponse(UpdateNotifyPushResponse result) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER);
+		sb.append("<pdtpshsttsrs>"); //$NON-NLS-1$
+		if (result.getResultado() != null) {
+			sb.append(result.getResultado());
+		}
+		sb.append("</pdtpshsttsrs>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 }

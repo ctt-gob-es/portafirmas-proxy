@@ -15,8 +15,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -49,10 +49,11 @@ import org.xml.sax.SAXException;
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.core.signers.TriphaseData;
-import es.gob.afirma.signfolder.client.AuthorizationInfo;
+import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
 import es.gob.afirma.signfolder.client.MobileAccesoClave;
 import es.gob.afirma.signfolder.client.MobileApplication;
 import es.gob.afirma.signfolder.client.MobileApplicationList;
+import es.gob.afirma.signfolder.client.MobileConfiguracionUsuario;
 import es.gob.afirma.signfolder.client.MobileDocSignInfo;
 import es.gob.afirma.signfolder.client.MobileDocSignInfoList;
 import es.gob.afirma.signfolder.client.MobileDocument;
@@ -72,8 +73,7 @@ import es.gob.afirma.signfolder.client.MobileService;
 import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.client.MobileSignLine;
 import es.gob.afirma.signfolder.client.MobileStringList;
-import es.gob.afirma.signfolder.client.RolesList;
-import es.gob.afirma.signfolder.client.UserList;
+import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
 
@@ -111,11 +111,16 @@ public final class ProxyService extends HttpServlet {
 	private static final String OPERATION_CLAVE_LOGIN = "14"; //$NON-NLS-1$
 	private static final String OPERATION_FIRE_LOAD_DATA = "16"; //$NON-NLS-1$
 	private static final String OPERATION_FIRE_SIGN = "17"; //$NON-NLS-1$
-	private static final String OPERATION_FIND_USER_BY_ROLE = "18"; //$NON-NLS-1$
-	private static final String OPERATION_FIND_USER = "19"; //$NON-NLS-1$
+	private static final String OPERATION_GET_USER_CONFIG = "18"; //$NON-NLS-1$
+	// TODO: Identificador de servicio no habilitado aún. Servicio de busqueda
+	// de usuario.
+	// private static final String OPERATION_FIND_USER = "19"; //$NON-NLS-1$
 	private static final String OPERATION_VERIFY = "20"; //$NON-NLS-1$
-	private static final String OPERATION_CREATE_ROLE = "21"; //$NON-NLS-1$
-	private static final String OPERATION_CONFIGURING_NEW = "22"; //$NON-NLS-1$
+	// TODO: Identificador de servicio no habilitado aún. Servicio de creación
+	// de role.
+	// private static final String OPERATION_CREATE_ROLE = "21"; //$NON-NLS-1$
+	private static final String OPERATION_GET_PUSH_STATUS = "22";
+	private static final String OPERATION_UPDATE_PUSH = "23";
 
 	private static final String[] OPERATIONS_CREATE_SESSION = new String[] { OPERATION_REQUEST_LOGIN,
 			OPERATION_CLAVE_LOGIN };
@@ -429,21 +434,35 @@ public final class ProxyService extends HttpServlet {
 		} else if (OPERATION_FIRE_SIGN.equals(operation)) {
 			LOGGER.info("Solicitud de firma con FIRe"); //$NON-NLS-1$
 			ret = processFireSign(session, xml);
-		} else if (OPERATION_FIND_USER_BY_ROLE.equals(operation)) {
-			LOGGER.info("Solicitud de recuperación de usuarios autorizados/validadores."); //$NON-NLS-1$
-			ret = processFindUserbyRole(session, xml);
-		} else if (OPERATION_FIND_USER.equals(operation)) {
-			LOGGER.info("Solicitud de recuperación de usuarios."); //$NON-NLS-1$
-			ret = processFindUser(session, xml);
+		} else if (OPERATION_GET_USER_CONFIG.equals(operation)) {
+			LOGGER.info("Solicitud de recuperación de la configuración de usuarios."); //$NON-NLS-1$
+			ret = processGetUserConfig(session, xml);
+
+			// }
+			// TODO: Servicio no habilitado aún. A la espera de la
+			// implementación de la parte servidora.
+			// else if (OPERATION_FIND_USER.equals(operation)) {
+			// LOGGER.info("Solicitud de recuperación de usuarios.");
+			// //$NON-NLS-1$
+			// ret = processFindUser(session, xml);
+
 		} else if (OPERATION_VERIFY.equals(operation)) {
 			LOGGER.info("Solicitud de validación de petición."); //$NON-NLS-1$
 			ret = processVerifyPetitions(session, xml);
-		} else if (OPERATION_CREATE_ROLE.equals(operation)) {
-			LOGGER.info("Solicitud de creación de rol."); //$NON-NLS-1$
-			ret = processCreateRole(session, xml);
-		} else if (OPERATION_CONFIGURING_NEW.equals(operation)) {
-			LOGGER.info("Solicitud de la configuracion"); //$NON-NLS-1$
-			ret = processConfigueNewApp(session, xml);
+
+			// }
+			// TODO: Servicio no habilitado aún. A la espera de la
+			// implementación de la parte servidora.
+			// else if (OPERATION_CREATE_ROLE.equals(operation)) {
+			// LOGGER.info("Solicitud de creación de rol."); //$NON-NLS-1$
+			// // ret = processCreateRole(session, xml);
+
+		} else if (OPERATION_GET_PUSH_STATUS.equals(operation)) {
+			LOGGER.info("Solicitud de obtención del estado de las notificaciones push"); //$NON-NLS-1$
+			ret = processGetPushStatus(session, xml);
+		} else if (OPERATION_UPDATE_PUSH.equals(operation)) {
+			LOGGER.info("Solicitud de actualización del estado de las notificaciones push"); //$NON-NLS-1$
+			ret = processUpdatePushStatus(session, xml);
 		} else {
 			LOGGER.warn("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
 			ret = ErrorManager.genError(ErrorManager.ERROR_UNSUPPORTED_OPERATION_NAME);
@@ -1006,7 +1025,9 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final ListRequest listRequest = ListRequestParser.parse(doc);
 
-		final String dni = (String) session.getAttribute(SessionParams.DNI);
+		// El DNI a recuperar debe ser el DNI del propietario de la petición.
+		final String dni = listRequest.getOwnerId() != null ? listRequest.getOwnerId()
+				: (String) session.getAttribute(SessionParams.DNI);
 		final PartialSignRequestsList signRequests = getRequestsList(dni, listRequest);
 
 		return XmlResponsesFactory.createRequestsListResponse(signRequests);
@@ -1148,7 +1169,9 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
-		final String dni = (String) session.getAttribute(SessionParams.DNI);
+		// El DNI debe ser el DNI del propietario de la petición.
+		final String dni = detRequest.getOwnerId() != null ? detRequest.getOwnerId()
+				: (String) session.getAttribute(SessionParams.DNI);
 		final Detail requestDetails = getRequestDetail(dni, detRequest);
 
 		return XmlResponsesFactory.createRequestDetailResponse(requestDetails);
@@ -1378,34 +1401,6 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Procesa la petición de recuperación de la configuración de aplicación.
-	 * 
-	 * @param session
-	 *            Sesión de usuario.
-	 * @param xml
-	 *            Petición recibida.
-	 * @return Un XML con la configuración de la aplicación solicitada.
-	 * @throws SAXException
-	 *             Cuando ocurre un error de parseo de petición.
-	 * @throws IOException
-	 *             Cuando ocurre un error de lectura/escritura.
-	 * @throws MobileException
-	 *             Cuando ocurre un error durante la comunicación con
-	 *             portafirmas-web.
-	 */
-	private String processConfigueNewApp(final HttpSession session, final byte[] xml)
-			throws SAXException, IOException, MobileException {
-
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
-		final ConfigurationRequest request = ConfigurationRequestParser.parse(doc);
-
-		final String dni = (String) session.getAttribute(SessionParams.DNI);
-		final AppConfiguration appConfig = loadConfiguration(dni, request);
-
-		return XmlResponsesFactory.createConfigurationNewResponse(appConfig);
-	}
-
-	/**
 	 * Recupera los datos de confguracion de la aplicaci&oacute;n. Hasta el
 	 * momento:
 	 * <ul>
@@ -1429,15 +1424,13 @@ public final class ProxyService extends HttpServlet {
 
 		final List<String> appIds = new ArrayList<>();
 		final List<String> appNames = new ArrayList<>();
-		final List<String> roles = new ArrayList<>();
 
-		for (final MobileApplication app : appList.getApplicationList()) {
+		for (final MobileApplication app : appList.getApplication()) {
 			appIds.add(app.getId());
 			appNames.add(app.getName() != null ? app.getName() : app.getId());
 		}
-		roles.addAll(appList.getRoles());
 
-		return new AppConfiguration(appIds, appNames, roles);
+		return new AppConfiguration(appIds, appNames);
 	}
 
 	private String processApproveRequest(final HttpSession session, final byte[] xml) throws SAXException, IOException {
@@ -1591,7 +1584,7 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Método que procesa la petición del servicio "getUserByRole".
+	 * Método que procesa la petición del servicio "getUserConfiguration".
 	 * 
 	 * @param session
 	 *            Sesión HTTP.
@@ -1603,98 +1596,78 @@ public final class ProxyService extends HttpServlet {
 	 * @throws IOException
 	 *             Si algo falla.
 	 */
-	private String processFindUserbyRole(final HttpSession session, byte[] xml) throws SAXException, IOException {
+	private String processGetUserConfig(final HttpSession session, byte[] xml) throws SAXException, IOException {
 
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 
 		// Comprobamos que el XML de petición esta bien formado.
-		GetRoleRequestParser.parse(xmlDoc);
+		GetUserConfiguration.parse(xmlDoc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
-		final String role = (String) getRole(xmlDoc);
-		final String pageNum = xmlDoc.getElementsByTagName("rqrolels").item(0).getAttributes().getNamedItem("pg")
-				.getNodeValue();
-		final String pageSize = xmlDoc.getElementsByTagName("rqrolels").item(0).getAttributes().getNamedItem("sz")
-				.getNodeValue();
-
-		if (role == null) {
-			throw new IllegalArgumentException("No ha sido posible recuperar el rol de la petición");
-		}
-
-		final GetUserByRoleResult response = getUserByRole(dni, role, pageNum, pageSize);
-
-		return XmlResponsesFactory.createGetUserByRoleResponse(response);
+		final GetUserConfigResult response = getUserConfiguration(dni);
+		return XmlResponsesFactory.createGetUserConfigurationResponse(response);
 	}
 
-	/**
-	 * Método que obtiene el valor del rol recibido de la respuesta del
-	 * portafirmas-android.
-	 * 
-	 * @param xmlDoc
-	 *            Petición recibida.
-	 * @return el rol recibido o null si no es posible recuperar el valor del
-	 *         rol.
-	 */
-	private String getRole(Document xmlDoc) {
-		String res = null;
-		NodeList roleNodeList = xmlDoc.getElementsByTagName("role");
-		if (roleNodeList != null && roleNodeList.getLength() == 1) {
-			res = roleNodeList.item(0).getTextContent();
-		}
-		return res;
-	}
+	// TODO: Servicio no habilitado aún. A la espera de la implementación de la
+	// parte servidora por parte de portafirmas-web. Recupera usuario para darlo
+	// de alta como rol de un determinado usuario.
 
-	/**
-	 * Método que realiza la operación de búsqueda de usuarios.
-	 * 
-	 * @param session
-	 *            Sesión HTTP.
-	 * @param xml
-	 *            Petición XML.
-	 * @return la respuesta del servicio.
-	 * @throws SAXException
-	 *             Si el proceso falla.
-	 * @throws IOException
-	 *             Si el proceso falla.
-	 */
-	private String processFindUser(final HttpSession session, byte[] xml) throws SAXException, IOException {
-
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
-
-		// Comprobamos que el XML de petición esta bien formado.
-		GetUserRequestParser.parse(xmlDoc);
-
-		final String dni = (String) session.getAttribute(SessionParams.DNI);
-		final String pageNum = xmlDoc.getElementsByTagName("rquserls").item(0).getAttributes().getNamedItem("pg")
-				.getNodeValue();
-		final String pageSize = xmlDoc.getElementsByTagName("rquserls").item(0).getAttributes().getNamedItem("sz")
-				.getNodeValue();
-
-		final GetUserResult response = getUsers(dni, pageNum, pageSize);
-
-		return XmlResponsesFactory.createGetUserResponse(response);
-	}
-
-	/**
-	 * Método que recupera la lista de usuario a partir de su DNI.
-	 * 
-	 * @param dni
-	 *            DNI del usuario a recuperar.
-	 * @return la respuesta con el usuario encontrado.
-	 */
-	private GetUserResult getUsers(String dni, String pageNum, String pageSize) {
-		UserList response;
-		try {
-			response = getService().getUsers(dni.getBytes(), pageNum, pageSize);
-		} catch (final MobileException e) {
-			LOGGER.warn("Error durante la recuperación de usuarios", e);
-			return new GetUserResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
-		}
-
-		final GetUserResult result = new GetUserResult(response.getUsers());
-
-		return result;
-	}
+	// /**
+	// * Método que realiza la operación de búsqueda de usuarios.
+	// *
+	// * @param session
+	// * Sesión HTTP.
+	// * @param xml
+	// * Petición XML.
+	// * @return la respuesta del servicio.
+	// * @throws SAXException
+	// * Si el proceso falla.
+	// * @throws IOException
+	// * Si el proceso falla.
+	// */
+	// private String processFindUser(final HttpSession session, byte[] xml)
+	// throws SAXException, IOException {
+	//
+	// final Document xmlDoc = this.documentBuilder.parse(new
+	// ByteArrayInputStream(xml));
+	//
+	// // Comprobamos que el XML de petición esta bien formado.
+	// GetUserRequestParser.parse(xmlDoc);
+	//
+	// final String dni = (String) session.getAttribute(SessionParams.DNI);
+	// final String pageNum =
+	// xmlDoc.getElementsByTagName("rquserls").item(0).getAttributes().getNamedItem("pg")
+	// .getNodeValue();
+	// final String pageSize =
+	// xmlDoc.getElementsByTagName("rquserls").item(0).getAttributes().getNamedItem("sz")
+	// .getNodeValue();
+	//
+	// final GetUserResult response = getUsers(dni, pageNum, pageSize);
+	//
+	// return XmlResponsesFactory.createGetUserResponse(response);
+	// }
+	//
+	// /**
+	// * Método que recupera la lista de usuario a partir de su DNI.
+	// *
+	// * @param dni
+	// * DNI del usuario a recuperar.
+	// * @return la respuesta con el usuario encontrado.
+	// */
+	// private GetUserResult getUsers(String dni, String pageNum, String
+	// pageSize) {
+	// UserList response;
+	// try {
+	// response = getService().getUsers(dni.getBytes(), pageNum, pageSize);
+	// } catch (final MobileException e) {
+	// LOGGER.warn("Error durante la recuperación de usuarios", e);
+	// return new GetUserResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
+	// }
+	//
+	// final GetUserResult result = new GetUserResult(response.getUsers());
+	//
+	// return result;
+	// }
 
 	/**
 	 * Método que procesa la petición de validar una petición de firma.
@@ -1720,9 +1693,15 @@ public final class ProxyService extends HttpServlet {
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 		final List<String> petitionsIds = getListPetitionsIds(xmlDoc);
 
-		final VerifyPetitionsResult response = veriyPetitions(dni, petitionsIds);
+		// Lanzamos todas las peticiones de validación necesarias.
+		List<VerifyPetitionResult> responseList = new LinkedList<>();
+		for (String petitionId : petitionsIds) {
+			final VerifyPetitionResult response = veriyPetitions(dni, petitionId);
+			responseList.add(response);
+		}
 
-		return XmlResponsesFactory.createVerifyPetitionsResponse(response);
+		// Construimos la respuesta para la aplicación móvil.
+		return XmlResponsesFactory.createVerifyPetitionsResponse(responseList);
 	}
 
 	/**
@@ -1731,141 +1710,156 @@ public final class ProxyService extends HttpServlet {
 	 * 
 	 * @param dni
 	 *            DNI del validador.
-	 * @param petitionsIds
-	 *            Lista de identificadores de peticiones a validar.
+	 * @param petitionId
+	 *            identificador de la petición a validar.
 	 * @return un objeto de tipo GetVerifyPetitionsResult que representa la
 	 *         respuesta del servicio.
 	 */
-	private VerifyPetitionsResult veriyPetitions(String dni, List<String> petitionsIds) {
-		VerifyPetitionsResult response;
+	private VerifyPetitionResult veriyPetitions(String dni, String petitionId) {
+		VerifyPetitionResult response;
 		try {
-			response = new VerifyPetitionsResult(getService().verifyPetitions(dni.getBytes(), petitionsIds));
+			response = new VerifyPetitionResult(getService().validarPeticion(dni.getBytes(), petitionId), petitionId);
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la recuperación de usuarios", e);
-			return new VerifyPetitionsResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
+			return new VerifyPetitionResult(FireSignResult.ERROR_TYPE_COMMUNICATION, petitionId);
 		}
 		return response;
 	}
 
-	/**
-	 * Método que procesa la petición de crear un nuevo rol.
-	 * 
-	 * @param session
-	 *            Sesión HTTP.
-	 * @param xml
-	 *            Petición XML.
-	 * @return el resultado del servicio de creación de rol.
-	 * @throws SAXException
-	 *             Si algo falla.
-	 * @throws IOException
-	 *             Si algo falla.
-	 */
-	private String processCreateRole(final HttpSession session, byte[] xml) throws SAXException, IOException {
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+	// TODO: Servicio no habilitado aún. A la espera de la implementación de la
+	// parte servidora por parte de portafirmas-web. Servicio encargado de crear
+	// un nuevo rol.
 
-		// Comprobamos que el XML de petición esta bien formado.
-		CreateRoleParser.parse(xmlDoc);
-
-		// Recuperamos los campos necesarios para realizar la llamada.
-		final String dni = (String) session.getAttribute(SessionParams.DNI);
-		final String userId = xmlDoc.getElementsByTagName("userId").item(0).getTextContent();
-		final String selectedRole = xmlDoc.getElementsByTagName("role").item(0).getTextContent();
-		final AuthorizationInfo authInfo = getAuthInfo(xmlDoc);
-		final List<String> appIds = getListApps(xmlDoc);
-
-		final CreateRoleResult response = createRole(dni, userId, selectedRole, authInfo, appIds);
-
-		return XmlResponsesFactory.createCreationRoleResponse(response);
-	}
-
-	/**
-	 * Método que realiza la llamada al servicio de creación de roles del
-	 * portafirmas-web.
-	 * 
-	 * @param dni
-	 *            DNI del usuario.
-	 * @param userId
-	 *            DNI del autorizado o validador.
-	 * @param selectedRole
-	 *            Rol seleccionado (autorizado o validador).
-	 * @param authInfo
-	 *            Información de la autorización.
-	 * @param appIds
-	 *            Lista de identificadores de aplicaciones del validador.
-	 * @return un objeto de tipo CreateRoleResult que representa la respuesta
-	 *         del servicio.
-	 */
-	private CreateRoleResult createRole(String dni, String userId, String selectedRole, AuthorizationInfo authInfo,
-			List<String> appIds) {
-		CreateRoleResult response;
-		try {
-			response = new CreateRoleResult(
-					getService().createRole(dni.getBytes(), userId, selectedRole, authInfo, appIds));
-		} catch (final MobileException e) {
-			LOGGER.warn("Error durante la recuperación de usuarios", e);
-			return new CreateRoleResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
-		}
-		return response;
-	}
-
-	/**
-	 * Método encargado de extraer de la petición la información asociada a la
-	 * autorización.
-	 * 
-	 * @param xmlDoc
-	 *            Documento que representa la petición XML.
-	 * @return un objeto de tipo AuthorizationInfo que contiene la información
-	 *         contenido en la petición sobre la autorización.
-	 */
-	private AuthorizationInfo getAuthInfo(Document xmlDoc) {
-		AuthorizationInfo res = null;
-
-		if (xmlDoc.getElementsByTagName("authParams").item(0) != null) {
-
-			res = new AuthorizationInfo();
-
-			String initDateAsString = xmlDoc.getElementsByTagName("initDate").item(0).getTextContent();
-			String endDateAsString = xmlDoc.getElementsByTagName("endDate").item(0).getTextContent();
-			String authType = xmlDoc.getElementsByTagName("authType").item(0).getTextContent();
-			String observations = xmlDoc.getElementsByTagName("obs").item(0).getTextContent();
-
-			Date initDate = new Date(Long.valueOf(initDateAsString));
-			Date endDate = new Date(Long.valueOf(endDateAsString));
-
-			res.setInitDate(initDate);
-			res.setEndDate(endDate);
-			res.setType(authType);
-			res.setObservations(observations);
-
-		}
-
-		return res;
-	}
-
-	/**
-	 * Método encargado de extraer de la petición la lista de aplicaciones
-	 * asociadas a la creación del validador.
-	 * 
-	 * @param xmlDoc
-	 *            Documento que representa la petición XML.
-	 * @return una lista con los identificadores de las aplicaciones a las que
-	 *         permitir el acceso al validador.
-	 */
-	private List<String> getListApps(Document xmlDoc) {
-		List<String> res = null;
-
-		if (xmlDoc.getElementsByTagName("apps").item(0) != null) {
-
-			res = new ArrayList<>();
-			NodeList apps = xmlDoc.getElementsByTagName("appId");
-
-			for (int i = 0; i < apps.getLength(); i++) {
-				res.add(apps.item(i).getTextContent());
-			}
-		}
-
-		return res;
-	}
+	// /**
+	// * Método que procesa la petición de crear un nuevo rol.
+	// *
+	// * @param session
+	// * Sesión HTTP.
+	// * @param xml
+	// * Petición XML.
+	// * @return el resultado del servicio de creación de rol.
+	// * @throws SAXException
+	// * Si algo falla.
+	// * @throws IOException
+	// * Si algo falla.
+	// */
+	// private String processCreateRole(final HttpSession session, byte[] xml)
+	// throws SAXException, IOException {
+	// final Document xmlDoc = this.documentBuilder.parse(new
+	// ByteArrayInputStream(xml));
+	//
+	// // Comprobamos que el XML de petición esta bien formado.
+	// CreateRoleParser.parse(xmlDoc);
+	//
+	// // Recuperamos los campos necesarios para realizar la llamada.
+	// final String dni = (String) session.getAttribute(SessionParams.DNI);
+	// final String userId =
+	// xmlDoc.getElementsByTagName("userId").item(0).getTextContent();
+	// final String selectedRole =
+	// xmlDoc.getElementsByTagName("role").item(0).getTextContent();
+	// final AuthorizationInfo authInfo = getAuthInfo(xmlDoc);
+	// final List<String> appIds = getListApps(xmlDoc);
+	//
+	// final CreateRoleResult response = createRole(dni, userId, selectedRole,
+	// authInfo, appIds);
+	//
+	// return XmlResponsesFactory.createCreationRoleResponse(response);
+	// }
+	//
+	// /**
+	// * Método que realiza la llamada al servicio de creación de roles del
+	// * portafirmas-web.
+	// *
+	// * @param dni
+	// * DNI del usuario.
+	// * @param userId
+	// * DNI del autorizado o validador.
+	// * @param selectedRole
+	// * Rol seleccionado (autorizado o validador).
+	// * @param authInfo
+	// * Información de la autorización.
+	// * @param appIds
+	// * Lista de identificadores de aplicaciones del validador.
+	// * @return un objeto de tipo CreateRoleResult que representa la respuesta
+	// * del servicio.
+	// */
+	// private CreateRoleResult createRole(String dni, String userId, String
+	// selectedRole, AuthorizationInfo authInfo,
+	// List<String> appIds) {
+	// CreateRoleResult response;
+	// try {
+	// response = new CreateRoleResult(
+	// getService().createRole(dni.getBytes(), userId, selectedRole, authInfo,
+	// appIds));
+	// } catch (final MobileException e) {
+	// LOGGER.warn("Error durante la recuperación de usuarios", e);
+	// return new CreateRoleResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
+	// }
+	// return response;
+	// }
+	//
+	// /**
+	// * Método encargado de extraer de la petición la información asociada a la
+	// * autorización.
+	// *
+	// * @param xmlDoc
+	// * Documento que representa la petición XML.
+	// * @return un objeto de tipo AuthorizationInfo que contiene la información
+	// * contenido en la petición sobre la autorización.
+	// */
+	// private AuthorizationInfo getAuthInfo(Document xmlDoc) {
+	// AuthorizationInfo res = null;
+	//
+	// if (xmlDoc.getElementsByTagName("authParams").item(0) != null) {
+	//
+	// res = new AuthorizationInfo();
+	//
+	// String initDateAsString =
+	// xmlDoc.getElementsByTagName("initDate").item(0).getTextContent();
+	// String endDateAsString =
+	// xmlDoc.getElementsByTagName("endDate").item(0).getTextContent();
+	// String authType =
+	// xmlDoc.getElementsByTagName("authType").item(0).getTextContent();
+	// String observations =
+	// xmlDoc.getElementsByTagName("obs").item(0).getTextContent();
+	//
+	// Date initDate = new Date(Long.valueOf(initDateAsString));
+	// Date endDate = new Date(Long.valueOf(endDateAsString));
+	//
+	// res.setInitDate(initDate);
+	// res.setEndDate(endDate);
+	// res.setType(authType);
+	// res.setObservations(observations);
+	//
+	// }
+	//
+	// return res;
+	// }
+	//
+	// /**
+	// * Método encargado de extraer de la petición la lista de aplicaciones
+	// * asociadas a la creación del validador.
+	// *
+	// * @param xmlDoc
+	// * Documento que representa la petición XML.
+	// * @return una lista con los identificadores de las aplicaciones a las que
+	// * permitir el acceso al validador.
+	// */
+	// private List<String> getListApps(Document xmlDoc) {
+	// List<String> res = null;
+	//
+	// if (xmlDoc.getElementsByTagName("apps").item(0) != null) {
+	//
+	// res = new ArrayList<>();
+	// NodeList apps = xmlDoc.getElementsByTagName("appId");
+	//
+	// for (int i = 0; i < apps.getLength(); i++) {
+	// res.add(apps.item(i).getTextContent());
+	// }
+	// }
+	//
+	// return res;
+	// }
 
 	/**
 	 * Método que recupera de la petición recibida la lista de identificadores
@@ -1940,29 +1934,22 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Solicita la lista de usuarios asociados a un rol para un determinado
-	 * usuario.
+	 * Solicita la configuración de un determinado usuario.
 	 * 
 	 * @param dni
 	 *            Identificador del usuario.
-	 * @param role
-	 *            Rol a usar para el filtrado de usuarios.
-	 * @param pageNum
-	 *            Número de página solicitada.
-	 * @param pageSize
-	 *            Tamaño de la página.
-	 * @return Lista de usuarios asociados al usuario.
+	 * @return Configuración de usuario.
 	 */
-	private GetUserByRoleResult getUserByRole(String dni, String role, String pageNum, String pageSize) {
-		RolesList response;
+	private GetUserConfigResult getUserConfiguration(String dni) {
+		MobileConfiguracionUsuario response;
 		try {
-			response = getService().getRoles(dni.getBytes(), role, pageNum, pageSize);
+			response = getService().configuracionUsuarioMobile(dni.getBytes());
 		} catch (final MobileException e) {
-			LOGGER.warn("Error durante la recuperación de usuarios por rol", e);
-			return new GetUserByRoleResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
+			LOGGER.warn("Error durante la recuperación de la configuración de usuario.", e); //$NON-NLS-1$
+			return new GetUserConfigResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
 		}
 
-		final GetUserByRoleResult result = new GetUserByRoleResult(response.getRoles());
+		final GetUserConfigResult result = new GetUserConfigResult(response);
 
 		return result;
 	}
@@ -2171,6 +2158,78 @@ public final class ProxyService extends HttpServlet {
 			disabledSslSecurity();
 		}
 		return this.mobileService.getMobileServicePort();
+	}
+
+	/**
+	 * Procesa la petici&oacute;n de obtener el estado de las notificaciones
+	 * push por parte del cliente m&oacute;vil y devuelve la respuesta recibida
+	 * del portafirmas-web.
+	 * 
+	 * @param session
+	 *            Sesi&oacute;n establecida con el portafirmas m&oacute;vil.
+	 * @param xml
+	 *            XML con los datos necesarios para la consulta.
+	 * @return XML con la respuesta del servicio.
+	 * @throws SAXException
+	 *             Cuando ocurre alg&uacute;n error al procesar los XML.
+	 * @throws IOException
+	 *             Cuando ocurre alg&uacute;n problema de comunicaci&oacute;n
+	 *             con el servidor.
+	 * @throws MobileException
+	 *             Cuando ocurre alg&uacute;n problema con el servicio.
+	 */
+	private String processGetPushStatus(final HttpSession session, final byte[] xml)
+			throws SAXException, IOException, MobileException {
+		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Comprobamos que el XML de petición esta bien formado.
+		GetPushStatusParser.parse(xmlDoc);
+
+		// Recuperamos el DNI del usuario.
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		final EstadoNotifyPushResponse response = new EstadoNotifyPushResponse();
+		response.setValorNotifyPush(getService().estadoNotifyPush(dni.getBytes()));
+
+		// Construimos la respuesta para la aplicación móvil.
+		return XmlResponsesFactory.createGetPushStatusResponse(response);
+	}
+
+	/**
+	 * Procesa la petici&oacute;n de actualizar el estado de las notificaciones
+	 * push por parte del cliente m&oacute;vil y devuelve la respuesta recibida
+	 * del portafirmas-web.
+	 * 
+	 * @param session
+	 *            Sesi&oacute;n establecida con el portafirmas m&oacute;vil.
+	 * @param xml
+	 *            XML con los datos necesarios para la consulta.
+	 * @return XML con la respuesta del servicio.
+	 * @throws SAXException
+	 *             Cuando ocurre alg&uacute;n error al procesar los XML.
+	 * @throws IOException
+	 *             Cuando ocurre alg&uacute;n problema de comunicaci&oacute;n
+	 *             con el servidor.
+	 * @throws MobileException
+	 *             Cuando ocurre alg&uacute;n problema con el servicio.
+	 */
+	private String processUpdatePushStatus(final HttpSession session, final byte[] xml)
+			throws SAXException, IOException, MobileException {
+		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Comprobamos que el XML de petición esta bien formado.
+		UpdatePushStatusParser.parse(xmlDoc);
+
+		// Recuperamos el DNI del usuario y el nuevo estado de las
+		// notificaciones push.
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+		final String estadoNotifyPush = xmlDoc.getTextContent();
+
+		// Realizamos la llamada.
+		final UpdateNotifyPushResponse response = new UpdateNotifyPushResponse();
+		response.setResultado(getService().updateNotifyPush(dni.getBytes(), estadoNotifyPush));
+
+		return XmlResponsesFactory.createUpdatePushStatusResponse(response);
 	}
 
 	/**

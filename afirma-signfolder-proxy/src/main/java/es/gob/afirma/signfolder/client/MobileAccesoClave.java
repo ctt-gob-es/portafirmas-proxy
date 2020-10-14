@@ -8,9 +8,9 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Clase Java para mobileAccesoClave complex type.
- *
+ * 
  * <p>El siguiente fragmento de esquema especifica el contenido que se espera que haya en esta clase.
- *
+ * 
  * <pre>
  * &lt;complexType name="mobileAccesoClave">
  *   &lt;complexContent>
@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileAccesoClave", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
@@ -44,97 +44,97 @@ public class MobileAccesoClave {
 
     /**
      * Obtiene el valor de la propiedad claveServiceUrl.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getClaveServiceUrl() {
-        return this.claveServiceUrl;
+        return claveServiceUrl;
     }
 
     /**
      * Define el valor de la propiedad claveServiceUrl.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
-    public void setClaveServiceUrl(final String value) {
+    public void setClaveServiceUrl(String value) {
         this.claveServiceUrl = value;
     }
 
     /**
      * Obtiene el valor de la propiedad excludedIdPList.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getExcludedIdPList() {
-        return this.excludedIdPList;
+        return excludedIdPList;
     }
 
     /**
      * Define el valor de la propiedad excludedIdPList.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
-    public void setExcludedIdPList(final String value) {
+    public void setExcludedIdPList(String value) {
         this.excludedIdPList = value;
     }
 
     /**
      * Obtiene el valor de la propiedad forcedIdP.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getForcedIdP() {
-        return this.forcedIdP;
+        return forcedIdP;
     }
 
     /**
      * Define el valor de la propiedad forcedIdP.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
-    public void setForcedIdP(final String value) {
+    public void setForcedIdP(String value) {
         this.forcedIdP = value;
     }
 
     /**
      * Obtiene el valor de la propiedad samlRequest.
-     *
+     * 
      * @return
      *     possible object is
      *     {@link String }
-     *
+     *     
      */
     public String getSamlRequest() {
-        return this.samlRequest;
+        return samlRequest;
     }
 
     /**
      * Define el valor de la propiedad samlRequest.
-     *
+     * 
      * @param value
      *     allowed object is
      *     {@link String }
-     *
+     *     
      */
-    public void setSamlRequest(final String value) {
+    public void setSamlRequest(String value) {
         this.samlRequest = value;
     }
 

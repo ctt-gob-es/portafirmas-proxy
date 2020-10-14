@@ -6,14 +6,16 @@ package es.gob.afirma.signfolder.server.proxy;
 public class DetailRequest {
 
 	private final String id;
+	private final String ownerId;
 
 	/**
 	 * Construye una petici&oacute;n de una solicitud de firma.
-	 * @param certEncoded Certificado codificado para autenticar la petici&oacute;n.
 	 * @param id Identificador de la petici&oacute;n.
+	 * @param ownerId DNI del propietario de la petici&oacute;n.
 	 */
-	public DetailRequest(final String id) {
+	public DetailRequest(final String id, String ownerId) {
 		this.id = id;
+		this.ownerId = ownerId;
 	}
 
 	/**
@@ -23,4 +25,12 @@ public class DetailRequest {
 	public String getRequestId() {
 		return this.id;
 	}
+
+	/**
+	 * @return the ownerId
+	 */
+	public String getOwnerId() {
+		return ownerId;
+	}
+	
 }

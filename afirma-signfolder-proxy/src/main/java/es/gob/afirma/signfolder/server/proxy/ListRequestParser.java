@@ -29,6 +29,7 @@ public class ListRequestParser {
 	private final static String STATE_ATTRIBUTE = "state"; //$NON-NLS-1$
 	private final static String PAGE_ATTRIBUTE = "pg"; //$NON-NLS-1$
 	private final static String PAGE_SIZE_ATTRIBUTE = "sz"; //$NON-NLS-1$
+	private final static String OWNER_ID_ATTRIBUTE = "ownerId"; //$NON-NLS-1$
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ListRequestParser.class);
 
@@ -57,6 +58,7 @@ public class ListRequestParser {
 		int pageSize;
 		String[] formats = null;
 		Map<String, String> filters = null;
+		String ownerId;
 
 		// Configuramos el estado de las peticiones deseadas
 		state = doc.getDocumentElement().getAttribute(STATE_ATTRIBUTE);
@@ -91,8 +93,11 @@ public class ListRequestParser {
 			}
 			nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
 		}
+		
+		// Configuramos el DNI del usuario propietario de la peticion.
+		ownerId = filters.get(OWNER_ID_ATTRIBUTE);
 
-		return new ListRequest(state, formats, filters, numPage, pageSize);
+		return new ListRequest(state, formats, filters, numPage, pageSize, ownerId);
 	}
 
 	/**

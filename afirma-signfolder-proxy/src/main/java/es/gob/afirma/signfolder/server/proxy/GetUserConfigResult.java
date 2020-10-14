@@ -1,11 +1,11 @@
 package es.gob.afirma.signfolder.server.proxy;
 
-import java.util.List;
+import es.gob.afirma.signfolder.client.MobileConfiguracionUsuario;
 
 /**
- * Clase que representa el resultado del servicio "getUserByRole".
+ * Clase que representa el resultado del servicio "getUserConfiguration".
  */
-public class GetUserByRoleResult {
+public class GetUserConfigResult {
 
 	static final int ERROR_TYPE_COMMUNICATION = 1;
 
@@ -14,9 +14,9 @@ public class GetUserByRoleResult {
 	static final int ERROR_TYPE_DOCUMENT = 3;
 	
 	/** 
-	 * Lista de roles de la respuesta. 
+	 * Configuración de usuario. 
 	 */
-	private List<Role> roles;
+	private MobileConfiguracionUsuario configuration;
 
 	/** 
 	 * Indica si se ha producido un error durante la operación. 
@@ -30,34 +30,34 @@ public class GetUserByRoleResult {
 	
 	/**
 	 * Constructor for the success cases.
-	 * @param roles List of users.
+	 * @param response Configuration user.
 	 */
-	public GetUserByRoleResult(final List<Role> roles) {
-		this.roles = roles;
+	public GetUserConfigResult(final MobileConfiguracionUsuario response) {
+		this.configuration = response;
 	}
 
 	/**
 	 * Constructor for the fails cases.
 	 * @param errorType Error type.
 	 */
-	public GetUserByRoleResult(final int errorType) {
+	public GetUserConfigResult(final int errorType) {
 		setErrorType(errorType);
 	}
 
     /**
-     * Get method for the <i>roles</i> attribute.
+     * Get method for the <i>configuration</i> attribute.
      * @return the value of the attribute.
      */
-	public List<Role> getRoles() {
-		return roles;
+	public MobileConfiguracionUsuario getConfiguration() {
+		return configuration;
 	}
 
     /**
-     * Set method for the <i>roles</i> attribute.
-     * @param roles new value of the attribute.
+     * Set method for the <i>configuration</i> attribute.
+     * @param config new value of the attribute.
      */
-	public void setUsers(List<Role> roles) {
-		this.roles = roles;
+	public void setonfiguration(MobileConfiguracionUsuario config) {
+		this.configuration = config;
 	}
 
     /**

@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="applicationList" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileApplication" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="application" type="{urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0}mobileApplication" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,27 +29,25 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileApplicationList", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
-    "applicationList"
+    "application"
 })
 public class MobileApplicationList {
 
-    protected List<MobileApplication> applicationList;
-    
-    protected List<String> roles;
+    protected List<MobileApplication> application;
 
     /**
-     * Gets the value of the applicationList property.
+     * Gets the value of the application property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the applicationList property.
+     * This is why there is not a <CODE>set</CODE> method for the application property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getApplicationList().add(newItem);
+     *    getApplication().add(newItem);
      * </pre>
      * 
      * 
@@ -59,19 +57,11 @@ public class MobileApplicationList {
      * 
      * 
      */
-    public List<MobileApplication> getApplicationList() {
-        if (applicationList == null) {
-            applicationList = new ArrayList<MobileApplication>();
+    public List<MobileApplication> getApplication() {
+        if (application == null) {
+            application = new ArrayList<MobileApplication>();
         }
-        return this.applicationList;
+        return this.application;
     }
-
-	/**
-	 * Gets the value of the roles property.
-	 * @return the roles list.
-	 */
-	public List<String> getRoles() {
-		return roles;
-	}
 
 }

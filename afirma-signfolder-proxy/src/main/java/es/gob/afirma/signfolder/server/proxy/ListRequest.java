@@ -31,6 +31,8 @@ public class ListRequest {
 	private final int numPage;
 
 	private final int pageSize;
+	
+	private final String ownerId;
 
 	/**
 	 * Construye una petici&oacute;n para obtener parte del listado de solicitudes de firma.
@@ -39,8 +41,9 @@ public class ListRequest {
 	 * @param filters Filtros de solicitudes de firma.
 	 * @param numPage N&uacute;mero de pagina del listado.
 	 * @param pageSize Tama&ntilde;o de p&aacute;gina definido.
+	 * @param ownerId DNI del propietario de la petici&oacute;n.
 	 */
-	public ListRequest(final String state, final String[] formats, final Map<String, String> filters, final int numPage, final int pageSize) {
+	public ListRequest(final String state, final String[] formats, final Map<String, String> filters, final int numPage, final int pageSize, final String ownerId) {
 		if (state == null || !STATE_UNRESOLVED.equalsIgnoreCase(state) &&
 				!STATE_SIGNED.equalsIgnoreCase(state) && !STATE_REJECTED.equalsIgnoreCase(state)) {
 			LOGGER.info("Se han solicitado las peticiones con un estado invalido. Se devolveran las del estado " //$NON-NLS-1$
@@ -55,6 +58,7 @@ public class ListRequest {
 		this.filters = filters;
 		this.numPage = numPage;
 		this.pageSize = pageSize;
+		this.ownerId = ownerId;
 	}
 
 	/**
@@ -96,4 +100,14 @@ public class ListRequest {
 	public int getPageSize() {
 		return this.pageSize;
 	}
+
+	/**
+	 * Recupera el DNI del usuario propietario de la petici&oacute;n.
+	 * @return DNI del propietario.
+	 */
+	public String getOwnerId() {
+		return ownerId;
+	}
+	
+	
 }

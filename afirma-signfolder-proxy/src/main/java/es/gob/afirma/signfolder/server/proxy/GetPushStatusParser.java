@@ -4,18 +4,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Clase que analiza la estructura de las peticiones del servicio "getUserByRole".
+ * Clase que analiza la estructura del servicio de recuperación del estado de las notificaciones push.
  */
-public class GetRoleRequestParser {
+public class GetPushStatusParser {
 
 	/**
 	 * Constante que define el nombre del elemento principal de la petición.
 	 */
-	private static final String REQUEST_NODE = "rqrolels";
-
+	private static final String REQUEST_NODE = "pshsttsrq";
+	
 	/**
-	 * Método que parsea la petición recibida como documento y comprueba si tiene una estructura válida.
-	 * @param doc Petición recibida.
+	 * Método que parsea la petición recibida como objeto Document y comprueba si tiene una estructura válida.
+	 * @param doc Documento que representa la petición recibida.
 	 */
 	static void parse(final Document doc) {
 		if (doc == null) {

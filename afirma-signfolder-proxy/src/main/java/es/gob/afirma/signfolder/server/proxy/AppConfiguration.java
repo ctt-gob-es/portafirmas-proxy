@@ -10,7 +10,6 @@ public class AppConfiguration {
 
 	private final List<String> appIdsList;
 	private final List<String> appNamesList;
-	private final List<String> rolesList;
 
 	/**
 	 * Construye un objeto con el listado de aplicaciones datos de alta en el Portafirmas.
@@ -18,10 +17,9 @@ public class AppConfiguration {
 	 * @param appNamesList Listado de nombres de aplicaci&oacute;n.
 	 * @param rolesList Listado de roles del usuario.
 	 */
-	public AppConfiguration(final List<String> appIdsList, final List<String> appNamesList, final List<String> rolesList) {
+	public AppConfiguration(final List<String> appIdsList, final List<String> appNamesList) {
 		this.appIdsList = appIdsList;
 		this.appNamesList = appNamesList;
-		this.rolesList = rolesList;
 	}
 
 	/**
@@ -38,14 +36,6 @@ public class AppConfiguration {
 	 */
 	public List<String> getAppNamesList() {
 		return this.appNamesList;
-	}
-
-	/**
-	 * Recupera el listado de roles del usuario.
-	 * @return Listado de roles del usuario.
-	 */
-	public List<String> getRolesList() {
-		return rolesList;
 	}
 	
 }

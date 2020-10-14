@@ -38,7 +38,7 @@ public class TestBackendConection {
 
 	private static final String CERT_PATH = "ANCERTCCP_FIRMA.p12"; //$NON-NLS-1$
 	private static final char[] CERT_PASS = "1111".toCharArray(); //$NON-NLS-1$
-	private static final String CERT_ALIAS = "juan ejemplo español"; //$NON-NLS-1$
+	private static final String CERT_ALIAS = "juan ejemplo espaï¿½ol"; //$NON-NLS-1$
 
 
 	@Test
@@ -302,7 +302,7 @@ public class TestBackendConection {
 		ks.load(ClassLoader.getSystemResourceAsStream(CERT_PATH), CERT_PASS);
 		final X509Certificate cert = (X509Certificate) ks.getCertificate(CERT_ALIAS);
 
-		final List<MobileApplication> appList = service.queryApplicationsMobile(cert.getEncoded()).getApplicationList();
+		final List<MobileApplication> appList = service.queryApplicationsMobile(cert.getEncoded()).getApplication();
 		for (final MobileApplication app : appList) {
 			// Imprimimos
 			System.out.println(" ==================");
