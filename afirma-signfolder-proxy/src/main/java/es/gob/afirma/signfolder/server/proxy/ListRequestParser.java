@@ -29,7 +29,7 @@ public class ListRequestParser {
 	private final static String STATE_ATTRIBUTE = "state"; //$NON-NLS-1$
 	private final static String PAGE_ATTRIBUTE = "pg"; //$NON-NLS-1$
 	private final static String PAGE_SIZE_ATTRIBUTE = "sz"; //$NON-NLS-1$
-	private final static String OWNER_ID_ATTRIBUTE = "ownerId"; //$NON-NLS-1$
+	private final static String OWNER_ID_ATTRIBUTE = "dniValidadorFilter"; //$NON-NLS-1$
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ListRequestParser.class);
 
