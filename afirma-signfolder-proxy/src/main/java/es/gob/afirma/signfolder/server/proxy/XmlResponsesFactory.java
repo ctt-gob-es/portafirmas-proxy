@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.LoggerFactory;
+
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
 import es.gob.afirma.signfolder.client.MobileApplication;
@@ -24,7 +26,7 @@ import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 /**
  * Factor&iacute;a para la creaci&oacute;n de respuestas XML hacia el
  * dispositivo cliente de firmas multi-fase.
- * 
+ *
  * @author Tom&aacute;s Garc&iacute;a-Mer&aacute;s
  */
 final class XmlResponsesFactory {
@@ -180,7 +182,7 @@ final class XmlResponsesFactory {
 	/**
 	 * Crea un XML con la informaci&oacute;n de detalle de una solicitud de
 	 * firma.
-	 * 
+	 *
 	 * @param requestDetails
 	 *            Detalle de la solicitud.
 	 * @return XML con los datos detallados de la solicitud.
@@ -282,7 +284,7 @@ final class XmlResponsesFactory {
 	/**
 	 * Crea un XML con la informaci&oacute;n para configurar la
 	 * aplicaci&oacute;n.
-	 * 
+	 *
 	 * @param appConfig
 	 *            Configuraci&oacute;n..
 	 * @return XML con la configuraci&oacute;n..
@@ -374,7 +376,7 @@ final class XmlResponsesFactory {
 
 	/**
 	 * Construye la respuesta del servicio de prefirma con ClaveFirma.
-	 * 
+	 *
 	 * @param trId
 	 *            Identificador de transacci&oacute;n.
 	 * @param url
@@ -395,7 +397,7 @@ final class XmlResponsesFactory {
 	/**
 	 * Construye el XML con el resultado de una operaci&oacute;n de datos de
 	 * carga en FIRe.
-	 * 
+	 *
 	 * @param requestInfo
 	 *            Resultado de carga de datos.
 	 * @return XML con el resultado de la operaci&oacute;n de carga.
@@ -411,7 +413,7 @@ final class XmlResponsesFactory {
 	/**
 	 * Protege las cadenas que pueden crear malformaciones en un XML para que su
 	 * contenido no sea tratado por el procesador XML.
-	 * 
+	 *
 	 * @param text
 	 *            Texto a proteger.
 	 * @return Cadena protegida.
@@ -421,14 +423,14 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Genera la respuesta XML del servicio de recuperación de la configuración
+	 * Genera la respuesta XML del servicio de recuperaci&oacute;n de la configuraci&oacute;n
 	 * de usuario.
-	 * 
+	 *
 	 * @param result
 	 *            Resultado obtenido de Portafirmas Web.
 	 * @return la respuesta XML para Portafirmas Android.
 	 */
-	public static String createGetUserConfigurationResponse(GetUserConfigResult result) {
+	public static String createGetUserConfigurationResponse(final GetUserConfigResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
 		sb.append("<rsgtsrcg>"); //$NON-NLS-1$
@@ -437,17 +439,16 @@ final class XmlResponsesFactory {
 			String msg;
 			switch (result.getErrorType()) {
 			case 1:
-				msg = "Error de comunicación con Portafirmas Web"; //$NON-NLS-1$
+				msg = "Error de comunicaci\u00F3n con Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 2:
-				msg = "Eror en la petición realizada a Portafirmas Web"; //$NON-NLS-1$
+				msg = "Eror en la petici\u00F3n realizada a Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 3:
-				msg = "Error en el procesado de la petición/respuesta de Portafirmas Web"; //$NON-NLS-1$
+				msg = "Error en el procesado de la petici\u00F3n/respuesta de Portafirmas Web"; //$NON-NLS-1$
 				break;
 			default:
 				msg = "Error desconocido"; //$NON-NLS-1$
-
 			}
 			sb.append(msg);
 			sb.append("</err>"); //$NON-NLS-1$
@@ -463,16 +464,18 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de filtros.
-	 * 
+	 * A&ntilde;ade la lista de filtros.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param configuration
-	 *            Configuración de usuario donde está la lista de filtros.
+	 *            Configuraci&oacute;n de usuario donde est&aacute; la lista de filtros.
 	 */
-	private static void addFilters(StringBuilder sb, MobileConfiguracionUsuario configuration) {
-		if (configuration.getMobileFiltroAnioList() != null || configuration.getMobileFiltroApplicationList() != null
-				|| configuration.getMobileFiltroEtiquetaList() != null || configuration.getMobileFiltroMesList() != null
+	private static void addFilters(final StringBuilder sb, final MobileConfiguracionUsuario configuration) {
+		if (configuration.getMobileFiltroAnioList() != null
+				|| configuration.getMobileFiltroApplicationList() != null
+				|| configuration.getMobileFiltroEtiquetaList() != null
+				|| configuration.getMobileFiltroMesList() != null
 				|| configuration.getMobileFiltroTipoList() != null) {
 			sb.append("<fltrs>"); //$NON-NLS-1$
 			addFiltersYear(sb, configuration.getMobileFiltroAnioList());
@@ -485,25 +488,28 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de filtros de aplicaciones.
-	 * 
+	 * A&ntilde;ade la lista de filtros de aplicaciones.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param mobileFiltroApplicationList
 	 *            Lista de filtros de aplicaciones.
 	 */
-	private static void addFiltersApplications(StringBuilder sb,
-			List<MobileApplicationList> mobileFiltroApplicationList) {
-		if (mobileFiltroApplicationList != null && mobileFiltroApplicationList.get(0) != null
+	private static void addFiltersApplications(final StringBuilder sb,
+			final List<MobileApplicationList> mobileFiltroApplicationList) {
+		if (mobileFiltroApplicationList != null
+				&& mobileFiltroApplicationList.size() > 0
+				&& mobileFiltroApplicationList.get(0) != null
 				&& mobileFiltroApplicationList.get(0).getApplication() != null
+				&& mobileFiltroApplicationList.get(0).getApplication().size() > 0
 				&& mobileFiltroApplicationList.get(0).getApplication().get(0) != null) {
 			sb.append("<pps>"); //$NON-NLS-1$
-			for (MobileApplication appFilter : mobileFiltroApplicationList.get(0).getApplication()) {
+			for (final MobileApplication appFilter : mobileFiltroApplicationList.get(0).getApplication()) {
 				sb.append("<pp>"); //$NON-NLS-1$
 				if (appFilter.getId() != null) {
-					sb.append("<ppId"); //$NON-NLS-1$
+					sb.append("<ppId>"); //$NON-NLS-1$
 					sb.append(appFilter.getId());
-					sb.append("</ppId"); //$NON-NLS-1$
+					sb.append("</ppId>"); //$NON-NLS-1$
 				}
 				if (appFilter.getName() != null) {
 					sb.append("<ppName>"); //$NON-NLS-1$
@@ -517,19 +523,24 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de filtros de tipos.
-	 * 
+	 * A&ntilde;ade la lista de filtros de tipos.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param mobileFiltroTipoList
 	 *            Lista de filtros de tipos.
 	 */
-	private static void addFiltersTypes(StringBuilder sb, List<MobileFiltroTipoList> mobileFiltroTipoList) {
-		if (mobileFiltroTipoList != null && mobileFiltroTipoList.get(0) != null
+	private static void addFiltersTypes(final StringBuilder sb, final List<MobileFiltroTipoList> mobileFiltroTipoList) {
+		if (mobileFiltroTipoList != null
+				&& mobileFiltroTipoList.size() > 0
+				&& mobileFiltroTipoList.get(0) != null
+				// El campo se llama "Application" por un defecto en el XSD. Su contenido
+				// es un tipo de peticion.
 				&& mobileFiltroTipoList.get(0).getApplication() != null
+				&& mobileFiltroTipoList.get(0).getApplication().size() > 0
 				&& mobileFiltroTipoList.get(0).getApplication().get(0) != null) {
 			sb.append("<tps>"); //$NON-NLS-1$
-			for (MobileFiltroGenerico typeFilter : mobileFiltroTipoList.get(0).getApplication()) {
+			for (final MobileFiltroGenerico typeFilter : mobileFiltroTipoList.get(0).getApplication()) {
 				sb.append("<tp>"); //$NON-NLS-1$
 				if (typeFilter.getId() != null) {
 					sb.append("<tpId>"); //$NON-NLS-1$
@@ -549,19 +560,24 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de filtros de etiquetas.
-	 * 
+	 * A&ntilde;ade la lista de filtros de etiquetas.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param mobileFiltroEtiquetaList
 	 *            Lista de filtros de etiquetas.
 	 */
-	private static void addFiltersTags(StringBuilder sb, List<MobileFiltroEtiquetaList> mobileFiltroEtiquetaList) {
-		if (mobileFiltroEtiquetaList != null && mobileFiltroEtiquetaList.get(0) != null
+	private static void addFiltersTags(final StringBuilder sb, final List<MobileFiltroEtiquetaList> mobileFiltroEtiquetaList) {
+		if (mobileFiltroEtiquetaList != null
+				&& mobileFiltroEtiquetaList.size() > 0
+				&& mobileFiltroEtiquetaList.get(0) != null
+				// El campo se llama "Application" por un defecto en el XSD. Su contenido
+				// es una etiqueta.
 				&& mobileFiltroEtiquetaList.get(0).getApplication() != null
+				&& mobileFiltroEtiquetaList.get(0).getApplication().size() > 0
 				&& mobileFiltroEtiquetaList.get(0).getApplication().get(0) != null) {
 			sb.append("<tgs>"); //$NON-NLS-1$
-			for (MobileFiltroEtiqueta tagFilter : mobileFiltroEtiquetaList.get(0).getApplication()) {
+			for (final MobileFiltroEtiqueta tagFilter : mobileFiltroEtiquetaList.get(0).getApplication()) {
 				sb.append("<tg>"); //$NON-NLS-1$
 				if (tagFilter.getId() != null) {
 					sb.append("<tgId>"); //$NON-NLS-1$
@@ -586,19 +602,24 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de filtros de meses.
-	 * 
+	 * A&ntilde;ade la lista de filtros de meses.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param mobileFiltroMesList
 	 *            Lista de filtros de meses.
 	 */
-	private static void addFiltersMonths(StringBuilder sb, List<MobileFiltroMesList> mobileFiltroMesList) {
-		if (mobileFiltroMesList != null && mobileFiltroMesList.get(0) != null
+	private static void addFiltersMonths(final StringBuilder sb, final List<MobileFiltroMesList> mobileFiltroMesList) {
+		if (mobileFiltroMesList != null
+				&& mobileFiltroMesList.size() > 0
+				&& mobileFiltroMesList.get(0) != null
+				// El campo se llama "Application" por un defecto en el XSD. Su contenido
+				// es el mes.
 				&& mobileFiltroMesList.get(0).getApplication() != null
+				&& mobileFiltroMesList.get(0).getApplication().size() > 0
 				&& mobileFiltroMesList.get(0).getApplication().get(0) != null) {
 			sb.append("<mnths>"); //$NON-NLS-1$
-			for (MobileFiltroGenerico monthFilter : mobileFiltroMesList.get(0).getApplication()) {
+			for (final MobileFiltroGenerico monthFilter : mobileFiltroMesList.get(0).getApplication()) {
 				sb.append("<mnth>"); //$NON-NLS-1$
 				if (monthFilter.getId() != null) {
 					sb.append("<mnthId>"); //$NON-NLS-1$
@@ -618,19 +639,24 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de filtros de años.
-	 * 
+	 * A&ntilde;ade la lista de filtros de a&ntilde;os.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param mobileFiltroAnioList
-	 *            Lista de filtros de años.
+	 *            Lista de filtros de a&ntilde;os.
 	 */
-	private static void addFiltersYear(StringBuilder sb, List<MobileFiltroAnioList> mobileFiltroAnioList) {
-		if (mobileFiltroAnioList != null && mobileFiltroAnioList.get(0) != null
+	private static void addFiltersYear(final StringBuilder sb, final List<MobileFiltroAnioList> mobileFiltroAnioList) {
+		if (mobileFiltroAnioList != null
+				&& mobileFiltroAnioList.size() > 0
+				&& mobileFiltroAnioList.get(0) != null
+				// El campo se llama "Application" por un defecto en el XSD. Su contenido
+				// es el anyo.
 				&& mobileFiltroAnioList.get(0).getApplication() != null
+				&& mobileFiltroAnioList.get(0).getApplication().size() > 0
 				&& mobileFiltroAnioList.get(0).getApplication().get(0) != null) {
 			sb.append("<yrs>"); //$NON-NLS-1$
-			for (MobileFiltroGenerico yearFilter : mobileFiltroAnioList.get(0).getApplication()) {
+			for (final MobileFiltroGenerico yearFilter : mobileFiltroAnioList.get(0).getApplication()) {
 				sb.append("<yr>"); //$NON-NLS-1$
 				if (yearFilter.getId() != null) {
 					sb.append("<YrId>"); //$NON-NLS-1$
@@ -650,14 +676,14 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade el valor que indica si se tienen activas las notificaciones PUSH.
-	 * 
+	 * A&ntilde;ade el valor que indica si se tienen activas las notificaciones PUSH.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param value
-	 *            Valor a añadir.
+	 *            Valor a a&ntilde;adir.
 	 */
-	private static void addPushNotifications(StringBuilder sb, String value) {
+	private static void addPushNotifications(final StringBuilder sb, final String value) {
 		if (value != null) {
 			sb.append("<ntpsh>"); //$NON-NLS-1$
 			sb.append(value);
@@ -666,14 +692,14 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade el valor que indica si el usuario tiene validadores.
-	 * 
+	 * A&ntilde;ade el valor que indica si el usuario tiene validadores.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param value
-	 *            Valor a añadir.
+	 *            Valor a a&ntilde;adir.
 	 */
-	private static void addUserWithVerifiers(StringBuilder sb, String value) {
+	private static void addUserWithVerifiers(final StringBuilder sb, final String value) {
 		if (value != null) {
 			sb.append("<srvrf>"); //$NON-NLS-1$
 			sb.append(value);
@@ -683,14 +709,14 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade el valor de la configuración SIM de portafirmas-web.
-	 * 
+	 * A&ntilde;ade el valor de la configuraci&oacute;n SIM de portafirmas-web.
+	 *
 	 * @param sb
-	 *            Objeto que representa el XML en construcción.
+	 *            Objeto que representa el XML en construcci&oacute;n.
 	 * @param value
-	 *            Valor de la configuración SIM.
+	 *            Valor de la configuraci&oacute;n SIM.
 	 */
-	private static void addSIMConfig(StringBuilder sb, String value) {
+	private static void addSIMConfig(final StringBuilder sb, final String value) {
 		if (value != null) {
 			sb.append("<smcg>"); //$NON-NLS-1$
 			sb.append(value);
@@ -699,20 +725,20 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de usuarios como XML al stringBuilder recibido como
-	 * parámetro.
-	 * 
+	 * A&ntilde;ade la lista de usuarios como XML al stringBuilder recibido como
+	 * par&aacute;metro.
+	 *
 	 * @param sb
-	 *            Objeto donde se añadiran los usuarios.
+	 *            Objeto donde se a&ntilde;adiran los usuarios.
 	 * @param roles
-	 *            Lista de usuarios a añadir.
+	 *            Lista de usuarios a a&ntilde;adir.
 	 */
-	private static void addRolesToResult(StringBuilder sb, List<MobileRole> roles) {
+	private static void addRolesToResult(final StringBuilder sb, final List<MobileRole> roles) {
 		if (roles != null) {
 			sb.append("<rls>"); //$NON-NLS-1$
 			for (int i = 0; i < roles.size(); i++) {
 				sb.append("<role>"); //$NON-NLS-1$
-				MobileRole role = roles.get(i);
+				final MobileRole role = roles.get(i);
 				sb.append("<id>"); //$NON-NLS-1$
 				sb.append(role.getIdRole());
 				sb.append("</id>"); //$NON-NLS-1$
@@ -725,7 +751,7 @@ final class XmlResponsesFactory {
 				sb.append("<dni>"); //$NON-NLS-1$
 				sb.append(role.getDniUsuario());
 				sb.append("</dni>"); //$NON-NLS-1$
-				// TODO: Código asociado a la gestión de las etiquetas de roles.
+				// TODO: Codigo asociado a la gestion de las etiquetas de roles.
 				// Descomentar cuando se requiera dicha funcionalidad.
 				// if (role.getMobileFiltroEtiquetaList() != null &&
 				// !role.getMobileFiltroEtiquetaList().isEmpty()
@@ -766,13 +792,13 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Método que genera la respuesta del servicio de recuperación de usuario.
-	 * 
+	 * M&eacute;todo que genera la respuesta del servicio de recuperaci&oacute;n de usuario.
+	 *
 	 * @param result
 	 *            Resultado recibida del portafirmas-web.
-	 * @return resultado a enviar al portafirmas-móvil.
+	 * @return resultado a enviar al portafirmas-m&oacute;vil.
 	 */
-	public static String createGetUserResponse(GetUserResult result) {
+	public static String createGetUserResponse(final GetUserResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
 		sb.append("<rsgtsr"); //$NON-NLS-1$
@@ -784,17 +810,16 @@ final class XmlResponsesFactory {
 			String msg;
 			switch (result.getErrorType()) {
 			case 1:
-				msg = "Error de comunicación con Portafirmas Web"; //$NON-NLS-1$
+				msg = "Error de comunicacion con Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 2:
-				msg = "Error en la petición realizada a Portafirmas Web"; //$NON-NLS-1$
+				msg = "Error en la peticion realizada a Portafirmas Web"; //$NON-NLS-1$
 				break;
 			case 3:
-				msg = "Error en el procesado de la petición/respuesta de Portafirmas Web"; //$NON-NLS-1$
+				msg = "Error en el procesado de la peticion/respuesta de Portafirmas Web"; //$NON-NLS-1$
 				break;
 			default:
 				msg = "Error desconocido"; //$NON-NLS-1$
-
 			}
 			sb.append(msg);
 			sb.append("</err>"); //$NON-NLS-1$
@@ -808,125 +833,105 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Añade la lista de usuarios como XML al stringBuilder recibido como
-	 * parámetro.
-	 * 
+	 * A&ntilde;ade la lista de usuarios como XML al stringBuilder recibido como
+	 * par&aacute;metro.
+	 *
 	 * @param sb
-	 *            Objeto donde se añadiran los usuarios.
+	 *            Objeto donde se a&ntilde;adiran los usuarios.
 	 * @param users
-	 *            Lista de usuarios a añadir.
+	 *            Lista de usuarios a a&ntilde;adir.
 	 */
-	private static void addUsersToResult(StringBuilder sb, List<User> users) {
+	private static void addUsersToResult(final StringBuilder sb, final List<User> users) {
 		if (users != null) {
 			for (int i = 0; i < users.size(); i++) {
-				sb.append("<user>"); 
-				User user = users.get(i);
-				sb.append("<name>");
+				sb.append("<user>"); //$NON-NLS-1$
+				final User user = users.get(i);
+				sb.append("<name>"); //$NON-NLS-1$
 				sb.append(user.getName());
-				sb.append("</name>");
-				sb.append("<surname>");
+				sb.append("</name>"); //$NON-NLS-1$
+				sb.append("<surname>"); //$NON-NLS-1$
 				sb.append(user.getSurname());
-				sb.append("</surname>");
-				sb.append("<secondSurname>");
+				sb.append("</surname>"); //$NON-NLS-1$
+				sb.append("<secondSurname>"); //$NON-NLS-1$
 				sb.append(user.getSecondSurname());
-				sb.append("</secondSurname>");
-				sb.append("<LDAPUser>");
+				sb.append("</secondSurname>"); //$NON-NLS-1$
+				sb.append("<LDAPUser>"); //$NON-NLS-1$
 				sb.append(user.getLDAPUser());
-				sb.append("</LDAPUser>");
-				sb.append("<ID>");
+				sb.append("</LDAPUser>"); //$NON-NLS-1$
+				sb.append("<ID>"); //$NON-NLS-1$
 				sb.append(user.getID());
-				sb.append("</ID>");
-				sb.append("<position>");
+				sb.append("</ID>"); //$NON-NLS-1$
+				sb.append("<position>"); //$NON-NLS-1$
 				sb.append(user.getPosition());
-				sb.append("</position>");
-				sb.append("<headquarter>");
+				sb.append("</position>"); //$NON-NLS-1$
+				sb.append("<headquarter>"); //$NON-NLS-1$
 				sb.append(user.getHeadquarter());
-				sb.append("</headquarter>");
+				sb.append("</headquarter>"); //$NON-NLS-1$
 				if (user.getProfiles() != null && user.getProfiles().size() > 0) {
-					sb.append("<profiles>");
+					sb.append("<profiles>"); //$NON-NLS-1$
 					for (int e = 0; e < user.getProfiles().size(); e++) {
-						sb.append("<profile>");
+						sb.append("<profile>"); //$NON-NLS-1$
 						sb.append(user.getProfiles().get(e).getValue());
-						sb.append("</profile>");
+						sb.append("</profile>"); //$NON-NLS-1$
 					}
-					sb.append("</profiles>");
+					sb.append("</profiles>"); //$NON-NLS-1$
 				}
 				if (user.getDataContact() != null && user.getDataContact().size() > 0) {
-					sb.append("<dataContacts>");
+					sb.append("<dataContacts>"); //$NON-NLS-1$
 					for (int a = 0; a < user.getDataContact().size(); a++) {
-						sb.append("<dataContact>");
-						sb.append("<email>");
+						sb.append("<dataContact>"); //$NON-NLS-1$
+						sb.append("<email>"); //$NON-NLS-1$
 						sb.append(user.getDataContact().get(a).getEmail());
-						sb.append("</email>");
-						sb.append("<notify>");
+						sb.append("</email>"); //$NON-NLS-1$
+						sb.append("<notify>"); //$NON-NLS-1$
 						sb.append(user.getDataContact().get(a).isNotify());
-						sb.append("</notify>");
-						sb.append("</dataContact>");
+						sb.append("</notify>"); //$NON-NLS-1$
+						sb.append("</dataContact>"); //$NON-NLS-1$
 					}
-					sb.append("</dataContacts>");
+					sb.append("</dataContacts>"); //$NON-NLS-1$
 				}
-				sb.append("<attachSignature>");
+				sb.append("<attachSignature>"); //$NON-NLS-1$
 				sb.append(user.isAttachSignature());
-				sb.append("</attachSignature>");
-				sb.append("<attachReport>");
+				sb.append("</attachSignature>"); //$NON-NLS-1$
+				sb.append("<attachReport>"); //$NON-NLS-1$
 				sb.append(user.isAttachReport());
-				sb.append("</attachReport>");
-				sb.append("<pageSize>");
+				sb.append("</attachReport>"); //$NON-NLS-1$
+				sb.append("<pageSize>"); //$NON-NLS-1$
 				sb.append(user.getPageSize());
-				sb.append("</pageSize>");
-				sb.append("<applyAppFilter>");
+				sb.append("</pageSize>"); //$NON-NLS-1$
+				sb.append("<applyAppFilter>"); //$NON-NLS-1$
 				sb.append(user.isApplyAppFilter());
-				sb.append("</applyAppFilter>");
-				sb.append("<showPreviousSigner>");
+				sb.append("</applyAppFilter>"); //$NON-NLS-1$
+				sb.append("<showPreviousSigner>"); //$NON-NLS-1$
 				sb.append(user.isShowPreviousSigner());
-				sb.append("</showPreviousSigner>");
-				sb.append("</user>");
+				sb.append("</showPreviousSigner>"); //$NON-NLS-1$
+				sb.append("</user>"); //$NON-NLS-1$
 			}
 		}
 	}
 
 	/**
-	 * Método que genera la respuesta para el servicio de validación de
+	 * M&eacute;todo que genera la respuesta para el servicio de validaci&oacute;n de
 	 * peticiones.
-	 * 
+	 *
 	 * @param results
-	 *            Resultado de la operación recibida por portafirmas-web.
-	 * @return resultado a enviar al portafirmas-móvil.
+	 *            Resultado de la operaci&oacute;n recibida por portafirmas-web.
+	 * @return resultado a enviar al portafirmas-m&oacute;vil.
 	 */
-	public static String createVerifyPetitionsResponse(List<VerifyPetitionResult> results) {
+	public static String createVerifyPetitionsResponse(final List<VerifyPetitionResult> results) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
 		sb.append("<verifrp>"); //$NON-NLS-1$
 		if (results != null && !results.isEmpty()) {
-			for (VerifyPetitionResult result : results) {
-				sb.append("<verify"); //$NON-NLS-1$
+			for (final VerifyPetitionResult result : results) {
+				sb.append("<r"); //$NON-NLS-1$
 				// Atributo id.
 				sb.append(" id=\""); //$NON-NLS-1$
 				sb.append(result.getId());
-				sb.append("\">"); //$NON-NLS-1$
-
-				// Mensaje de respuesta.
-				if (result.getResult() != null) {
-					sb.append(result.getResult());
-				}
-
-				// Mensaje de error.
-				if (result.getErrorType() == 1 || result.getErrorType() == 2 || result.getErrorType() == 3) {
-					sb.append("<errorMsg>"); //$NON-NLS-1$
-					switch (result.getErrorType()) {
-					case 1:
-						sb.append("Error de comunicación con Portafirmas Web"); //$NON-NLS-1$
-						break;
-					case 2:
-						sb.append("Error en la petición realizada a Portafirmas Web"); //$NON-NLS-1$
-						break;
-					case 3:
-						sb.append("Error en el procesado de la petición/respuesta de Portafirmas Web"); //$NON-NLS-1$
-						break;
-					}
-					sb.append("</errorMsg>"); //$NON-NLS-1$
-				}
-				sb.append("</verify>"); //$NON-NLS-1$
+				// Atributo ok.
+				sb.append("\" ok=\""); //$NON-NLS-1$
+				sb.append(result.getResult() != null ? result.getResult() : "OK"); //$NON-NLS-1$
+				sb.append("\"/>"); //$NON-NLS-1$
 			}
 		}
 		sb.append("</verifrp>"); //$NON-NLS-1$
@@ -934,51 +939,53 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Método que genera la respuesta para el servicio de creación de roles.
-	 * 
+	 * M&eacute;todo que genera la respuesta para el servicio de creaci&oacute;n de roles.
+	 *
 	 * @param result
-	 *            Resultado de la operación recibida por portafirmas-web.
-	 * @return resultado a enviar al portafirmas-móvil.
+	 *            Resultado de la operaci&oacute;n recibida por portafirmas-web.
+	 * @return resultado a enviar al portafirmas-m&oacute;vil.
 	 */
-	public static String createCreationRoleResponse(CreateRoleResult result) {
+	public static String createCreationRoleResponse(final CreateRoleResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
-		sb.append("<crtnwrl>");
-		sb.append("<resp");
+		sb.append("<crtnwrl>"); //$NON-NLS-1$
+		sb.append("<resp"); //$NON-NLS-1$
 		// Atributo success.
-		sb.append(" success=\"");
+		sb.append(" success=\""); //$NON-NLS-1$
 		sb.append(result.isSuccess());
-		sb.append("\">");
+		sb.append("\">"); //$NON-NLS-1$
 		// Mensaje de error.
 		if (result.getErrorType() == 1 || result.getErrorType() == 2 || result.getErrorType() == 3) {
-			sb.append("<errorMsg>");
+			sb.append("<errorMsg>"); //$NON-NLS-1$
 			switch (result.getErrorType()) {
 			case 1:
-				sb.append("Error de comunicación con Portafirmas Web");
+				sb.append("Error de comunicacion con Portafirmas Web"); //$NON-NLS-1$
 				break;
 			case 2:
-				sb.append("Error en la petición realizada a Portafirmas Web");
+				sb.append("Error en la peticion realizada a Portafirmas Web"); //$NON-NLS-1$
 				break;
 			case 3:
-				sb.append("Error en el procesado de la petición/respuesta de Portafirmas Web");
+				sb.append("Error en el procesado de la peticion/respuesta de Portafirmas Web"); //$NON-NLS-1$
 				break;
+			default:
+				sb.append("Error desconocido"); //$NON-NLS-1$
 			}
-			sb.append("</errorMsg>");
+			sb.append("</errorMsg>"); //$NON-NLS-1$
 		}
-		sb.append("</resp>");
-		sb.append("</crtnwrl>");
+		sb.append("</resp>"); //$NON-NLS-1$
+		sb.append("</crtnwrl>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 
 	/**
-	 * Método que genera la respuesta para el servicio de obtener el estado de
+	 * M&eacute;todo que genera la respuesta para el servicio de obtener el estado de
 	 * las notificaciones push.
-	 * 
+	 *
 	 * @param result
-	 *            Resultado de la operación recibida por portafirmas-web.
-	 * @return resultado a enviar al portafirmas-móvil.
+	 *            Resultado de la operaci&oacute;n recibida por portafirmas-web.
+	 * @return resultado a enviar al portafirmas-m&oacute;vil.
 	 */
-	public static String createGetPushStatusResponse(EstadoNotifyPushResponse result) {
+	public static String createGetPushStatusResponse(final EstadoNotifyPushResponse result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
 		sb.append("<pshsttsrs>"); //$NON-NLS-1$
@@ -990,14 +997,14 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * Método que genera la respuesta para el servicio de actualización del
+	 * M&eacute;todo que genera la respuesta para el servicio de actualizaci&oacute;n del
 	 * estado de las notificaciones push.
-	 * 
+	 *
 	 * @param result
-	 *            Resultado de la operación recibida por portafirmas-web.
-	 * @return resultado a enviar al portafirmas-móvil.
+	 *            Resultado de la operaci&oacute;n recibida por portafirmas-web.
+	 * @return resultado a enviar al portafirmas-m&oacute;vil.
 	 */
-	public static String createUpdatePushStatusResponse(UpdateNotifyPushResponse result) {
+	public static String createUpdatePushStatusResponse(final UpdateNotifyPushResponse result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
 		sb.append("<pdtpshsttsrs>"); //$NON-NLS-1$
@@ -1005,6 +1012,9 @@ final class XmlResponsesFactory {
 			sb.append(result.getResultado());
 		}
 		sb.append("</pdtpshsttsrs>"); //$NON-NLS-1$
+
+		LoggerFactory.getLogger(XmlResponsesFactory.class).info(" ============== UPDATE PUSH: " + sb.toString());
+
 		return sb.toString();
 	}
 }

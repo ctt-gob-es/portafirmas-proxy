@@ -79,7 +79,7 @@ import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
 
 /**
  * Servicio Web para firma trif&aacute;sica.
- * 
+ *
  * @author Tom&aacute;s Garc&iacute;a-;er&aacute;s
  */
 public final class ProxyService extends HttpServlet {
@@ -112,15 +112,15 @@ public final class ProxyService extends HttpServlet {
 	private static final String OPERATION_FIRE_LOAD_DATA = "16"; //$NON-NLS-1$
 	private static final String OPERATION_FIRE_SIGN = "17"; //$NON-NLS-1$
 	private static final String OPERATION_GET_USER_CONFIG = "18"; //$NON-NLS-1$
-	// TODO: Identificador de servicio no habilitado aún. Servicio de busqueda
+	// TODO: Identificador de servicio no habilitado aun. Servicio de busqueda
 	// de usuario.
 	// private static final String OPERATION_FIND_USER = "19"; //$NON-NLS-1$
 	private static final String OPERATION_VERIFY = "20"; //$NON-NLS-1$
-	// TODO: Identificador de servicio no habilitado aún. Servicio de creación
+	// TODO: Identificador de servicio no habilitado aun. Servicio de creacion
 	// de role.
 	// private static final String OPERATION_CREATE_ROLE = "21"; //$NON-NLS-1$
-	private static final String OPERATION_GET_PUSH_STATUS = "22";
-	private static final String OPERATION_UPDATE_PUSH = "23";
+	private static final String OPERATION_GET_PUSH_STATUS = "22"; //$NON-NLS-1$
+	private static final String OPERATION_UPDATE_PUSH = "23"; //$NON-NLS-1$
 
 	private static final String[] OPERATIONS_CREATE_SESSION = new String[] { OPERATION_REQUEST_LOGIN,
 			OPERATION_CLAVE_LOGIN };
@@ -252,7 +252,7 @@ public final class ProxyService extends HttpServlet {
 	 * <dt>5</dt>
 	 * <dd>Previsualizaci&oacute;n</dd>
 	 * </dl>
-	 * 
+	 *
 	 * @see HttpServlet#service(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
@@ -368,7 +368,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Indica si una sesi&oacute;n con certificado local se ha validado.
-	 * 
+	 *
 	 * @param session
 	 *            Sesi&oacute;n que se desea comprobar.
 	 * @return {@code true} si la sesi&oacute;n est&aacute; validada,
@@ -435,33 +435,33 @@ public final class ProxyService extends HttpServlet {
 			LOGGER.info("Solicitud de firma con FIRe"); //$NON-NLS-1$
 			ret = processFireSign(session, xml);
 		} else if (OPERATION_GET_USER_CONFIG.equals(operation)) {
-			LOGGER.info("Solicitud de recuperación de la configuración de usuarios."); //$NON-NLS-1$
+			LOGGER.info("Solicitud de recuperacion de la configuracion de usuarios."); //$NON-NLS-1$
 			ret = processGetUserConfig(session, xml);
 
 			// }
-			// TODO: Servicio no habilitado aún. A la espera de la
-			// implementación de la parte servidora.
+			// TODO: Servicio no habilitado aun. A la espera de la
+			// implementacion de la parte servidora.
 			// else if (OPERATION_FIND_USER.equals(operation)) {
-			// LOGGER.info("Solicitud de recuperación de usuarios.");
+			// LOGGER.info("Solicitud de recuperacion de usuarios.");
 			// //$NON-NLS-1$
 			// ret = processFindUser(session, xml);
 
 		} else if (OPERATION_VERIFY.equals(operation)) {
-			LOGGER.info("Solicitud de validación de petición."); //$NON-NLS-1$
+			LOGGER.info("Solicitud de validacion de peticion."); //$NON-NLS-1$
 			ret = processVerifyPetitions(session, xml);
 
 			// }
-			// TODO: Servicio no habilitado aún. A la espera de la
-			// implementación de la parte servidora.
+			// TODO: Servicio no habilitado aun. A la espera de la
+			// implementacion de la parte servidora.
 			// else if (OPERATION_CREATE_ROLE.equals(operation)) {
-			// LOGGER.info("Solicitud de creación de rol."); //$NON-NLS-1$
+			// LOGGER.info("Solicitud de creacion de rol."); //$NON-NLS-1$
 			// // ret = processCreateRole(session, xml);
 
 		} else if (OPERATION_GET_PUSH_STATUS.equals(operation)) {
-			LOGGER.info("Solicitud de obtención del estado de las notificaciones push"); //$NON-NLS-1$
+			LOGGER.info("Solicitud de obtencion del estado de las notificaciones push"); //$NON-NLS-1$
 			ret = processGetPushStatus(session, xml);
 		} else if (OPERATION_UPDATE_PUSH.equals(operation)) {
-			LOGGER.info("Solicitud de actualización del estado de las notificaciones push"); //$NON-NLS-1$
+			LOGGER.info("Solicitud de actualizacion del estado de las notificaciones push"); //$NON-NLS-1$
 			ret = processUpdatePushStatus(session, xml);
 		} else {
 			LOGGER.warn("Se ha indicado un codigo de operacion no valido"); //$NON-NLS-1$
@@ -474,7 +474,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Indica si una operaci&oacute;n requiere que antes se haya hecho login
 	 * para que sea atendida por el proxy.
-	 * 
+	 *
 	 * @param operation
 	 *            C&oacute;digo de la operaci&oacute;n que se quiere comprobar.
 	 * @return {@code true} si el c&oacute;digo proporcionado no est&aacute; en
@@ -493,7 +493,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Indica si una operaci&oacute;n es de las que crean una nueva
 	 * sesi&oacute;n de usuario.
-	 * 
+	 *
 	 * @param operation
 	 *            C&oacute;digo de la operaci&oacute;n que se quiere comprobar.
 	 * @return {@code true} si el c&oacute;digo proporcionado est&aacute; en el
@@ -514,7 +514,7 @@ public final class ProxyService extends HttpServlet {
 	 * respuesta a esta petici&oacute;n, se emitir&aacute; un token para la
 	 * firma por parte del cliente y posterior validaci&oacute;n de la
 	 * sesi&oacute;n.
-	 * 
+	 *
 	 * @param request
 	 *            Petici&oacute;n realizada al servicio.
 	 * @param xml
@@ -558,7 +558,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Obtiene los datos necesarios para el login de la aplicaci&oacute;n
 	 * cliente.
-	 * 
+	 *
 	 * @param session
 	 *            Sesi&oacute;n sobre la que se desea autenticar el usuario.
 	 * @return Datos de inicio de sesi&oacute;n.
@@ -576,7 +576,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Valida el acceso de la aplicaci&oacute;n al Portafirmas. Como resultado,
 	 * se enviar&aacute; el DNI del usuario autenticado.
-	 * 
+	 *
 	 * @param session
 	 *            Sesi&oacute;n pendiente de validar.
 	 * @param xml
@@ -672,7 +672,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Procesa el mensaje de error remitido por el Portafirmas para hacerlo
 	 * legible para el usuario.
-	 * 
+	 *
 	 * @param rawErrorMessage
 	 *            Mensaje devuelto por el Portafirmas.
 	 * @return Mensaje procesado o {@code null} si no hay ninguno.
@@ -697,7 +697,7 @@ public final class ProxyService extends HttpServlet {
 	 * se generar&aacute; la informaci&oacute;n de inicio de sesi&oacute;n y se
 	 * remitir&aacute; una URL para la redirecci&oacute;n del usuario a la
 	 * p&aacute;gina de Cl@ve para que autorice el acceso.
-	 * 
+	 *
 	 * @param request
 	 *            Petici&oacute;n realizada al servicio.
 	 * @param session
@@ -786,7 +786,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Proporciona la URL base de las p&aacute;ginas y servicios del proxy.
-	 * 
+	 *
 	 * @param request
 	 *            Petici&oacute;n realizada.
 	 * @return URL base del proxy terminada en '/'.
@@ -798,7 +798,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Genera un c&oacute;digo de autenticaci&oacute;n aleatorio.
-	 * 
+	 *
 	 * @return Identificador de acceso aleatorio.
 	 */
 	private static String generateAuthenticationId() {
@@ -807,7 +807,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Procesa una petici&oacute;n de cierre de sesi&oacute;n.
-	 * 
+	 *
 	 * @param request
 	 *            Petici&oacute;n realizada al servicio.
 	 * @param xml
@@ -838,7 +838,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Comprueba que un PKCS#1 se genero en base a un certificado y sobre unos
 	 * datos concretos.
-	 * 
+	 *
 	 * @param pkcs1
 	 *            Firma PKCS#1 calculada sobre el algoritmo SHA-256.
 	 * @param certEncoded
@@ -919,7 +919,7 @@ public final class ProxyService extends HttpServlet {
 	 * los documentos de las peticiones indicadas. Si se produce alg&uacute;n
 	 * error al procesar un documento de alguna de las peticiones, se establece
 	 * como incorrecta la petici&oacute;n al completo.
-	 * 
+	 *
 	 * @param xml
 	 *            XML con los datos para el proceso de las prefirmas.
 	 * @return XML con el resultado a la petici&oacute;n de prefirma.
@@ -952,7 +952,7 @@ public final class ProxyService extends HttpServlet {
 	 * de los documentos de las peticiones indicadas. Si se produce alg&uacute;n
 	 * error al procesar un documento de alguna de las peticiones, se establece
 	 * como incorrecta la petici&oacute;n al completo.
-	 * 
+	 *
 	 * @param xml
 	 *            XML con los datos para el proceso de las prefirmas.
 	 * @return XML con el resultado a la petici&oacute;n de prefirma.
@@ -983,7 +983,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Transforma una peticion de tipo TriphaseRequest en un
 	 * MobileDocSignInfoList.
-	 * 
+	 *
 	 * @param req
 	 *            Petici&oacute;n de firma con el resultado asociado a cada
 	 *            documento.
@@ -1008,7 +1008,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Procesa la petici&oacute;n de un listado de peticiones de firma.
-	 * 
+	 *
 	 * @param xml
 	 *            XML con la solicitud.
 	 * @return XML con la respuesta a la petici&oacute;n.
@@ -1025,8 +1025,9 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final ListRequest listRequest = ListRequestParser.parse(doc);
 
-		// El DNI a recuperar debe ser el DNI del propietario de la petición.
-		final String dni = listRequest.getOwnerId() != null ? listRequest.getOwnerId()
+		// El DNI a recuperar debe ser el DNI del propietario de la peticion.
+		final String dni = listRequest.getOwnerId() != null && !listRequest.getOwnerId().isEmpty()
+				? listRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
 		final PartialSignRequestsList signRequests = getRequestsList(dni, listRequest);
 
@@ -1036,7 +1037,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Recupera un listado de peticiones del Portafirmas a partir de la
 	 * solicitud proporcionada.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param listRequest
@@ -1059,10 +1060,13 @@ public final class ProxyService extends HttpServlet {
 		if (listRequest.getFilters() != null) {
 			for (final String filterKey : listRequest.getFilters().keySet()
 					.toArray(new String[listRequest.getFilters().size()])) {
-				final MobileRequestFilter filter = new MobileRequestFilter();
-				filter.setKey(filterKey);
-				filter.setValue(listRequest.getFilters().get(filterKey));
-				filterList.getRequestFilter().add(filter);
+				final String value = listRequest.getFilters().get(filterKey);
+				if (value != null && !value.isEmpty()) {
+					final MobileRequestFilter filter = new MobileRequestFilter();
+					filter.setKey(filterKey);
+					filter.setValue(value);
+					filterList.getRequestFilter().add(filter);
+				}
 			}
 		}
 
@@ -1130,7 +1134,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Rechaza el listado de solicitudes indicado en la petici&oacute;n de
 	 * rechazo.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param rejectRequest
@@ -1169,7 +1173,7 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
-		// El DNI debe ser el DNI del propietario de la petición.
+		// El DNI debe ser el DNI del propietario de la peticion.
 		final String dni = detRequest.getOwnerId() != null ? detRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
 		final Detail requestDetails = getRequestDetail(dni, detRequest);
@@ -1180,7 +1184,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Obtiene el detalle de un solicitud de firma a partir de una
 	 * petici&oacute;n de detalle.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param request
@@ -1292,7 +1296,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Recupera los datos para la previsualizaci&oacute;n de un documento a
 	 * partir del identificador del documento.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param request
@@ -1311,7 +1315,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Recupera los datos para la descarga de una firma a partir del hash del
 	 * documento firmado.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param request
@@ -1330,7 +1334,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Recupera los datos para la visualizaci&oacute;n de un informe de firma a
 	 * partir del hash del documento firmado.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param request
@@ -1348,7 +1352,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Construye un objeto documento para previsualizaci&oacute;n.
-	 * 
+	 *
 	 * @param document
 	 *            Datos del documento.
 	 * @return Contenido y metadatos del documento.
@@ -1373,19 +1377,20 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Procesa la petición de recuperación de la configuración de aplicación.
-	 * 
+	 * Procesa la petici&oacute;n de recuperaci&oacute;n de la configuraci&oacute;n de
+	 * aplicaci&oacute;n.
+	 *
 	 * @param session
-	 *            Sesión de usuario.
+	 *            Sesi&oacute;n de usuario.
 	 * @param xml
-	 *            Petición recibida.
-	 * @return Un XML con la configuración de la aplicación solicitada.
+	 *            Petici&oacute;n recibida.
+	 * @return Un XML con la configuraci&oacute;n de la aplicaci&oacute;n solicitada.
 	 * @throws SAXException
-	 *             Cuando ocurre un error de parseo de petición.
+	 *             Cuando ocurre un error de parseo de petici&oacute;n.
 	 * @throws IOException
 	 *             Cuando ocurre un error de lectura/escritura.
 	 * @throws MobileException
-	 *             Cuando ocurre un error durante la comunicación con
+	 *             Cuando ocurre un error durante la comunicaci&oacute;n con
 	 *             portafirmas-web.
 	 */
 	private String processConfigueApp(final HttpSession session, final byte[] xml)
@@ -1406,7 +1411,7 @@ public final class ProxyService extends HttpServlet {
 	 * <ul>
 	 * <li>Listado de aplicaciones.</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param request
@@ -1447,7 +1452,7 @@ public final class ProxyService extends HttpServlet {
 	/**
 	 * Aprueba el listado de solicitudes indicado en la petici&oacute;n de
 	 * aprobaci$oacute;n.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param appRequest
@@ -1474,7 +1479,7 @@ public final class ProxyService extends HttpServlet {
 	 * Si se produce alg&uacute;n error al procesar un documento de alguna de
 	 * las peticiones, se establece como incorrecta la petici&oacute;n al
 	 * completo.
-	 * 
+	 *
 	 * @param session
 	 *            Sesi&oacute;n establecida con el portafirmas m&oacute;vil.
 	 * @param xml
@@ -1516,7 +1521,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Realiza la carga de peticiones a firmar en FIRe.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param requestsRefList
@@ -1548,7 +1553,7 @@ public final class ProxyService extends HttpServlet {
 	 * redirigio. Si se produce alg&uacute;n error al procesar un documento de
 	 * alguna de las peticiones, se establece como incorrecta la petici&oacute;n
 	 * al completo.
-	 * 
+	 *
 	 * @param request
 	 *            Petici&oacute;n HTTP recibida.
 	 * @param xml
@@ -1584,23 +1589,23 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Método que procesa la petición del servicio "getUserConfiguration".
-	 * 
+	 * M&eacute;todo que procesa la petici&oacute;n del servicio "getUserConfiguration".
+	 *
 	 * @param session
-	 *            Sesión HTTP.
+	 *            Sesi&oacute;n HTTP.
 	 * @param xml
-	 *            Petición XML.
+	 *            Petici&oacute;n XML.
 	 * @return la respuesta del servicio.
 	 * @throws SAXException
 	 *             Si algo falla.
 	 * @throws IOException
 	 *             Si algo falla.
 	 */
-	private String processGetUserConfig(final HttpSession session, byte[] xml) throws SAXException, IOException {
+	private String processGetUserConfig(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 
-		// Comprobamos que el XML de petición esta bien formado.
+		// Comprobamos que el XML de peticion esta bien formado.
 		GetUserConfiguration.parse(xmlDoc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1608,17 +1613,17 @@ public final class ProxyService extends HttpServlet {
 		return XmlResponsesFactory.createGetUserConfigurationResponse(response);
 	}
 
-	// TODO: Servicio no habilitado aún. A la espera de la implementación de la
+	// TODO: Servicio no habilitado aun. A la espera de la implementacion de la
 	// parte servidora por parte de portafirmas-web. Recupera usuario para darlo
 	// de alta como rol de un determinado usuario.
 
 	// /**
-	// * Método que realiza la operación de búsqueda de usuarios.
+	// * M&eacute;todo que realiza la operaci&oacute;n de b&uacute;squeda de usuarios.
 	// *
 	// * @param session
-	// * Sesión HTTP.
+	// * Sesi&oacute;n HTTP.
 	// * @param xml
-	// * Petición XML.
+	// * Petici&oacute;n XML.
 	// * @return la respuesta del servicio.
 	// * @throws SAXException
 	// * Si el proceso falla.
@@ -1631,7 +1636,7 @@ public final class ProxyService extends HttpServlet {
 	// final Document xmlDoc = this.documentBuilder.parse(new
 	// ByteArrayInputStream(xml));
 	//
-	// // Comprobamos que el XML de petición esta bien formado.
+	// // Comprobamos que el XML de peticion esta bien formado.
 	// GetUserRequestParser.parse(xmlDoc);
 	//
 	// final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1648,7 +1653,7 @@ public final class ProxyService extends HttpServlet {
 	// }
 	//
 	// /**
-	// * Método que recupera la lista de usuario a partir de su DNI.
+	// * M&eacute;todo que recupera la lista de usuario a partir de su DNI.
 	// *
 	// * @param dni
 	// * DNI del usuario a recuperar.
@@ -1660,7 +1665,7 @@ public final class ProxyService extends HttpServlet {
 	// try {
 	// response = getService().getUsers(dni.getBytes(), pageNum, pageSize);
 	// } catch (final MobileException e) {
-	// LOGGER.warn("Error durante la recuperación de usuarios", e);
+	// LOGGER.warn("Error durante la recuperacion de usuarios", e);
 	// return new GetUserResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
 	// }
 	//
@@ -1670,74 +1675,74 @@ public final class ProxyService extends HttpServlet {
 	// }
 
 	/**
-	 * Método que procesa la petición de validar una petición de firma.
-	 * 
-	 * @param sessionsesión
+	 * M&eacute;todo que procesa la petici&oacute;n de validar una petici&oacute;n de firma.
+	 *
+	 * @param session sesi&oacute;n
 	 *            HTTP.
 	 * @param xml
-	 *            Petición XML.
-	 * @return el resultado del servicio de validar una petición.
+	 *            Petici&oacute;n XML.
+	 * @return el resultado del servicio de validar una petici&oacute;n.
 	 * @throws IOException
 	 *             Si algo falla.
 	 * @throws SAXException
 	 *             Si algo falla.
 	 */
-	private String processVerifyPetitions(final HttpSession session, byte[] xml) throws SAXException, IOException {
+	private String processVerifyPetitions(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 
-		// Comprobamos que el XML de petición esta bien formado.
+		// Comprobamos que el XML de peticion esta bien formado.
 		VerifyPetitionParser.parse(xmlDoc);
 
 		// Recuperamos el DNI del validador y la lista de peticiones a validar.
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 		final List<String> petitionsIds = getListPetitionsIds(xmlDoc);
 
-		// Lanzamos todas las peticiones de validación necesarias.
-		List<VerifyPetitionResult> responseList = new LinkedList<>();
-		for (String petitionId : petitionsIds) {
+		// Lanzamos todas las peticiones de validacion necesarias.
+		final List<VerifyPetitionResult> responseList = new LinkedList<>();
+		for (final String petitionId : petitionsIds) {
 			final VerifyPetitionResult response = veriyPetitions(dni, petitionId);
 			responseList.add(response);
 		}
 
-		// Construimos la respuesta para la aplicación móvil.
+		// Construimos la respuesta para la aplicacion movil.
 		return XmlResponsesFactory.createVerifyPetitionsResponse(responseList);
 	}
 
 	/**
-	 * Método que realiza la llamada al servicio de validar peticiones del
+	 * M&eacute;todo que realiza la llamada al servicio de validar peticiones del
 	 * portafirmas-web.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del validador.
 	 * @param petitionId
-	 *            identificador de la petición a validar.
+	 *            identificador de la petici&oacute;n a validar.
 	 * @return un objeto de tipo GetVerifyPetitionsResult que representa la
 	 *         respuesta del servicio.
 	 */
-	private VerifyPetitionResult veriyPetitions(String dni, String petitionId) {
+	private VerifyPetitionResult veriyPetitions(final String dni, final String petitionId) {
 		VerifyPetitionResult response;
 		try {
 			response = new VerifyPetitionResult(getService().validarPeticion(dni.getBytes(), petitionId), petitionId);
 		} catch (final MobileException e) {
-			LOGGER.warn("Error durante la recuperación de usuarios", e);
+			LOGGER.warn("Error durante la validacion de peticiones", e); //$NON-NLS-1$
 			return new VerifyPetitionResult(FireSignResult.ERROR_TYPE_COMMUNICATION, petitionId);
 		}
 		return response;
 	}
 
-	// TODO: Servicio no habilitado aún. A la espera de la implementación de la
+	// TODO: Servicio no habilitado aun. A la espera de la implementacion de la
 	// parte servidora por parte de portafirmas-web. Servicio encargado de crear
 	// un nuevo rol.
 
 	// /**
-	// * Método que procesa la petición de crear un nuevo rol.
+	// * M&eacute;todo que procesa la petici&oacute;n de crear un nuevo rol.
 	// *
 	// * @param session
-	// * Sesión HTTP.
+	// * Sesi&oacute;n HTTP.
 	// * @param xml
-	// * Petición XML.
-	// * @return el resultado del servicio de creación de rol.
+	// * Petici&oacute;n XML.
+	// * @return el resultado del servicio de creaci&oacute;n de rol.
 	// * @throws SAXException
 	// * Si algo falla.
 	// * @throws IOException
@@ -1748,7 +1753,7 @@ public final class ProxyService extends HttpServlet {
 	// final Document xmlDoc = this.documentBuilder.parse(new
 	// ByteArrayInputStream(xml));
 	//
-	// // Comprobamos que el XML de petición esta bien formado.
+	// // Comprobamos que el XML de peticion esta bien formado.
 	// CreateRoleParser.parse(xmlDoc);
 	//
 	// // Recuperamos los campos necesarios para realizar la llamada.
@@ -1767,7 +1772,7 @@ public final class ProxyService extends HttpServlet {
 	// }
 	//
 	// /**
-	// * Método que realiza la llamada al servicio de creación de roles del
+	// * M&eacute;todo que realiza la llamada al servicio de creaci&oacute;n de roles del
 	// * portafirmas-web.
 	// *
 	// * @param dni
@@ -1777,7 +1782,7 @@ public final class ProxyService extends HttpServlet {
 	// * @param selectedRole
 	// * Rol seleccionado (autorizado o validador).
 	// * @param authInfo
-	// * Información de la autorización.
+	// * Informaci&oacute;n de la autorizaci&oacute;n.
 	// * @param appIds
 	// * Lista de identificadores de aplicaciones del validador.
 	// * @return un objeto de tipo CreateRoleResult que representa la respuesta
@@ -1792,20 +1797,20 @@ public final class ProxyService extends HttpServlet {
 	// getService().createRole(dni.getBytes(), userId, selectedRole, authInfo,
 	// appIds));
 	// } catch (final MobileException e) {
-	// LOGGER.warn("Error durante la recuperación de usuarios", e);
+	// LOGGER.warn("Error durante la recuperacion de usuarios", e);
 	// return new CreateRoleResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
 	// }
 	// return response;
 	// }
 	//
 	// /**
-	// * Método encargado de extraer de la petición la información asociada a la
-	// * autorización.
+	// * M&eacute;todo encargado de extraer de la petici&oacute;n la informaci&oacute;n asociada a la
+	// * autorizaci&oacute;n.
 	// *
 	// * @param xmlDoc
-	// * Documento que representa la petición XML.
-	// * @return un objeto de tipo AuthorizationInfo que contiene la información
-	// * contenido en la petición sobre la autorización.
+	// * Documento que representa la petici&oacute;n XML.
+	// * @return un objeto de tipo AuthorizationInfo que contiene la informaci&oacute;n
+	// * contenido en la petici&oacute;n sobre la autorizaci&oacute;n.
 	// */
 	// private AuthorizationInfo getAuthInfo(Document xmlDoc) {
 	// AuthorizationInfo res = null;
@@ -1837,11 +1842,11 @@ public final class ProxyService extends HttpServlet {
 	// }
 	//
 	// /**
-	// * Método encargado de extraer de la petición la lista de aplicaciones
-	// * asociadas a la creación del validador.
+	// * M&eacute;todo encargado de extraer de la petici&oacute;n la lista de aplicaciones
+	// * asociadas a la creaci&oacute;n del validador.
 	// *
 	// * @param xmlDoc
-	// * Documento que representa la petición XML.
+	// * Documento que representa la petici&oacute;n XML.
 	// * @return una lista con los identificadores de las aplicaciones a las que
 	// * permitir el acceso al validador.
 	// */
@@ -1862,19 +1867,19 @@ public final class ProxyService extends HttpServlet {
 	// }
 
 	/**
-	 * Método que recupera de la petición recibida la lista de identificadores
+	 * M&eacute;todo que recupera de la petici&oacute;n recibida la lista de identificadores
 	 * de las aplicaciones a actualizar.
-	 * 
+	 *
 	 * @param xmlDoc
-	 *            Petición XML recibida, como objeto Document.
+	 *            Petici&oacute;n XML recibida, como objeto Document.
 	 * @return la lista de identificadores de aplicaciones a actualizar.
 	 */
-	private List<String> getListPetitionsIds(Document xmlDoc) {
-		NodeList elemList = xmlDoc.getElementsByTagName("reqs");
+	private List<String> getListPetitionsIds(final Document xmlDoc) {
+		final NodeList elemList = xmlDoc.getElementsByTagName("reqs"); //$NON-NLS-1$
 		if (elemList != null) {
-			List<String> res = new ArrayList<>();
+			final List<String> res = new ArrayList<>();
 			Node node = null;
-			NodeList childs = elemList.item(0).getChildNodes();
+			final NodeList childs = elemList.item(0).getChildNodes();
 			for (int i = 0; i < childs.getLength(); i++) {
 				node = childs.item(i);
 				res.add(node.getAttributes().item(0).getNodeValue());
@@ -1887,7 +1892,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Envia a firmar las peticiones cargadas en FIRe.
-	 * 
+	 *
 	 * @param dni
 	 *            DNI del usuario.
 	 * @param transactionId
@@ -1934,18 +1939,18 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Solicita la configuración de un determinado usuario.
-	 * 
+	 * Solicita la configuraci&oacute;n de un determinado usuario.
+	 *
 	 * @param dni
 	 *            Identificador del usuario.
-	 * @return Configuración de usuario.
+	 * @return Configuraci&oacute;n de usuario.
 	 */
-	private GetUserConfigResult getUserConfiguration(String dni) {
+	private GetUserConfigResult getUserConfiguration(final String dni) {
 		MobileConfiguracionUsuario response;
 		try {
 			response = getService().configuracionUsuarioMobile(dni.getBytes());
 		} catch (final MobileException e) {
-			LOGGER.warn("Error durante la recuperación de la configuración de usuario.", e); //$NON-NLS-1$
+			LOGGER.warn("Error durante la recuperacion de la configuracion de usuario.", e); //$NON-NLS-1$
 			return new GetUserConfigResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
 		}
 
@@ -1956,7 +1961,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Genera las prefirmas.
-	 * 
+	 *
 	 * @param triRequests
 	 *            Listado de datos trif&aacute;sicos que prefirmar.
 	 */
@@ -2040,7 +2045,7 @@ public final class ProxyService extends HttpServlet {
 
 	/**
 	 * Genera las postfirmas.
-	 * 
+	 *
 	 * @param triRequests
 	 *            Listado de datos trif&aacute;sicos con las prefirmas y firmas
 	 *            PKCS#1.
@@ -2150,7 +2155,7 @@ public final class ProxyService extends HttpServlet {
 	 * Obtiene el servicio para realizar las peticiones al Portafirmas web. Si
 	 * se tienen habilitadas las opciones de depuraci&oacute;n, se desactivan
 	 * las comprobaciones SSL.
-	 * 
+	 *
 	 * @return Servicio para la conexi&oacute;n con el Portafirmas web.
 	 */
 	private MobileService getService() {
@@ -2164,7 +2169,7 @@ public final class ProxyService extends HttpServlet {
 	 * Procesa la petici&oacute;n de obtener el estado de las notificaciones
 	 * push por parte del cliente m&oacute;vil y devuelve la respuesta recibida
 	 * del portafirmas-web.
-	 * 
+	 *
 	 * @param session
 	 *            Sesi&oacute;n establecida con el portafirmas m&oacute;vil.
 	 * @param xml
@@ -2182,7 +2187,7 @@ public final class ProxyService extends HttpServlet {
 			throws SAXException, IOException, MobileException {
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 
-		// Comprobamos que el XML de petición esta bien formado.
+		// Comprobamos que el XML de peticion esta bien formado.
 		GetPushStatusParser.parse(xmlDoc);
 
 		// Recuperamos el DNI del usuario.
@@ -2191,7 +2196,7 @@ public final class ProxyService extends HttpServlet {
 		final EstadoNotifyPushResponse response = new EstadoNotifyPushResponse();
 		response.setValorNotifyPush(getService().estadoNotifyPush(dni.getBytes()));
 
-		// Construimos la respuesta para la aplicación móvil.
+		// Construimos la respuesta para la aplicacion movil.
 		return XmlResponsesFactory.createGetPushStatusResponse(response);
 	}
 
@@ -2199,7 +2204,7 @@ public final class ProxyService extends HttpServlet {
 	 * Procesa la petici&oacute;n de actualizar el estado de las notificaciones
 	 * push por parte del cliente m&oacute;vil y devuelve la respuesta recibida
 	 * del portafirmas-web.
-	 * 
+	 *
 	 * @param session
 	 *            Sesi&oacute;n establecida con el portafirmas m&oacute;vil.
 	 * @param xml
@@ -2217,17 +2222,18 @@ public final class ProxyService extends HttpServlet {
 			throws SAXException, IOException, MobileException {
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 
-		// Comprobamos que el XML de petición esta bien formado.
-		UpdatePushStatusParser.parse(xmlDoc);
+		// Comprobamos que el XML de peticion esta bien formado y obtenemos la cadena
+		// que determina si las notificaciones deben habilitarse o deshabilitarse
+		final boolean enable = UpdatePushStatusParser.parse(xmlDoc);
 
 		// Recuperamos el DNI del usuario y el nuevo estado de las
 		// notificaciones push.
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
-		final String estadoNotifyPush = xmlDoc.getTextContent();
+		final String enableRequest = enable ? "S" : "N"; //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Realizamos la llamada.
 		final UpdateNotifyPushResponse response = new UpdateNotifyPushResponse();
-		response.setResultado(getService().updateNotifyPush(dni.getBytes(), estadoNotifyPush));
+		response.setResultado(getService().updateNotifyPush(dni.getBytes(), enableRequest));
 
 		return XmlResponsesFactory.createUpdatePushStatusResponse(response);
 	}
@@ -2242,7 +2248,7 @@ public final class ProxyService extends HttpServlet {
 		/**
 		 * Crea el Responser enlaz&aacute;ndolo con una petici&oacute;n concreta
 		 * al servicio.
-		 * 
+		 *
 		 * @param response
 		 *            Manejador para el env&iacute;o de la respuesta.
 		 */
@@ -2252,7 +2258,7 @@ public final class ProxyService extends HttpServlet {
 
 		/**
 		 * Imprime una respuesta en la salida del servicio y cierra el flujo.
-		 * 
+		 *
 		 * @param message
 		 *            Mensaje que imprimir como respuesta.
 		 */
