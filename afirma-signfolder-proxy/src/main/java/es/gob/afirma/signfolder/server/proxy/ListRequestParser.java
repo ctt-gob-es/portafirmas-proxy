@@ -58,7 +58,7 @@ public class ListRequestParser {
 		int pageSize;
 		String[] formats = null;
 		Map<String, String> filters = null;
-		String ownerId;
+		String ownerId = null;
 
 		// Configuramos el estado de las peticiones deseadas
 		state = doc.getDocumentElement().getAttribute(STATE_ATTRIBUTE);
@@ -93,9 +93,14 @@ public class ListRequestParser {
 			}
 			nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
 		}
-		
+
 		// Configuramos el DNI del usuario propietario de la peticion.
-		ownerId = filters.get(OWNER_ID_ATTRIBUTE);
+		if (filters != null) {
+			ownerId = filters.get(OWNER_ID_ATTRIBUTE);
+			if (ownerId != null && ownerId.isEmpty()) {
+				ownerId = null;
+			}
+		}
 
 		return new ListRequest(state, formats, filters, numPage, pageSize, ownerId);
 	}

@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -15,9 +17,11 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,8 +46,6 @@ import javax.xml.ws.soap.SOAPFaultException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import es.gob.afirma.core.misc.AOUtil;
@@ -137,6 +139,9 @@ public final class ProxyService extends HttpServlet {
 	private static final String PAGE_CLAVE_LOADING = "clave-loading.jsp"; //$NON-NLS-1$
 
 	private static final String SYSTEM_PROPERTY_DEBUG = "proxy.debug"; //$NON-NLS-1$
+
+	private static final String KEY_FILTER_PERIOD = "mesFilter"; //$NON-NLS-1$
+	private static final String VALUE_DEFAULT_PERIOD = "all"; //$NON-NLS-1$
 
 	static final Logger LOGGER = LoggerFactory.getLogger(ProxyService.class); // :
 
@@ -262,7 +267,7 @@ public final class ProxyService extends HttpServlet {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Peticion al proxy Portafirmas"); //$NON-NLS-1$
 			final Cookie[] cookies = request.getCookies();
-			LOGGER.debug("Cookies de la peticion: " + (cookies != null ? cookies.length : null)); //$NON-NLS-1$
+			LOGGER.debug("Cookies de la peticion: " + (cookies != null ? cookies.length : 0)); //$NON-NLS-1$
 			if (cookies != null) {
 				for (final Cookie tempCookie : cookies) {
 					LOGGER.debug("Cookie name: " + tempCookie.getName()); //$NON-NLS-1$
@@ -274,14 +279,29 @@ public final class ProxyService extends HttpServlet {
 
 		final Responser responser = new Responser(response);
 
-		final String operation = request.getParameter(PARAMETER_NAME_OPERATION);
+		// Obtenemos los parametros de la peticion
+		Map<String, String> parameters;
+		try {
+			parameters = getParameters(request);
+		}
+		catch (final Exception | Error e) {
+			LOGGER.error("No se pudieron leer los parametros de la peticion: " + e); //$NON-NLS-1$
+			try {
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			} catch (final IOException e1) {
+				LOGGER.error("No se pudo enviar un error al cliente", e); //$NON-NLS-1$
+			}
+			return;
+		}
+
+		final String operation = parameters.get(PARAMETER_NAME_OPERATION);
 		if (operation == null) {
 			LOGGER.warn("No se han proporcionado identificador de operacion"); //$NON-NLS-1$
 			responser.print(ErrorManager.genError(ErrorManager.ERROR_MISSING_OPERATION_NAME, null));
 			return;
 		}
 
-		final String data = request.getParameter(PARAMETER_NAME_DATA);
+		final String data = parameters.get(PARAMETER_NAME_DATA);
 		if (data == null) {
 			LOGGER.warn("No se han proporcionado los datos"); //$NON-NLS-1$
 			responser.print(ErrorManager.genError(ErrorManager.ERROR_MISSING_DATA, null));
@@ -314,7 +334,7 @@ public final class ProxyService extends HttpServlet {
 			// Salvo que sea una operacion de creacion de sesion, permitimos que
 			// se nos pase el ID de sesion compartida
 			if (!isCreatingLoginOperation(operation)) {
-				ssid = request.getParameter(PARAMETER_NAME_SHARED_SESSION_ID);
+				ssid = parameters.get(PARAMETER_NAME_SHARED_SESSION_ID);
 			}
 
 			// Obtenemos la sesion que corresponda y, si requiere estar validada
@@ -364,6 +384,43 @@ public final class ProxyService extends HttpServlet {
 			responser.print((String) ret);
 		}
 		LOGGER.debug("Fin peticion ProxyService"); //$NON-NLS-1$
+	}
+
+	/**
+	 * Carga los par&aacute;metros de entrada del servicio.
+	 * @param request Petici&oacute;n al servicio.
+	 * @return Mapa con los par&aacute;metros de entrada.
+	 * @throws UnsupportedEncodingException Cuando la codificacion por defecto no este soportada.
+	 * @throws IOException Cuando no se puedan leer los parametros de entrada.
+	 */
+	private static Map<String, String> getParameters(final HttpServletRequest request)
+			throws UnsupportedEncodingException, IOException {
+
+		final Map<String, String> parameters = new HashMap<>();
+
+		// Cargamos los parametros de la URL
+		final Map<String, String[]> headerParameters = request.getParameterMap();
+		for (final String param : headerParameters.keySet().toArray(new String[0])) {
+			parameters.put(param, headerParameters.get(param)[0]);
+		}
+
+		// Cargamos los parametros del cuerpo del mensaje
+		final String[] params = new String(AOUtil.getDataFromInputStream(request.getInputStream()), DEFAULT_CHARSET)
+				.split("&"); //$NON-NLS-1$
+
+		for (final String param : params) {
+			if (param.indexOf('=') != -1) {
+				try {
+					parameters.put(
+							param.substring(0, param.indexOf('=')),
+							URLDecoder.decode(param.substring(param.indexOf('=') + 1), DEFAULT_CHARSET));
+				}
+				catch (final Exception e) {
+					LOGGER.warn("Error al decodificar un parametro de la peticion: " + e); //$NON-NLS-1$
+				}
+			}
+		}
+		return parameters;
 	}
 
 	/**
@@ -1026,7 +1083,7 @@ public final class ProxyService extends HttpServlet {
 		final ListRequest listRequest = ListRequestParser.parse(doc);
 
 		// El DNI a recuperar debe ser el DNI del propietario de la peticion.
-		final String dni = listRequest.getOwnerId() != null && !listRequest.getOwnerId().isEmpty()
+		final String dni = listRequest.getOwnerId() != null
 				? listRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
 		final PartialSignRequestsList signRequests = getRequestsList(dni, listRequest);
@@ -1057,10 +1114,10 @@ public final class ProxyService extends HttpServlet {
 
 		// Listado de filtros para la consulta
 		final MobileRequestFilterList filterList = new MobileRequestFilterList();
-		if (listRequest.getFilters() != null) {
-			for (final String filterKey : listRequest.getFilters().keySet()
-					.toArray(new String[listRequest.getFilters().size()])) {
-				final String value = listRequest.getFilters().get(filterKey);
+		final Map<String, String> definedFilters = listRequest.getFilters();
+		if (definedFilters != null) {
+			for (final String filterKey : definedFilters.keySet().toArray(new String[0])) {
+				final String value = definedFilters.get(filterKey);
 				if (value != null && !value.isEmpty()) {
 					final MobileRequestFilter filter = new MobileRequestFilter();
 					filter.setKey(filterKey);
@@ -1068,6 +1125,15 @@ public final class ProxyService extends HttpServlet {
 					filterList.getRequestFilter().add(filter);
 				}
 			}
+		}
+
+		// El filtro de periodo de tiempo es obligatorio. Si no estaba entre los filtros
+		// definidos, se agregar con un valor por defecto para mostrar todas las peticiones
+		if (definedFilters == null || !definedFilters.containsKey(KEY_FILTER_PERIOD)) {
+			final MobileRequestFilter filter = new MobileRequestFilter();
+			filter.setKey(KEY_FILTER_PERIOD);
+			filter.setValue(VALUE_DEFAULT_PERIOD);
+			filterList.getRequestFilter().add(filter);
 		}
 
 		// Solicitud de lista de peticiones
@@ -1692,11 +1758,10 @@ public final class ProxyService extends HttpServlet {
 		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 
 		// Comprobamos que el XML de peticion esta bien formado.
-		VerifyPetitionParser.parse(xmlDoc);
+		final List<String> petitionsIds = VerifyPetitionParser.parse(xmlDoc);
 
 		// Recuperamos el DNI del validador y la lista de peticiones a validar.
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
-		final List<String> petitionsIds = getListPetitionsIds(xmlDoc);
 
 		// Lanzamos todas las peticiones de validacion necesarias.
 		final List<VerifyPetitionResult> responseList = new LinkedList<>();
@@ -1867,31 +1932,7 @@ public final class ProxyService extends HttpServlet {
 	// }
 
 	/**
-	 * M&eacute;todo que recupera de la petici&oacute;n recibida la lista de identificadores
-	 * de las aplicaciones a actualizar.
-	 *
-	 * @param xmlDoc
-	 *            Petici&oacute;n XML recibida, como objeto Document.
-	 * @return la lista de identificadores de aplicaciones a actualizar.
-	 */
-	private List<String> getListPetitionsIds(final Document xmlDoc) {
-		final NodeList elemList = xmlDoc.getElementsByTagName("reqs"); //$NON-NLS-1$
-		if (elemList != null) {
-			final List<String> res = new ArrayList<>();
-			Node node = null;
-			final NodeList childs = elemList.item(0).getChildNodes();
-			for (int i = 0; i < childs.getLength(); i++) {
-				node = childs.item(i);
-				res.add(node.getAttributes().item(0).getNodeValue());
-
-			}
-			return res;
-		}
-		return null;
-	}
-
-	/**
-	 * Envia a firmar las peticiones cargadas en FIRe.
+	 * Env&iacute;a a firmar las peticiones cargadas en FIRe.
 	 *
 	 * @param dni
 	 *            DNI del usuario.

@@ -5,7 +5,7 @@ import org.w3c.dom.Document;
 /**
  * Analiza un documento XML para obtener un identificador de una solicitud de la
  * que queremos obtener el detalle.
- * 
+ *
  * @author Carlos Gamuci
  */
 public class DetailRequestParser {
@@ -21,7 +21,7 @@ public class DetailRequestParser {
 	/**
 	 * Analiza un documento XML y, en caso de tener el formato correcto, obtiene
 	 * de &eacute;l un identificador de solicitud de firma.
-	 * 
+	 *
 	 * @param doc
 	 *            Documento XML.
 	 * @return Identificador de solicitud de firma.
@@ -48,7 +48,11 @@ public class DetailRequestParser {
 		}
 
 		// Recuperamos el DNI del propietario de la solicitud.
-		final String ownerId = doc.getDocumentElement().getAttribute(OWNER_ID_ATTRIBUTE);
+		String ownerId = doc.getDocumentElement().getAttribute(OWNER_ID_ATTRIBUTE);
+		if (ownerId != null && ownerId.isEmpty()) {
+			ownerId = null;
+		}
+
 		return new DetailRequest(id, ownerId);
 	}
 }

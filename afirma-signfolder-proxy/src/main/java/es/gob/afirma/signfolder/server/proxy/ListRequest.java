@@ -31,7 +31,7 @@ public class ListRequest {
 	private final int numPage;
 
 	private final int pageSize;
-	
+
 	private final String ownerId;
 
 	/**
@@ -106,8 +106,6 @@ public class ListRequest {
 	 * @return DNI del propietario.
 	 */
 	public String getOwnerId() {
-		return ownerId;
+		return this.ownerId;
 	}
-	
-	
 }

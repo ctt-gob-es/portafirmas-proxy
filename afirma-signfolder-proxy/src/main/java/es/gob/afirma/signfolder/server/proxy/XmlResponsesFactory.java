@@ -6,8 +6,6 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
-
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
 import es.gob.afirma.signfolder.client.MobileApplication;
@@ -455,8 +453,8 @@ final class XmlResponsesFactory {
 		} else {
 			addRolesToResult(sb, result.getConfiguration().getRolesList().get(0).getRole());
 			addSIMConfig(sb, result.getConfiguration().getParametrosSIMConfigurados().get(0));
-			addUserWithVerifiers(sb, result.getConfiguration().getUsuarioConValidadores().get(0));
 			addPushNotifications(sb, result.getConfiguration().getValorNotifyPush().get(0));
+			addUserWithVerifiers(sb, result.getConfiguration().getUsuarioConValidadores().get(0));
 			addFilters(sb, result.getConfiguration());
 		}
 		sb.append("</rsgtsrcg>"); //$NON-NLS-1$
@@ -1012,8 +1010,6 @@ final class XmlResponsesFactory {
 			sb.append(result.getResultado());
 		}
 		sb.append("</pdtpshsttsrs>"); //$NON-NLS-1$
-
-		LoggerFactory.getLogger(XmlResponsesFactory.class).info(" ============== UPDATE PUSH: " + sb.toString());
 
 		return sb.toString();
 	}
