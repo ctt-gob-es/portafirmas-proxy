@@ -8,16 +8,6 @@ import java.util.Map;
 
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
-import es.gob.afirma.signfolder.client.MobileApplication;
-import es.gob.afirma.signfolder.client.MobileApplicationList;
-import es.gob.afirma.signfolder.client.MobileConfiguracionUsuario;
-import es.gob.afirma.signfolder.client.MobileFiltroAnioList;
-import es.gob.afirma.signfolder.client.MobileFiltroEtiqueta;
-import es.gob.afirma.signfolder.client.MobileFiltroEtiquetaList;
-import es.gob.afirma.signfolder.client.MobileFiltroGenerico;
-import es.gob.afirma.signfolder.client.MobileFiltroMesList;
-import es.gob.afirma.signfolder.client.MobileFiltroTipoList;
-import es.gob.afirma.signfolder.client.MobileRole;
 import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 
@@ -317,7 +307,7 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createRequestLoginResponse(final LoginRequestData loginRequestData, final String ssid) {
+	public static String createLoginResponse(final LoginRequestData loginRequestData, final String ssid) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER).append("<lgnrq id='").append(loginRequestData.getId()); //$NON-NLS-1$
 		if (ssid != null) {
@@ -329,7 +319,7 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createRequestClaveLoginResponse(final String claveUrl, final String sessionId) {
+	public static String createClaveLoginResponse(final String claveUrl, final String sessionId) {
 		final StringBuilder sb = new StringBuilder().append(XML_HEADER).append("<lgnrq>") //$NON-NLS-1$
 				.append("<url>") //$NON-NLS-1$
 				.append(escapeXmlCharacters(claveUrl)).append("</url>"); //$NON-NLS-1$
@@ -355,7 +345,7 @@ final class XmlResponsesFactory {
 		return sb.toString();
 	}
 
-	public static String createRequestLogoutResponse() {
+	public static String createLogoutResponse() {
 		final StringBuilder sb = new StringBuilder().append(XML_HEADER).append("<lgorq/>"); //$NON-NLS-1$
 
 		return sb.toString();
@@ -436,13 +426,10 @@ final class XmlResponsesFactory {
 			sb.append("<err>"); //$NON-NLS-1$
 			String msg;
 			switch (result.getErrorType()) {
-			case 1:
+			case GetUserConfigResult.ERROR_TYPE_COMMUNICATION:
 				msg = "Error de comunicaci\u00F3n con Portafirmas Web"; //$NON-NLS-1$
 				break;
-			case 2:
-				msg = "Eror en la petici\u00F3n realizada a Portafirmas Web"; //$NON-NLS-1$
-				break;
-			case 3:
+			case GetUserConfigResult.ERROR_TYPE_RESPONSE:
 				msg = "Error en el procesado de la petici\u00F3n/respuesta de Portafirmas Web"; //$NON-NLS-1$
 				break;
 			default:
@@ -451,11 +438,11 @@ final class XmlResponsesFactory {
 			sb.append(msg);
 			sb.append("</err>"); //$NON-NLS-1$
 		} else {
-			addRolesToResult(sb, result.getConfiguration().getRolesList().get(0).getRole());
-			addSIMConfig(sb, result.getConfiguration().getParametrosSIMConfigurados().get(0));
-			addPushNotifications(sb, result.getConfiguration().getValorNotifyPush().get(0));
-			addUserWithVerifiers(sb, result.getConfiguration().getUsuarioConValidadores().get(0));
-			addFilters(sb, result.getConfiguration());
+			addRolesToResult(sb, result.getUserRoles());
+			addSIMConfig(sb, result.isSimConfigured());
+			addPushNotificationsState(sb, result.isNotificationActivated());
+			addUserWithVerifiers(sb, result.isValidatorAssigned());
+			addFilters(sb, result);
 		}
 		sb.append("</rsgtsrcg>"); //$NON-NLS-1$
 		return sb.toString();
@@ -469,18 +456,17 @@ final class XmlResponsesFactory {
 	 * @param configuration
 	 *            Configuraci&oacute;n de usuario donde est&aacute; la lista de filtros.
 	 */
-	private static void addFilters(final StringBuilder sb, final MobileConfiguracionUsuario configuration) {
-		if (configuration.getMobileFiltroAnioList() != null
-				|| configuration.getMobileFiltroApplicationList() != null
-				|| configuration.getMobileFiltroEtiquetaList() != null
-				|| configuration.getMobileFiltroMesList() != null
-				|| configuration.getMobileFiltroTipoList() != null) {
+	private static void addFilters(final StringBuilder sb, final GetUserConfigResult configuration) {
+		if (configuration.getApplicationsFilters() != null
+				//|| configuration.getTagsFilters() != null
+				|| configuration.getPeriodsFilters() != null
+				|| configuration.getTypesFilters() != null) {
 			sb.append("<fltrs>"); //$NON-NLS-1$
-			addFiltersYear(sb, configuration.getMobileFiltroAnioList());
-			addFiltersMonths(sb, configuration.getMobileFiltroMesList());
-			addFiltersTags(sb, configuration.getMobileFiltroEtiquetaList());
-			addFiltersTypes(sb, configuration.getMobileFiltroTipoList());
-			addFiltersApplications(sb, configuration.getMobileFiltroApplicationList());
+			addFiltersYear(sb, configuration.getYearsFilters());
+			addFiltersMonths(sb, configuration.getPeriodsFilters());
+			//addFiltersTags(sb, configuration.getTagsFilter());
+			addFiltersTypes(sb, configuration.getTypesFilters());
+			addFiltersApplications(sb, configuration.getApplicationsFilters());
 			sb.append("</fltrs>"); //$NON-NLS-1$
 		}
 	}
@@ -494,24 +480,19 @@ final class XmlResponsesFactory {
 	 *            Lista de filtros de aplicaciones.
 	 */
 	private static void addFiltersApplications(final StringBuilder sb,
-			final List<MobileApplicationList> mobileFiltroApplicationList) {
-		if (mobileFiltroApplicationList != null
-				&& mobileFiltroApplicationList.size() > 0
-				&& mobileFiltroApplicationList.get(0) != null
-				&& mobileFiltroApplicationList.get(0).getApplication() != null
-				&& mobileFiltroApplicationList.get(0).getApplication().size() > 0
-				&& mobileFiltroApplicationList.get(0).getApplication().get(0) != null) {
+			final List<GenericFilter> filtersList) {
+		if (filtersList != null) {
 			sb.append("<pps>"); //$NON-NLS-1$
-			for (final MobileApplication appFilter : mobileFiltroApplicationList.get(0).getApplication()) {
+			for (final GenericFilter appFilter : filtersList) {
 				sb.append("<pp>"); //$NON-NLS-1$
 				if (appFilter.getId() != null) {
 					sb.append("<ppId>"); //$NON-NLS-1$
 					sb.append(appFilter.getId());
 					sb.append("</ppId>"); //$NON-NLS-1$
 				}
-				if (appFilter.getName() != null) {
+				if (appFilter.getDescription() != null) {
 					sb.append("<ppName>"); //$NON-NLS-1$
-					sb.append(appFilter.getName());
+					sb.append(appFilter.getDescription());
 					sb.append("</ppName>"); //$NON-NLS-1$
 				}
 				sb.append("</pp>"); //$NON-NLS-1$
@@ -528,26 +509,19 @@ final class XmlResponsesFactory {
 	 * @param mobileFiltroTipoList
 	 *            Lista de filtros de tipos.
 	 */
-	private static void addFiltersTypes(final StringBuilder sb, final List<MobileFiltroTipoList> mobileFiltroTipoList) {
-		if (mobileFiltroTipoList != null
-				&& mobileFiltroTipoList.size() > 0
-				&& mobileFiltroTipoList.get(0) != null
-				// El campo se llama "Application" por un defecto en el XSD. Su contenido
-				// es un tipo de peticion.
-				&& mobileFiltroTipoList.get(0).getApplication() != null
-				&& mobileFiltroTipoList.get(0).getApplication().size() > 0
-				&& mobileFiltroTipoList.get(0).getApplication().get(0) != null) {
+	private static void addFiltersTypes(final StringBuilder sb, final List<GenericFilter> filtersList) {
+		if (filtersList != null) {
 			sb.append("<tps>"); //$NON-NLS-1$
-			for (final MobileFiltroGenerico typeFilter : mobileFiltroTipoList.get(0).getApplication()) {
+			for (final GenericFilter typeFilter : filtersList) {
 				sb.append("<tp>"); //$NON-NLS-1$
 				if (typeFilter.getId() != null) {
 					sb.append("<tpId>"); //$NON-NLS-1$
 					sb.append(typeFilter.getId());
 					sb.append("</tpId>"); //$NON-NLS-1$
 				}
-				if (typeFilter.getDescripcion() != null) {
+				if (typeFilter.getDescription() != null) {
 					sb.append("<tpDescription>"); //$NON-NLS-1$
-					sb.append(typeFilter.getDescripcion());
+					sb.append(typeFilter.getDescription());
 					sb.append("</tpDescription>"); //$NON-NLS-1$
 				}
 				sb.append("</tp>"); //$NON-NLS-1$
@@ -557,47 +531,40 @@ final class XmlResponsesFactory {
 
 	}
 
-	/**
-	 * A&ntilde;ade la lista de filtros de etiquetas.
-	 *
-	 * @param sb
-	 *            Objeto que representa el XML en construcci&oacute;n.
-	 * @param mobileFiltroEtiquetaList
-	 *            Lista de filtros de etiquetas.
-	 */
-	private static void addFiltersTags(final StringBuilder sb, final List<MobileFiltroEtiquetaList> mobileFiltroEtiquetaList) {
-		if (mobileFiltroEtiquetaList != null
-				&& mobileFiltroEtiquetaList.size() > 0
-				&& mobileFiltroEtiquetaList.get(0) != null
-				// El campo se llama "Application" por un defecto en el XSD. Su contenido
-				// es una etiqueta.
-				&& mobileFiltroEtiquetaList.get(0).getApplication() != null
-				&& mobileFiltroEtiquetaList.get(0).getApplication().size() > 0
-				&& mobileFiltroEtiquetaList.get(0).getApplication().get(0) != null) {
-			sb.append("<tgs>"); //$NON-NLS-1$
-			for (final MobileFiltroEtiqueta tagFilter : mobileFiltroEtiquetaList.get(0).getApplication()) {
-				sb.append("<tg>"); //$NON-NLS-1$
-				if (tagFilter.getId() != null) {
-					sb.append("<tgId>"); //$NON-NLS-1$
-					sb.append(tagFilter.getId());
-					sb.append("</tgId>"); //$NON-NLS-1$
-				}
-				if (tagFilter.getDescripcion() != null) {
-					sb.append("<tgDescription>"); //$NON-NLS-1$
-					sb.append(tagFilter.getDescripcion());
-					sb.append("</tgDescription>"); //$NON-NLS-1$
-				}
-				if (tagFilter.getColor() != null) {
-					sb.append("<tgColor>"); //$NON-NLS-1$
-					sb.append(tagFilter.getColor());
-					sb.append("</tgColor>"); //$NON-NLS-1$
-				}
-				sb.append("</tg>"); //$NON-NLS-1$
-			}
-			sb.append("</tgs>"); //$NON-NLS-1$
-		}
-
-	}
+//	/**
+//	 * A&ntilde;ade la lista de filtros de etiquetas.
+//	 *
+//	 * @param sb
+//	 *            Objeto que representa el XML en construcci&oacute;n.
+//	 * @param mobileFiltroEtiquetaList
+//	 *            Lista de filtros de etiquetas.
+//	 */
+//	private static void addFiltersTags(final StringBuilder sb, final List<TagFilter> filtersList) {
+//		if (filtersList != null) {
+//			sb.append("<tgs>"); //$NON-NLS-1$
+//			for (final GenericFilter tagFilter : filtersList) {
+//				sb.append("<tg>"); //$NON-NLS-1$
+//				if (tagFilter.getId() != null) {
+//					sb.append("<tgId>"); //$NON-NLS-1$
+//					sb.append(tagFilter.getId());
+//					sb.append("</tgId>"); //$NON-NLS-1$
+//				}
+//				if (tagFilter.getDescription() != null) {
+//					sb.append("<tgDescription>"); //$NON-NLS-1$
+//					sb.append(tagFilter.getDescription());
+//					sb.append("</tgDescription>"); //$NON-NLS-1$
+//				}
+//				if (tagFilter.getColor() != null) {
+//					sb.append("<tgColor>"); //$NON-NLS-1$
+//					sb.append(tagFilter.getColor());
+//					sb.append("</tgColor>"); //$NON-NLS-1$
+//				}
+//				sb.append("</tg>"); //$NON-NLS-1$
+//			}
+//			sb.append("</tgs>"); //$NON-NLS-1$
+//		}
+//
+//	}
 
 	/**
 	 * A&ntilde;ade la lista de filtros de meses.
@@ -607,26 +574,19 @@ final class XmlResponsesFactory {
 	 * @param mobileFiltroMesList
 	 *            Lista de filtros de meses.
 	 */
-	private static void addFiltersMonths(final StringBuilder sb, final List<MobileFiltroMesList> mobileFiltroMesList) {
-		if (mobileFiltroMesList != null
-				&& mobileFiltroMesList.size() > 0
-				&& mobileFiltroMesList.get(0) != null
-				// El campo se llama "Application" por un defecto en el XSD. Su contenido
-				// es el mes.
-				&& mobileFiltroMesList.get(0).getApplication() != null
-				&& mobileFiltroMesList.get(0).getApplication().size() > 0
-				&& mobileFiltroMesList.get(0).getApplication().get(0) != null) {
+	private static void addFiltersMonths(final StringBuilder sb, final List<GenericFilter> filtersList) {
+		if (filtersList != null) {
 			sb.append("<mnths>"); //$NON-NLS-1$
-			for (final MobileFiltroGenerico monthFilter : mobileFiltroMesList.get(0).getApplication()) {
+			for (final GenericFilter monthFilter : filtersList) {
 				sb.append("<mnth>"); //$NON-NLS-1$
 				if (monthFilter.getId() != null) {
 					sb.append("<mnthId>"); //$NON-NLS-1$
 					sb.append(monthFilter.getId());
 					sb.append("</mnthId>"); //$NON-NLS-1$
 				}
-				if (monthFilter.getDescripcion() != null) {
+				if (monthFilter.getDescription() != null) {
 					sb.append("<mnthDescription>"); //$NON-NLS-1$
-					sb.append(monthFilter.getDescripcion());
+					sb.append(monthFilter.getDescription());
 					sb.append("</mnthDescription>"); //$NON-NLS-1$
 				}
 				sb.append("</mnth>"); //$NON-NLS-1$
@@ -644,26 +604,19 @@ final class XmlResponsesFactory {
 	 * @param mobileFiltroAnioList
 	 *            Lista de filtros de a&ntilde;os.
 	 */
-	private static void addFiltersYear(final StringBuilder sb, final List<MobileFiltroAnioList> mobileFiltroAnioList) {
-		if (mobileFiltroAnioList != null
-				&& mobileFiltroAnioList.size() > 0
-				&& mobileFiltroAnioList.get(0) != null
-				// El campo se llama "Application" por un defecto en el XSD. Su contenido
-				// es el anyo.
-				&& mobileFiltroAnioList.get(0).getApplication() != null
-				&& mobileFiltroAnioList.get(0).getApplication().size() > 0
-				&& mobileFiltroAnioList.get(0).getApplication().get(0) != null) {
+	private static void addFiltersYear(final StringBuilder sb, final List<GenericFilter> filtersList) {
+		if (filtersList != null) {
 			sb.append("<yrs>"); //$NON-NLS-1$
-			for (final MobileFiltroGenerico yearFilter : mobileFiltroAnioList.get(0).getApplication()) {
+			for (final GenericFilter yearFilter : filtersList) {
 				sb.append("<yr>"); //$NON-NLS-1$
 				if (yearFilter.getId() != null) {
 					sb.append("<YrId>"); //$NON-NLS-1$
 					sb.append(yearFilter.getId());
 					sb.append("<YrId>"); //$NON-NLS-1$
 				}
-				if (yearFilter.getDescripcion() != null) {
+				if (yearFilter.getDescription() != null) {
 					sb.append("<YrDescription>"); //$NON-NLS-1$
-					sb.append(yearFilter.getDescripcion());
+					sb.append(yearFilter.getDescription());
 					sb.append("</YrDescription>"); //$NON-NLS-1$
 				}
 				sb.append("</yr>"); //$NON-NLS-1$
@@ -674,36 +627,19 @@ final class XmlResponsesFactory {
 	}
 
 	/**
-	 * A&ntilde;ade el valor que indica si se tienen activas las notificaciones PUSH.
-	 *
-	 * @param sb
-	 *            Objeto que representa el XML en construcci&oacute;n.
-	 * @param value
-	 *            Valor a a&ntilde;adir.
-	 */
-	private static void addPushNotifications(final StringBuilder sb, final String value) {
-		if (value != null) {
-			sb.append("<ntpsh>"); //$NON-NLS-1$
-			sb.append(value);
-			sb.append("</ntpsh>"); //$NON-NLS-1$
-		}
-	}
-
-	/**
 	 * A&ntilde;ade el valor que indica si el usuario tiene validadores.
 	 *
 	 * @param sb
 	 *            Objeto que representa el XML en construcci&oacute;n.
-	 * @param value
+	 * @param verifiersAssigned
 	 *            Valor a a&ntilde;adir.
 	 */
-	private static void addUserWithVerifiers(final StringBuilder sb, final String value) {
-		if (value != null) {
+	private static void addUserWithVerifiers(final StringBuilder sb, final Boolean verifiersAssigned) {
+		if (verifiersAssigned != null) {
 			sb.append("<srvrf>"); //$NON-NLS-1$
-			sb.append(value);
+			sb.append(verifiersAssigned.booleanValue() ? "S" : "N"); //$NON-NLS-1$ //$NON-NLS-2$
 			sb.append("</srvrf>"); //$NON-NLS-1$
 		}
-
 	}
 
 	/**
@@ -711,14 +647,30 @@ final class XmlResponsesFactory {
 	 *
 	 * @param sb
 	 *            Objeto que representa el XML en construcci&oacute;n.
-	 * @param value
+	 * @param simConfigured
 	 *            Valor de la configuraci&oacute;n SIM.
 	 */
-	private static void addSIMConfig(final StringBuilder sb, final String value) {
-		if (value != null) {
+	private static void addSIMConfig(final StringBuilder sb, final Boolean simConfigured) {
+		if (simConfigured != null) {
 			sb.append("<smcg>"); //$NON-NLS-1$
-			sb.append(value);
+			sb.append(simConfigured.booleanValue() ? "S" : "N"); //$NON-NLS-1$ //$NON-NLS-2$
 			sb.append("</smcg>"); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * A&ntilde;ade el valor que indica si se tienen activas las notificaciones PUSH.
+	 *
+	 * @param sb
+	 *            Objeto que representa el XML en construcci&oacute;n.
+	 * @param notificationsActivated
+	 *            Valor a a&ntilde;adir.
+	 */
+	private static void addPushNotificationsState(final StringBuilder sb, final Boolean notificationsActivated) {
+		if (notificationsActivated != null) {
+			sb.append("<ntpsh>"); //$NON-NLS-1$
+			sb.append(notificationsActivated.booleanValue() ? "S" : "N"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("</ntpsh>"); //$NON-NLS-1$
 		}
 	}
 
@@ -731,23 +683,23 @@ final class XmlResponsesFactory {
 	 * @param roles
 	 *            Lista de usuarios a a&ntilde;adir.
 	 */
-	private static void addRolesToResult(final StringBuilder sb, final List<MobileRole> roles) {
+	private static void addRolesToResult(final StringBuilder sb, final List<Role> roles) {
 		if (roles != null) {
 			sb.append("<rls>"); //$NON-NLS-1$
-			for (int i = 0; i < roles.size(); i++) {
+			for (final Role role : roles) {
 				sb.append("<role>"); //$NON-NLS-1$
-				final MobileRole role = roles.get(i);
 				sb.append("<id>"); //$NON-NLS-1$
-				sb.append(role.getIdRole());
+				sb.append(role.getId());
 				sb.append("</id>"); //$NON-NLS-1$
 				sb.append("<roleName>"); //$NON-NLS-1$
-				sb.append(role.getNameRole());
+				sb.append(role.getName());
 				sb.append("</roleName>"); //$NON-NLS-1$
 				sb.append("<userName>"); //$NON-NLS-1$
-				sb.append(role.getNameUsuario());
+				sb.append(role.getUserName());
 				sb.append("</userName>"); //$NON-NLS-1$
 				sb.append("<dni>"); //$NON-NLS-1$
-				sb.append(role.getDniUsuario());
+				sb.append(role.getUserId());
+
 				sb.append("</dni>"); //$NON-NLS-1$
 				// TODO: Codigo asociado a la gestion de las etiquetas de roles.
 				// Descomentar cuando se requiera dicha funcionalidad.

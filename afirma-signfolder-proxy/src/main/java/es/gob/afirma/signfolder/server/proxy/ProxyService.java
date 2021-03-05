@@ -61,6 +61,10 @@ import es.gob.afirma.signfolder.client.MobileDocSignInfoList;
 import es.gob.afirma.signfolder.client.MobileDocument;
 import es.gob.afirma.signfolder.client.MobileDocumentList;
 import es.gob.afirma.signfolder.client.MobileException;
+import es.gob.afirma.signfolder.client.MobileFiltroAnioList;
+import es.gob.afirma.signfolder.client.MobileFiltroGenerico;
+import es.gob.afirma.signfolder.client.MobileFiltroMesList;
+import es.gob.afirma.signfolder.client.MobileFiltroTipoList;
 import es.gob.afirma.signfolder.client.MobileFireDocument;
 import es.gob.afirma.signfolder.client.MobileFireRequest;
 import es.gob.afirma.signfolder.client.MobileFireRequestList;
@@ -69,6 +73,8 @@ import es.gob.afirma.signfolder.client.MobileRequest;
 import es.gob.afirma.signfolder.client.MobileRequestFilter;
 import es.gob.afirma.signfolder.client.MobileRequestFilterList;
 import es.gob.afirma.signfolder.client.MobileRequestList;
+import es.gob.afirma.signfolder.client.MobileRole;
+import es.gob.afirma.signfolder.client.MobileRoleList;
 import es.gob.afirma.signfolder.client.MobileSIMUser;
 import es.gob.afirma.signfolder.client.MobileSIMUserStatus;
 import es.gob.afirma.signfolder.client.MobileService;
@@ -609,7 +615,7 @@ public final class ProxyService extends HttpServlet {
 			sessionId = SessionCollector.createSharedSession(newSession);
 		}
 
-		return XmlResponsesFactory.createRequestLoginResponse(loginRequestData, sessionId);
+		return XmlResponsesFactory.createLoginResponse(loginRequestData, sessionId);
 	}
 
 	/**
@@ -838,7 +844,7 @@ public final class ProxyService extends HttpServlet {
 			redirectionUrl += "?" + PARAMETER_NAME_SHARED_SESSION_ID + "=" + sessionId; //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
-		return XmlResponsesFactory.createRequestClaveLoginResponse(redirectionUrl, sessionId);
+		return XmlResponsesFactory.createClaveLoginResponse(redirectionUrl, sessionId);
 	}
 
 	/**
@@ -889,7 +895,7 @@ public final class ProxyService extends HttpServlet {
 			SessionCollector.removeSession(session);
 		}
 
-		return XmlResponsesFactory.createRequestLogoutResponse();
+		return XmlResponsesFactory.createLogoutResponse();
 	}
 
 	/**
@@ -1236,6 +1242,7 @@ public final class ProxyService extends HttpServlet {
 
 	private String processRequestDetail(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
+
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
@@ -1987,17 +1994,190 @@ public final class ProxyService extends HttpServlet {
 	 * @return Configuraci&oacute;n de usuario.
 	 */
 	private GetUserConfigResult getUserConfiguration(final String dni) {
-		MobileConfiguracionUsuario response;
+		MobileConfiguracionUsuario userConfig;
 		try {
-			response = getService().configuracionUsuarioMobile(dni.getBytes());
+			userConfig = getService().configuracionUsuarioMobile(dni.getBytes());
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la recuperacion de la configuracion de usuario.", e); //$NON-NLS-1$
-			return new GetUserConfigResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
+			return new GetUserConfigResult(GetUserConfigResult.ERROR_TYPE_COMMUNICATION);
 		}
 
-		final GetUserConfigResult result = new GetUserConfigResult(response);
+		GetUserConfigResult result;
+		try {
+			final List<GenericFilter> yearsFilters = loadYearsFilters(userConfig);
+			final List<GenericFilter> periodsFilters = loadPeriodsFilters(userConfig);
+			final List<GenericFilter> applicationsFilters = loadApplicationsFilters(userConfig);
+			final List<GenericFilter> typesFilters = loadTypesFilters(userConfig);
+			final List<Role> userRoles = loadRoles(userConfig);
+			final Boolean hasValidator = loadHasValidator(userConfig);
+			final Boolean simConfigured = loadSimConfigurationState(userConfig);
+			final Boolean notificationActivated = loadNotificationsState(userConfig);
+
+			result = new GetUserConfigResult();
+			result.setYearsFilters(yearsFilters);
+			result.setPeriodsFilters(periodsFilters);
+			result.setApplicationsFilters(applicationsFilters);
+			result.setTypesFilters(typesFilters);
+			result.setUserRoles(userRoles);
+			result.setValidatorAssigned(hasValidator);
+			result.setSimConfigured(simConfigured);
+			result.setNotificationActivated(notificationActivated);
+		}
+		catch (final Exception e) {
+			result = new GetUserConfigResult(GetUserConfigResult.ERROR_TYPE_RESPONSE);
+		}
 
 		return result;
+	}
+
+	private static List<GenericFilter> loadYearsFilters(final MobileConfiguracionUsuario userConfig) {
+
+		List<GenericFilter> resultFilters = null;
+
+		// Cargamos los filtros de anyos
+		final List<MobileFiltroAnioList> filterLists = userConfig.getMobileFiltroAnioList();
+		if (filterLists != null && filterLists.size() > 0 && filterLists.get(0) != null) {
+			// El campo se llama "Application" por un defecto en el XSD. Su contenido
+			// es el anyo.
+			final List<MobileFiltroGenerico> filters = filterLists.get(0).getApplication();
+			if (filters != null && filters.size() > 0 && filters.get(0) != null) {
+				resultFilters = new ArrayList<>();
+				for (final MobileFiltroGenerico filter : filters) {
+					if (filter.getId() != null) {
+						resultFilters.add(new GenericFilter(filter.getId(), filter.getDescripcion()));
+					}
+				}
+			}
+		}
+		return resultFilters;
+	}
+
+	private static List<GenericFilter> loadPeriodsFilters(final MobileConfiguracionUsuario userConfig) {
+
+		List<GenericFilter> resultFilters = null;
+
+		// Cargamos los filtros de anyos
+		final List<MobileFiltroMesList> filterLists = userConfig.getMobileFiltroMesList();
+		if (filterLists != null && filterLists.size() > 0 && filterLists.get(0) != null) {
+			// El campo se llama "Application" por un defecto en el XSD. Su contenido
+			// es el periodo de tiempo.
+			final List<MobileFiltroGenerico> filters = filterLists.get(0).getApplication();
+			if (filters != null && filters.size() > 0 && filters.get(0) != null) {
+				resultFilters = new ArrayList<>();
+				for (final MobileFiltroGenerico filter : filters) {
+					if (filter.getId() != null) {
+						resultFilters.add(new GenericFilter(filter.getId(), filter.getDescripcion()));
+					}
+				}
+			}
+		}
+		return resultFilters;
+	}
+
+	private static List<GenericFilter> loadApplicationsFilters(final MobileConfiguracionUsuario userConfig) {
+
+		List<GenericFilter> resultFilters = null;
+
+		// Cargamos los filtros de aplicacion
+		final List<MobileApplicationList> filterLists = userConfig.getMobileFiltroApplicationList();
+		if (filterLists != null && filterLists.size() > 0 && filterLists.get(0) != null) {
+			final List<MobileApplication> filters = filterLists.get(0).getApplication();
+			if (filters != null && filters.size() > 0 && filters.get(0) != null) {
+				resultFilters = new ArrayList<>();
+				for (final MobileApplication filter : filters) {
+					if (filter.getId() != null) {
+						resultFilters.add(new GenericFilter(filter.getId(), filter.getName()));
+					}
+				}
+			}
+		}
+		return resultFilters;
+	}
+
+	private static List<GenericFilter> loadTypesFilters(final MobileConfiguracionUsuario userConfig) {
+
+		List<GenericFilter> resultFilters = null;
+
+		// Cargamos los filtros de tipo
+		final List<MobileFiltroTipoList> filterLists = userConfig.getMobileFiltroTipoList();
+		if (filterLists != null && filterLists.size() > 0 && filterLists.get(0) != null) {
+			// El campo se llama "Application" por un defecto en el XSD. Su contenido
+			// es el periodo de tiempo.
+			final List<MobileFiltroGenerico> filters = filterLists.get(0).getApplication();
+			if (filters != null && filters.size() > 0 && filters.get(0) != null) {
+				resultFilters = new ArrayList<>();
+				for (final MobileFiltroGenerico filter : filters) {
+					if (filter.getId() != null) {
+						resultFilters.add(new GenericFilter(filter.getId(), filter.getDescripcion()));
+					}
+				}
+			}
+		}
+		return resultFilters;
+	}
+
+	private static List<Role> loadRoles(final MobileConfiguracionUsuario userConfig) {
+
+		List<Role> resultRoles = null;
+
+		final List<MobileRoleList> rolesList = userConfig.getRolesList();
+		if (rolesList != null && rolesList.size() > 0 && rolesList.get(0) != null) {
+			final List<MobileRole> roles = rolesList.get(0).getRole();
+			if (roles != null && roles.size() > 0 && roles.get(0) != null) {
+				resultRoles = new ArrayList<>();
+				for (final MobileRole role : roles) {
+					final Role sfRole = new Role(role.getIdRole(), role.getNameRole());
+					sfRole.setUserId(role.getDniUsuario());
+					sfRole.setUserName(role.getNameUsuario());
+					resultRoles.add(sfRole);
+				}
+			}
+		}
+
+		return resultRoles;
+	}
+
+
+	private static Boolean loadHasValidator(final MobileConfiguracionUsuario userConfig) {
+
+		Boolean hasValidator = null;
+
+		final List<String> hasValidatorConfig = userConfig.getUsuarioConValidadores();
+		if (hasValidatorConfig != null && hasValidatorConfig.size() > 0) {
+			final String config = hasValidatorConfig.get(0);
+			if (config != null) {
+				hasValidator =  Boolean.valueOf("S".equals(config));
+			}
+		}
+		return hasValidator;
+	}
+
+	private static Boolean loadSimConfigurationState(final MobileConfiguracionUsuario userConfig) {
+
+		Boolean simConfigurated = null;
+
+		final List<String> simConfiguratedState = userConfig.getParametrosSIMConfigurados();
+		if (simConfiguratedState != null && simConfiguratedState.size() > 0) {
+			final String state = simConfiguratedState.get(0);
+			if (state != null) {
+				simConfigurated =  Boolean.valueOf("S".equals(state));
+			}
+		}
+		return simConfigurated;
+	}
+
+	private static Boolean loadNotificationsState(final MobileConfiguracionUsuario userConfig) {
+
+		Boolean notificationsConfigurated = null;
+
+		final List<String> notificationsConfiguratedState = userConfig.getValorNotifyPush();
+		if (notificationsConfiguratedState != null && notificationsConfiguratedState.size() > 0) {
+			final String state = notificationsConfiguratedState.get(0);
+			if (state != null) {
+				notificationsConfigurated = Boolean.valueOf("S".equals(state));
+			}
+		}
+		return notificationsConfigurated;
 	}
 
 	/**
