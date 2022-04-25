@@ -6,8 +6,13 @@ import java.io.Serializable;
  * Enumerado que define el tipo de perfil de usuario.
  */
 public enum UserProfile implements Serializable {
-	ACCESO("ACCESO"), ADMIN("ADMIN"), ADMINCAID("ADMINCAID"), ADMIN_ORG("ADMIN_ORG"), ADMINPROV("ADMINPROV"), FIRMA(
-			"FIRMA"), REDACCION("REDACCION");
+	ACCESO("ACCESO"),
+	ADMIN("ADMIN"),
+	ADMINCAID("ADMINCAID"),
+	ADMIN_ORG("ADMIN_ORG"),
+	ADMINPROV("ADMINPROV"),
+	FIRMA("FIRMA"),
+	REDACCION("REDACCION");
 
 	/**
 	 * Atributo que define el valor del tipo de perfil.
@@ -16,25 +21,25 @@ public enum UserProfile implements Serializable {
 
 	/**
 	 * Constructor por defecto.
-	 * 
+	 *
 	 * @param value
 	 *            Valor del perfil de usuario.
 	 */
-	UserProfile(String value) {
+	UserProfile(final String value) {
 		this.value = value;
 	}
 
 	/**
 	 * Método que transforma una cadena de entrada en un enumerado de tipo
 	 * UserProfile.
-	 * 
+	 *
 	 * @param value
 	 *            Valor a proporcionar al objeto.
 	 * @return un objeto de tipo UserProfile o null si el valor del parámetro de
 	 *         entrada no es válido.
 	 */
-	public static UserProfile getUserProfile(String value) {
-		String val = value.toUpperCase();
+	public static UserProfile getUserProfile(final String value) {
+		final String val = value.toUpperCase();
 		switch (val) {
 		case "ACCESO":
 			return UserProfile.ACCESO;
@@ -58,11 +63,11 @@ public enum UserProfile implements Serializable {
 
 	/**
 	 * Get method for the <i>value</i> attribute.
-	 * 
+	 *
 	 * @return the attribute value.
 	 */
 	public String getValue() {
-		return value;
+		return this.value;
 	}
 
 }

@@ -13,7 +13,7 @@ public class DetailRequest {
 	 * @param id Identificador de la petici&oacute;n.
 	 * @param ownerId DNI del propietario de la petici&oacute;n.
 	 */
-	public DetailRequest(final String id, String ownerId) {
+	public DetailRequest(final String id, final String ownerId) {
 		this.id = id;
 		this.ownerId = ownerId;
 	}
@@ -30,7 +30,7 @@ public class DetailRequest {
 	 * @return the ownerId
 	 */
 	public String getOwnerId() {
-		return ownerId;
+		return this.ownerId;
 	}
-	
+
 }

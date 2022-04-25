@@ -14,6 +14,7 @@ import java.security.cert.X509Certificate;
 import java.util.StringTokenizer;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import es.gob.afirma.core.misc.AOUtil;
@@ -29,11 +30,11 @@ public class TestLoginRaw {
 
 	private static final String CERT_PATH = "ANCERTCCP_FIRMA.p12"; //$NON-NLS-1$
 	private static final char[] CERT_PASS = "1111".toCharArray(); //$NON-NLS-1$
-	private static final String CERT_ALIAS = "juan ejemplo español"; //$NON-NLS-1$
+	private static final String CERT_ALIAS = "juan ejemplo espa\u00F1ol"; //$NON-NLS-1$
 
 	private static final String CERT_PATH2 = "ANCERTCCP_AUTH.p12"; //$NON-NLS-1$
 	private static final char[] CERT_PASS2 = "1111".toCharArray(); //$NON-NLS-1$
-	private static final String CERT_ALIAS2 = "juan ejemplo español"; //$NON-NLS-1$
+	private static final String CERT_ALIAS2 = "juan ejemplo espa\u00F1ol"; //$NON-NLS-1$
 
 	private static final String URL_BASE = "http://localhost:8080/afirma-signfolder-proxy/pf?"; //$NON-NLS-1$
 
@@ -44,7 +45,7 @@ public class TestLoginRaw {
 		CookieHandler.setDefault(cookieManager);
 	}
 
-	public byte[] connect(String url, String method) throws Exception {
+	public byte[] connect(final String url, final String method) throws Exception {
 
 		String urlParameters = null;
 		String request = null;
@@ -107,6 +108,7 @@ public class TestLoginRaw {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testLoginOk() throws Exception {
 
 		// --------------------------
@@ -182,6 +184,7 @@ public class TestLoginRaw {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testWrongToken() throws Exception {
 
 		// --------------------------
@@ -237,6 +240,7 @@ public class TestLoginRaw {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testWrongCertificate() throws Exception {
 
 		// --------------------------
@@ -297,6 +301,7 @@ public class TestLoginRaw {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testNoLogin() throws Exception {
 
 		// Cargamos el certificado
@@ -330,6 +335,7 @@ public class TestLoginRaw {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testCloseSession() throws Exception {
 
 		// --------------------------

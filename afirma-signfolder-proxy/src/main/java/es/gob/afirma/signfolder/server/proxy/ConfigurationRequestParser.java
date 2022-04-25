@@ -1,6 +1,7 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Analiza un documento XML para obtener una petici&oacute;n de previsualizaci&oacute;n
@@ -26,10 +27,12 @@ public class ConfigurationRequestParser {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
 		}
 
-		if (!CONFIGURATION_REQUEST_NODE.equalsIgnoreCase(doc.getDocumentElement().getNodeName())) {
+		final Element rootElement = doc.getDocumentElement();
+
+		if (!CONFIGURATION_REQUEST_NODE.equalsIgnoreCase(rootElement.getNodeName())) {
 			throw new IllegalArgumentException("El elemento raiz del XML debe ser '" + //$NON-NLS-1$
 					CONFIGURATION_REQUEST_NODE + "' y aparece: " + //$NON-NLS-1$
-					doc.getDocumentElement().getNodeName());
+					rootElement.getNodeName());
 		}
 		return new ConfigurationRequest();
 	}

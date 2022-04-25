@@ -4,6 +4,7 @@ import java.security.KeyStore.PrivateKeyEntry;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import es.gob.afirma.core.misc.Base64;
@@ -33,6 +34,7 @@ public class TestLogin {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testLoginOk() throws Exception {
 
 		final UrlHttpManager urlManager = UrlHttpManagerFactory.getInstalledManager();
@@ -110,6 +112,7 @@ public class TestLogin {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testWrongToken() throws Exception {
 
 		final UrlHttpManager urlManager = UrlHttpManagerFactory.getInstalledManager();
@@ -167,6 +170,7 @@ public class TestLogin {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testWrongCertificate() throws Exception {
 
 		final UrlHttpManager urlManager = UrlHttpManagerFactory.getInstalledManager();
@@ -229,6 +233,7 @@ public class TestLogin {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testNoLogin() throws Exception {
 
 		final UrlHttpManager urlManager = UrlHttpManagerFactory.getInstalledManager();
@@ -264,6 +269,7 @@ public class TestLogin {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
+	@Ignore
 	public void testCloseSession() throws Exception {
 
 		final UrlHttpManager urlManager = UrlHttpManagerFactory.getInstalledManager();

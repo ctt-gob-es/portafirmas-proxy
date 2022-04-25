@@ -1,6 +1,7 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Analiza un documento XML para obtener un identificador de una solicitud de la
@@ -34,21 +35,23 @@ public class DetailRequestParser {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo"); //$NON-NLS-1$
 		}
 
-		if (!DETAIL_REQUEST_NODE.equalsIgnoreCase(doc.getDocumentElement().getNodeName())) {
+		final Element rootElement = doc.getDocumentElement();
+
+		if (!DETAIL_REQUEST_NODE.equalsIgnoreCase(rootElement.getNodeName())) {
 			throw new IllegalArgumentException("El elemento raiz del XML debe ser '" + //$NON-NLS-1$
 					DETAIL_REQUEST_NODE + "' y aparece: " + //$NON-NLS-1$
-					doc.getDocumentElement().getNodeName());
+					rootElement.getNodeName());
 		}
 
 		// Recuperamos el identificador de la solicitud
-		final String id = doc.getDocumentElement().getAttribute(REQUEST_ID_ATTRIBUTE);
+		final String id = rootElement.getAttribute(REQUEST_ID_ATTRIBUTE);
 		if (id == null) {
 			throw new IllegalArgumentException("No se ha indicado el atributo " + //$NON-NLS-1$
 					REQUEST_ID_ATTRIBUTE + " con el identificador la solicitud"); //$NON-NLS-1$
 		}
 
 		// Recuperamos el DNI del propietario de la solicitud.
-		String ownerId = doc.getDocumentElement().getAttribute(OWNER_ID_ATTRIBUTE);
+		String ownerId = rootElement.getAttribute(OWNER_ID_ATTRIBUTE);
 		if (ownerId != null && ownerId.isEmpty()) {
 			ownerId = null;
 		}

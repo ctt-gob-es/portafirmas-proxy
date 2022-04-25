@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
+ *         &lt;element name="primaryKey" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="id" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
@@ -28,13 +29,39 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mobileApplication", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
+    "primaryKey",
     "id",
     "name"
 })
 public class MobileApplication {
 
+    protected String primaryKey;
     protected String id;
     protected String name;
+
+    /**
+     * Obtiene el valor de la propiedad primaryKey.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getPrimaryKey() {
+        return primaryKey;
+    }
+
+    /**
+     * Define el valor de la propiedad primaryKey.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setPrimaryKey(String value) {
+        this.primaryKey = value;
+    }
 
     /**
      * Obtiene el valor de la propiedad id.

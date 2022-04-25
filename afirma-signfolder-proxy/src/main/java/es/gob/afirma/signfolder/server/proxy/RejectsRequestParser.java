@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -22,9 +23,10 @@ public class RejectsRequestParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RejectsRequestParser.class);
 
 	private final static String REJECT_REQUEST_NODE = "reqrjcts"; //$NON-NLS-1$
+	private final static String CERT_NODE = "cert"; //$NON-NLS-1$
+	private final static String REASON_NODE = "rsn"; //$NON-NLS-1$
 	private final static String REJECTS_NODE = "rjcts"; //$NON-NLS-1$
 	private final static String REJECT_NODE = "rjct"; //$NON-NLS-1$
-	private final static String REASON_NODE = "rsn"; //$NON-NLS-1$
 	private final static String ID_ATTRIBUTE = "id"; //$NON-NLS-1$
 
 	private final static String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
@@ -55,11 +57,19 @@ public class RejectsRequestParser {
 		final NodeList rejectRequestNodes = doc.getDocumentElement().getChildNodes();
 
 		int nodeIndex = XmlUtils.nextNodeElementIndex(rejectRequestNodes, 0);
+		Element currentNode = (Element) rejectRequestNodes.item(nodeIndex);
+
+		// Si nos proporcionan el nodo con el certificado (modo de funcionamiento antiguo),
+		// lo ignoramos y pasamos al siguiente nodo
+		if (CERT_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
+			nodeIndex = XmlUtils.nextNodeElementIndex(rejectRequestNodes, ++nodeIndex);
+			currentNode = (Element) rejectRequestNodes.item(nodeIndex);
+		}
 
 		// Si se indica una razon del rechazo, la almacenamos
 		String reason = null;
-		if (nodeIndex != -1 && REASON_NODE.equalsIgnoreCase(rejectRequestNodes.item(nodeIndex).getNodeName())) {
-			reason = rejectRequestNodes.item(nodeIndex).getTextContent();
+		if (currentNode != null && REASON_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
+			reason = currentNode.getTextContent();
 			if (reason != null) {
 				try {
 					reason = new String(Base64.decode(reason.trim()), Charset.forName(DEFAULT_ENCODING)).trim();
@@ -69,16 +79,17 @@ public class RejectsRequestParser {
 				}
 			}
 			nodeIndex = XmlUtils.nextNodeElementIndex(rejectRequestNodes, ++nodeIndex);
+			currentNode = (Element) rejectRequestNodes.item(nodeIndex);
 		}
 
-		if (nodeIndex == -1 || !REJECTS_NODE.equalsIgnoreCase(rejectRequestNodes.item(nodeIndex).getNodeName())) {
+		if (currentNode == null || !REJECTS_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el listado de identificadores en la peticion de rechazo de solicitudes"); //$NON-NLS-1$
 		}
 
 		// Listado de peticiones a rechazar
 		final List<String> ids = new ArrayList<>();
-		final NodeList requestNodes = rejectRequestNodes.item(nodeIndex).getChildNodes();
+		final NodeList requestNodes = currentNode.getChildNodes();
 		for (int i = 0; i < requestNodes.getLength(); i++) {
 			i = XmlUtils.nextNodeElementIndex(requestNodes, i);
 			if (i == -1) {

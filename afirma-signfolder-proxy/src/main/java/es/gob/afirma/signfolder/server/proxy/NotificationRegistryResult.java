@@ -17,7 +17,7 @@ class NotificationRegistryResult {
 	 */
 	public NotificationRegistryResult(final String statusCode, final String statusText) {
 
-		if(statusCode.equals("0")) {
+		if(statusCode.equals("0")) { //$NON-NLS-1$
 			this.registered = true;	//TODO: Determinar en base a los parametros de entrada
 		}
 		else {

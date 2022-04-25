@@ -11,30 +11,30 @@ public class CreateRoleResult {
 	static final int ERROR_TYPE_DOCUMENT = 3;
 
 	/**
-	 * Bandera que indica si la operación se ha realizado correctamente
+	 * Bandera que indica si la operaci&oacute;n se ha realizado correctamente
 	 * <i>true</i> o no <i>false</i>.
 	 */
 	private boolean success;
 
 	/**
-	 * Indica si se ha producido un error durante la operación.
+	 * Indica si se ha producido un error durante la operaci&oacute;n.
 	 */
 	private int errorType;
-	
+
 	/**
 	 * Constructor.
 	 * @param success Bandera que indica si el resultado ha sido correcto.
 	 */
-	public CreateRoleResult(boolean success) {
+	public CreateRoleResult(final boolean success) {
 		super();
 		this.success = success;
 	}
 
 	/**
 	 * Constructor.
-	 * @param errorType Número que indica el tipo de error producido.
+	 * @param errorType N&uacute;mero que indica el tipo de error producido.
 	 */
-	public CreateRoleResult(int errorType) {
+	public CreateRoleResult(final int errorType) {
 		super();
 		this.errorType = errorType;
 	}
@@ -45,13 +45,13 @@ public class CreateRoleResult {
 	 * @return the success
 	 */
 	public boolean isSuccess() {
-		return success;
+		return this.success;
 	}
 
 	/**
 	 * @param success the success to set
 	 */
-	public void setSuccess(boolean success) {
+	public void setSuccess(final boolean success) {
 		this.success = success;
 	}
 
@@ -59,15 +59,15 @@ public class CreateRoleResult {
 	 * @return the errorType
 	 */
 	public int getErrorType() {
-		return errorType;
+		return this.errorType;
 	}
 
 	/**
 	 * @param errorType the errorType to set
 	 */
-	public void setErrorType(int errorType) {
+	public void setErrorType(final int errorType) {
 		this.errorType = errorType;
 	}
-	
-	
+
+
 }

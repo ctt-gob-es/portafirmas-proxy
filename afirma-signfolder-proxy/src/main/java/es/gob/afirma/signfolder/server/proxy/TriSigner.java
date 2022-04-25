@@ -73,6 +73,12 @@ public class TriSigner {
 	/** Manejador del log. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(TriSigner.class);
 
+	private static final DocumentBuilderFactory SECURE_DOC_BUILDER_FACTORY;
+
+	static {
+		SECURE_DOC_BUILDER_FACTORY = XmlUtils.getSecureDocumentBuilderFactory();
+	}
+
 	/**
 	 * Prefirma el documento de una petici&oacute;n y muta la propia peticion para almacenar en ella
 	 * el resultado.
@@ -371,7 +377,7 @@ public class TriSigner {
 		Document doc;
 		try (InputStream is = new ByteArrayInputStream(Base64.decode(triphaseResponse, 0, triphaseResponse.length, true))) {
 			try {
-				doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+				doc = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder().parse(is);
 			}
 			catch (final Exception e) {
 				throw new IOException("Error al cargar la respuesta XML", e); //$NON-NLS-1$

@@ -20,7 +20,7 @@ public class ContactData implements Serializable {
 	private static final long serialVersionUID = 4431854138979408319L;
 
 	/**
-	 * Parámetro que representa el email.
+	 * Par&aacute;metro que representa el email.
 	 */
 	private String email;
 
@@ -31,39 +31,39 @@ public class ContactData implements Serializable {
 
 	/**
 	 * Get method for the <i>email</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getEmail() {
-		return email;
+		return this.email;
 	}
 
 	/**
 	 * Set method for the <i>email</i> attribute.
-	 * 
+	 *
 	 * @param email
 	 *            New value of the contact email.
 	 */
-	public void setEmail(String email) {
+	public void setEmail(final String email) {
 		this.email = email;
 	}
 
 	/**
 	 * Get method for the <i>notify</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public boolean isNotify() {
-		return notify;
+		return this.notify;
 	}
 
 	/**
 	 * Set method for the <i>notify</i> attribute.
-	 * 
+	 *
 	 * @param notify
 	 *            New value of the notify flag.
 	 */
-	public void setNotify(boolean notify) {
+	public void setNotify(final boolean notify) {
 		this.notify = notify;
 	}
 }

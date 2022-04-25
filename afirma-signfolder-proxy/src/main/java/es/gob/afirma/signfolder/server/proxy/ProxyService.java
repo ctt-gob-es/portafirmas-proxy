@@ -15,8 +15,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -55,6 +56,8 @@ import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
 import es.gob.afirma.signfolder.client.MobileAccesoClave;
 import es.gob.afirma.signfolder.client.MobileApplication;
 import es.gob.afirma.signfolder.client.MobileApplicationList;
+import es.gob.afirma.signfolder.client.MobileAutorizacion;
+import es.gob.afirma.signfolder.client.MobileAutorizacionesList;
 import es.gob.afirma.signfolder.client.MobileConfiguracionUsuario;
 import es.gob.afirma.signfolder.client.MobileDocSignInfo;
 import es.gob.afirma.signfolder.client.MobileDocSignInfoList;
@@ -81,6 +84,11 @@ import es.gob.afirma.signfolder.client.MobileService;
 import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.client.MobileSignLine;
 import es.gob.afirma.signfolder.client.MobileStringList;
+import es.gob.afirma.signfolder.client.MobileTipoGenerico;
+import es.gob.afirma.signfolder.client.MobileUsuarioGenerico;
+import es.gob.afirma.signfolder.client.MobileUsuariosList;
+import es.gob.afirma.signfolder.client.MobileValidador;
+import es.gob.afirma.signfolder.client.MobileValidadorList;
 import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
@@ -120,15 +128,18 @@ public final class ProxyService extends HttpServlet {
 	private static final String OPERATION_FIRE_LOAD_DATA = "16"; //$NON-NLS-1$
 	private static final String OPERATION_FIRE_SIGN = "17"; //$NON-NLS-1$
 	private static final String OPERATION_GET_USER_CONFIG = "18"; //$NON-NLS-1$
-	// TODO: Identificador de servicio no habilitado aun. Servicio de busqueda
-	// de usuario.
-	// private static final String OPERATION_FIND_USER = "19"; //$NON-NLS-1$
+	private static final String OPERATION_FIND_USER = "19"; //$NON-NLS-1$
 	private static final String OPERATION_VERIFY = "20"; //$NON-NLS-1$
-	// TODO: Identificador de servicio no habilitado aun. Servicio de creacion
-	// de role.
-	// private static final String OPERATION_CREATE_ROLE = "21"; //$NON-NLS-1$
 	private static final String OPERATION_GET_PUSH_STATUS = "22"; //$NON-NLS-1$
 	private static final String OPERATION_UPDATE_PUSH = "23"; //$NON-NLS-1$
+	private static final String OPERATION_LIST_AUTHORIZATIONS = "24"; //$NON-NLS-1$
+	private static final String OPERATION_SAVE_AUTHORIZATION = "25"; //$NON-NLS-1$
+	private static final String OPERATION_REVOCATE_AUTHORIZATION = "26"; //$NON-NLS-1$
+	private static final String OPERATION_ACCEPT_AUTHORIZATION = "27"; //$NON-NLS-1$
+	private static final String OPERATION_LIST_VALIDATORS = "28"; //$NON-NLS-1$
+	private static final String OPERATION_SAVE_VALIDATOR = "29"; //$NON-NLS-1$
+	private static final String OPERATION_REVOCATE_VALIDATOR = "30"; //$NON-NLS-1$
+
 
 	private static final String[] OPERATIONS_CREATE_SESSION = new String[] { OPERATION_REQUEST_LOGIN,
 			OPERATION_CLAVE_LOGIN };
@@ -137,8 +148,6 @@ public final class ProxyService extends HttpServlet {
 			OPERATION_VALIDATE_LOGIN, OPERATION_CLAVE_LOGIN };
 
 	private static final String CRYPTO_PARAM_NEED_DATA = "NEED_DATA"; //$NON-NLS-1$
-
-	private static final String DATE_TIME_FORMAT = "dd/MM/yyyy  HH:mm"; //$NON-NLS-1$
 
 	private static final String LOGIN_SIGNATURE_ALGORITHM = "SHA256withRSA"; //$NON-NLS-1$
 
@@ -149,9 +158,22 @@ public final class ProxyService extends HttpServlet {
 	private static final String KEY_FILTER_PERIOD = "mesFilter"; //$NON-NLS-1$
 	private static final String VALUE_DEFAULT_PERIOD = "all"; //$NON-NLS-1$
 
-	static final Logger LOGGER = LoggerFactory.getLogger(ProxyService.class); // :
+	private static final String SIGNFOLDER_VALUE_TRUE = "S"; //$NON-NLS-1$
+	private static final String SIGNFOLDER_VALUE_FALSE = "N"; //$NON-NLS-1$
+
+	private static final String AUTH_ACTION_REVOCATION = "revocar"; //$NON-NLS-1$
+	private static final String AUTH_ACTION_ACCEPT = "aceptar"; //$NON-NLS-1$
+
+	private static final String VALID_ACTION_INSERT = "insertar"; //$NON-NLS-1$
+
+	static final Logger LOGGER = LoggerFactory.getLogger(ProxyService.class);
 
 	private static boolean DEBUG;
+
+	private static DocumentBuilderFactory SECURE_BUILDER_FACTORY;
+
+	private static TrustManager[] DUMMY_TRUST_MANAGER = null;
+	private static HostnameVerifier HOSTNAME_VERIFIER = null;
 
 	private final DocumentBuilder documentBuilder;
 
@@ -160,12 +182,24 @@ public final class ProxyService extends HttpServlet {
 	static {
 		try {
 			DEBUG = Boolean.parseBoolean(System.getProperty(SYSTEM_PROPERTY_DEBUG));
+			DEBUG = true;
 			if (DEBUG) {
+				// Desactivamos las comprobaciones de los certificados SSL servidor durante las conexiones de red
 				disabledSslSecurity();
+
+				// Establecemos las propiedades para imprimir en el log las peticiones y respuestas SOAP
+				System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+				System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+				System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+				System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+				System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dumpTreshold", "999999"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		} catch (final Exception e) {
-			// Error al establecer las opciones de depuracion
+			LOGGER.warn("Error al habilitar todas las opciones de depuracion", e); //$NON-NLS-1$
 		}
+
+		// Creamos un DocumentBuilderFactory seguro con el que analizar los documentos XML
+		SECURE_BUILDER_FACTORY = XmlUtils.getSecureDocumentBuilderFactory();
 	}
 
 	/** Construye un Servlet que sirve operaciones de firma trif&aacute;sica. */
@@ -175,7 +209,8 @@ public final class ProxyService extends HttpServlet {
 		ConfigManager.checkInitialized();
 
 		try {
-			this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			this.documentBuilder = SECURE_BUILDER_FACTORY.newDocumentBuilder();
+
 		} catch (final Exception e) {
 			throw new IllegalStateException("Error interno en la configuracion del parser XML", e); //$NON-NLS-1$
 		}
@@ -201,9 +236,6 @@ public final class ProxyService extends HttpServlet {
 					+ SIGNATURE_SERVICE_URL + " del sistema: " + e); //$NON-NLS-1$
 		}
 	}
-
-	private static TrustManager[] DUMMY_TRUST_MANAGER = null;
-	private static HostnameVerifier HOSTNAME_VERIFIER = null;
 
 	private static void disabledSslSecurity() {
 
@@ -500,26 +532,33 @@ public final class ProxyService extends HttpServlet {
 		} else if (OPERATION_GET_USER_CONFIG.equals(operation)) {
 			LOGGER.info("Solicitud de recuperacion de la configuracion de usuarios."); //$NON-NLS-1$
 			ret = processGetUserConfig(session, xml);
-
-			// }
-			// TODO: Servicio no habilitado aun. A la espera de la
-			// implementacion de la parte servidora.
-			// else if (OPERATION_FIND_USER.equals(operation)) {
-			// LOGGER.info("Solicitud de recuperacion de usuarios.");
-			// //$NON-NLS-1$
-			// ret = processFindUser(session, xml);
-
+		} else if (OPERATION_FIND_USER.equals(operation)) {
+			LOGGER.info("Solicitud de recuperacion de usuarios."); //$NON-NLS-1$
+			ret = processFindUser(session, xml);
 		} else if (OPERATION_VERIFY.equals(operation)) {
 			LOGGER.info("Solicitud de validacion de peticion."); //$NON-NLS-1$
 			ret = processVerifyPetitions(session, xml);
-
-			// }
-			// TODO: Servicio no habilitado aun. A la espera de la
-			// implementacion de la parte servidora.
-			// else if (OPERATION_CREATE_ROLE.equals(operation)) {
-			// LOGGER.info("Solicitud de creacion de rol."); //$NON-NLS-1$
-			// // ret = processCreateRole(session, xml);
-
+		} else if (OPERATION_LIST_AUTHORIZATIONS.equals(operation)) {
+			LOGGER.info("Solicitud de listado de autorizaciones de usuario."); //$NON-NLS-1$
+			ret = processListAuthorizations(session, xml);
+		} else if (OPERATION_SAVE_AUTHORIZATION.equals(operation)) {
+			LOGGER.info("Solicitud de guardado de autorizacion de usuario."); //$NON-NLS-1$
+			ret = processSaveAuthorization(session, xml);
+		} else if (OPERATION_REVOCATE_AUTHORIZATION.equals(operation)) {
+			LOGGER.info("Solicitud de revocacion de una autorizacion de usuario."); //$NON-NLS-1$
+			ret = processRevocateAuthorization(session, xml);
+		} else if (OPERATION_ACCEPT_AUTHORIZATION.equals(operation)) {
+			LOGGER.info("Solicitud de aceptacion de una autorizacion de usuario."); //$NON-NLS-1$
+			ret = processAcceptAuthorization(session, xml);
+		} else if (OPERATION_LIST_VALIDATORS.equals(operation)) {
+			LOGGER.info("Solicitud de listado de autorizaciones de usuario."); //$NON-NLS-1$
+			ret = processListValidators(session, xml);
+		} else if (OPERATION_SAVE_VALIDATOR.equals(operation)) {
+			LOGGER.info("Solicitud de guardado de autorizacion de usuario."); //$NON-NLS-1$
+			ret = processSaveValidator(session, xml);
+		} else if (OPERATION_REVOCATE_VALIDATOR.equals(operation)) {
+			LOGGER.info("Solicitud de revocacion de una autorizacion de usuario."); //$NON-NLS-1$
+			ret = processRevocateValidator(session, xml);
 		} else if (OPERATION_GET_PUSH_STATUS.equals(operation)) {
 			LOGGER.info("Solicitud de obtencion del estado de las notificaciones push"); //$NON-NLS-1$
 			ret = processGetPushStatus(session, xml);
@@ -1114,9 +1153,11 @@ public final class ProxyService extends HttpServlet {
 
 		// Listado de formatos de firma soportados
 		final MobileStringList formatsList = new MobileStringList();
-		for (final String supportedFormat : listRequest.getFormats()) {
-			formatsList.getStr().add(supportedFormat);
-		}
+
+		// Enviamos el listado de formatos vacio para que no se omitan peticiones
+//		for (final String supportedFormat : listRequest.getFormats()) {
+//			formatsList.getStr().add(supportedFormat);
+//		}
 
 		// Listado de filtros para la consulta
 		final MobileRequestFilterList filterList = new MobileRequestFilterList();
@@ -1147,7 +1188,6 @@ public final class ProxyService extends HttpServlet {
 				listRequest.getState(), Integer.toString(listRequest.getNumPage()),
 				Integer.toString(listRequest.getPageSize()), formatsList, filterList);
 
-		final SimpleDateFormat dateFormater = new SimpleDateFormat("dd/MM/yyyy"); //$NON-NLS-1$
 		final List<SignRequest> signRequests = new ArrayList<>(mobileRequestsList.getSize().intValue());
 		for (final MobileRequest request : mobileRequestsList.getRequest()) {
 
@@ -1175,9 +1215,8 @@ public final class ProxyService extends HttpServlet {
 			signRequests
 					.add(new SignRequest(request.getRequestTagId(), request.getSubject().getValue(),
 							request.getSenders().getStr().get(0), request.getView(),
-							dateFormater.format(request.getFentry().getValue().toGregorianCalendar().getTime()),
-							request.getFexpiration() != null ? dateFormater
-									.format(request.getFexpiration().getValue().toGregorianCalendar().getTime()) : null,
+							request.getFentry().getValue(),
+							request.getFexpiration() != null ? request.getFexpiration().getValue() : null,
 							request.getImportanceLevel().getValue(), request.getWorkflow().getValue().booleanValue(),
 							request.getForward().getValue().booleanValue(), request.getRequestType(), docs));
 		}
@@ -1304,24 +1343,22 @@ public final class ProxyService extends HttpServlet {
 			}
 		}
 
-		final SimpleDateFormat df = new SimpleDateFormat(DATE_TIME_FORMAT);
-
 		// Creamos el objeto de detalle
 		final Detail detail = new Detail(mobileRequest.getRequestTagId());
 		detail.setApp(mobileRequest.getApplication() != null ? mobileRequest.getApplication().getValue() : ""); //$NON-NLS-1$
 		detail.setDate(mobileRequest.getFentry() != null
-				? df.format(mobileRequest.getFentry().getValue().toGregorianCalendar().getTime()) : ""); //$NON-NLS-1$
+				? mobileRequest.getFentry().getValue() : null);
 		detail.setExpDate(mobileRequest.getFexpiration() != null
-				? df.format(mobileRequest.getFexpiration().getValue().toGregorianCalendar().getTime()) : ""); //$NON-NLS-1$
+				? mobileRequest.getFexpiration().getValue() : null);
 		detail.setSubject(mobileRequest.getSubject().getValue());
-		detail.setText(mobileRequest.getText() != null ? mobileRequest.getText().getValue() : ""); //$NON-NLS-1$
+		detail.setText(mobileRequest.getText() != null ? cleanHtmlTags(mobileRequest.getText().getValue()) : ""); //$NON-NLS-1$
 		detail.setWorkflow(mobileRequest.getWorkflow().getValue().booleanValue());
 		detail.setForward(mobileRequest.getForward().getValue().booleanValue());
 		detail.setPriority(mobileRequest.getImportanceLevel().getValue());
 		detail.setType(mobileRequest.getRequestType());
 		detail.setRef(mobileRequest.getRef() != null ? mobileRequest.getRef().getValue() : ""); //$NON-NLS-1$
 		detail.setRejectReason(
-				mobileRequest.getRejectedText() != null ? mobileRequest.getRejectedText().getValue() : null);
+				mobileRequest.getRejectedText() != null ? cleanHtmlTags(mobileRequest.getRejectedText().getValue()) : null);
 		detail.setSignLinesFlow(
 				mobileRequest.isCascadeSign() ? Detail.SIGN_LINES_FLOW_CASCADE : Detail.SIGN_LINES_FLOW_PARALLEL);
 		detail.setSenders(
@@ -1331,6 +1368,19 @@ public final class ProxyService extends HttpServlet {
 		detail.setSignLines(signLines);
 
 		return detail;
+	}
+
+	private static String cleanHtmlTags(final String text) {
+
+		if (text == null) {
+			return ""; //$NON-NLS-1$
+		}
+
+		return text
+				.replace("<br/>", "\r\n") //$NON-NLS-1$ //$NON-NLS-2$
+				.replace("<br>", "\r\n") //$NON-NLS-1$ //$NON-NLS-2$
+				.trim();
+
 	}
 
 	private InputStream processDocumentPreview(final HttpSession session, final byte[] xml)
@@ -1686,79 +1736,65 @@ public final class ProxyService extends HttpServlet {
 		return XmlResponsesFactory.createGetUserConfigurationResponse(response);
 	}
 
-	// TODO: Servicio no habilitado aun. A la espera de la implementacion de la
-	// parte servidora por parte de portafirmas-web. Recupera usuario para darlo
-	// de alta como rol de un determinado usuario.
+	/**
+	 * M&eacute;todo que realiza la operaci&oacute;n de b&uacute;squeda de usuarios.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return la respuesta del servicio.
+	 * @throws SAXException Si el proceso falla.
+	 * @throws IOException Si el proceso falla.
+	 */
+	private String processFindUser(final HttpSession session, final byte[] xml)
+			throws SAXException, IOException {
 
-	// /**
-	// * M&eacute;todo que realiza la operaci&oacute;n de b&uacute;squeda de usuarios.
-	// *
-	// * @param session
-	// * Sesi&oacute;n HTTP.
-	// * @param xml
-	// * Petici&oacute;n XML.
-	// * @return la respuesta del servicio.
-	// * @throws SAXException
-	// * Si el proceso falla.
-	// * @throws IOException
-	// * Si el proceso falla.
-	// */
-	// private String processFindUser(final HttpSession session, byte[] xml)
-	// throws SAXException, IOException {
-	//
-	// final Document xmlDoc = this.documentBuilder.parse(new
-	// ByteArrayInputStream(xml));
-	//
-	// // Comprobamos que el XML de peticion esta bien formado.
-	// GetUserRequestParser.parse(xmlDoc);
-	//
-	// final String dni = (String) session.getAttribute(SessionParams.DNI);
-	// final String pageNum =
-	// xmlDoc.getElementsByTagName("rquserls").item(0).getAttributes().getNamedItem("pg")
-	// .getNodeValue();
-	// final String pageSize =
-	// xmlDoc.getElementsByTagName("rquserls").item(0).getAttributes().getNamedItem("sz")
-	// .getNodeValue();
-	//
-	// final GetUserResult response = getUsers(dni, pageNum, pageSize);
-	//
-	// return XmlResponsesFactory.createGetUserResponse(response);
-	// }
-	//
-	// /**
-	// * M&eacute;todo que recupera la lista de usuario a partir de su DNI.
-	// *
-	// * @param dni
-	// * DNI del usuario a recuperar.
-	// * @return la respuesta con el usuario encontrado.
-	// */
-	// private GetUserResult getUsers(String dni, String pageNum, String
-	// pageSize) {
-	// UserList response;
-	// try {
-	// response = getService().getUsers(dni.getBytes(), pageNum, pageSize);
-	// } catch (final MobileException e) {
-	// LOGGER.warn("Error durante la recuperacion de usuarios", e);
-	// return new GetUserResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
-	// }
-	//
-	// final GetUserResult result = new GetUserResult(response.getUsers());
-	//
-	// return result;
-	// }
+		final Document xmlDoc = this.documentBuilder.parse(new
+				ByteArrayInputStream(xml));
+
+		// Extraemos la informacion del XML de peticion
+		final FindUserRequest request = GetUserRequestParser.parse(xmlDoc);
+
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Realizamos la consulta al Portafirmas
+		final FindUserResult response = getUsers(dni, request.getMode(), request.getText());
+
+		// Devolvemos la respuesta
+		return XmlResponsesFactory.createFindUserResponse(response);
+	}
+
+	/**
+	 * M&eacute;todo que recupera la lista de usuarios acordes a los criterios de b&uacute;squeda.
+	 * @param dni DNI del usuario que realiza la b&uacute;squeda.
+	 * @param mode Finalidad que se le asignara al usuario a buscar (validador, autorizado, etc.).
+	 * @return la respuesta con el usuario encontrado.
+	 */
+	private FindUserResult getUsers(final String dni, final String mode, final String text) {
+		MobileUsuariosList response;
+		try {
+			response = getService().busquedaUsuariosMobile(dni.getBytes(), text, mode, null);
+		} catch (final MobileException e) {
+			LOGGER.warn("Error durante la recuperacion de usuarios", e); //$NON-NLS-1$
+			return new FindUserResult(FindUserResult.ERROR_TYPE_COMMUNICATION);
+		}
+
+		final List<GenericUser> usersList = new ArrayList<>();
+		for (final MobileUsuarioGenerico user : response.getUsuario()) {
+			final String id = user.getId();
+			final String idDni = user.getCidentifierDNI();
+			final String name = user.getNombreCompleto();
+			usersList.add(new GenericUser(id, idDni, name));
+		}
+
+		return new FindUserResult(usersList);
+	}
 
 	/**
 	 * M&eacute;todo que procesa la petici&oacute;n de validar una petici&oacute;n de firma.
-	 *
-	 * @param session sesi&oacute;n
-	 *            HTTP.
-	 * @param xml
-	 *            Petici&oacute;n XML.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
 	 * @return el resultado del servicio de validar una petici&oacute;n.
-	 * @throws IOException
-	 *             Si algo falla.
-	 * @throws SAXException
-	 *             Si algo falla.
+	 * @throws IOException Si algo falla.
+	 * @throws SAXException Si algo falla.
 	 */
 	private String processVerifyPetitions(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
@@ -1773,7 +1809,7 @@ public final class ProxyService extends HttpServlet {
 		// Lanzamos todas las peticiones de validacion necesarias.
 		final List<VerifyPetitionResult> responseList = new LinkedList<>();
 		for (final String petitionId : petitionsIds) {
-			final VerifyPetitionResult response = veriyPetitions(dni, petitionId);
+			final VerifyPetitionResult response = verifyPetitions(dni, petitionId);
 			responseList.add(response);
 		}
 
@@ -1792,7 +1828,7 @@ public final class ProxyService extends HttpServlet {
 	 * @return un objeto de tipo GetVerifyPetitionsResult que representa la
 	 *         respuesta del servicio.
 	 */
-	private VerifyPetitionResult veriyPetitions(final String dni, final String petitionId) {
+	private VerifyPetitionResult verifyPetitions(final String dni, final String petitionId) {
 		VerifyPetitionResult response;
 		try {
 			response = new VerifyPetitionResult(getService().validarPeticion(dni.getBytes(), petitionId), petitionId);
@@ -1803,116 +1839,430 @@ public final class ProxyService extends HttpServlet {
 		return response;
 	}
 
-	// TODO: Servicio no habilitado aun. A la espera de la implementacion de la
-	// parte servidora por parte de portafirmas-web. Servicio encargado de crear
-	// un nuevo rol.
 
-	// /**
-	// * M&eacute;todo que procesa la petici&oacute;n de crear un nuevo rol.
-	// *
-	// * @param session
-	// * Sesi&oacute;n HTTP.
-	// * @param xml
-	// * Petici&oacute;n XML.
-	// * @return el resultado del servicio de creaci&oacute;n de rol.
-	// * @throws SAXException
-	// * Si algo falla.
-	// * @throws IOException
-	// * Si algo falla.
-	// */
-	// private String processCreateRole(final HttpSession session, byte[] xml)
-	// throws SAXException, IOException {
-	// final Document xmlDoc = this.documentBuilder.parse(new
-	// ByteArrayInputStream(xml));
-	//
-	// // Comprobamos que el XML de peticion esta bien formado.
-	// CreateRoleParser.parse(xmlDoc);
-	//
-	// // Recuperamos los campos necesarios para realizar la llamada.
-	// final String dni = (String) session.getAttribute(SessionParams.DNI);
-	// final String userId =
-	// xmlDoc.getElementsByTagName("userId").item(0).getTextContent();
-	// final String selectedRole =
-	// xmlDoc.getElementsByTagName("role").item(0).getTextContent();
-	// final AuthorizationInfo authInfo = getAuthInfo(xmlDoc);
-	// final List<String> appIds = getListApps(xmlDoc);
-	//
-	// final CreateRoleResult response = createRole(dni, userId, selectedRole,
-	// authInfo, appIds);
-	//
-	// return XmlResponsesFactory.createCreationRoleResponse(response);
-	// }
-	//
-	// /**
-	// * M&eacute;todo que realiza la llamada al servicio de creaci&oacute;n de roles del
-	// * portafirmas-web.
-	// *
-	// * @param dni
-	// * DNI del usuario.
-	// * @param userId
-	// * DNI del autorizado o validador.
-	// * @param selectedRole
-	// * Rol seleccionado (autorizado o validador).
-	// * @param authInfo
-	// * Informaci&oacute;n de la autorizaci&oacute;n.
-	// * @param appIds
-	// * Lista de identificadores de aplicaciones del validador.
-	// * @return un objeto de tipo CreateRoleResult que representa la respuesta
-	// * del servicio.
-	// */
-	// private CreateRoleResult createRole(String dni, String userId, String
-	// selectedRole, AuthorizationInfo authInfo,
-	// List<String> appIds) {
-	// CreateRoleResult response;
-	// try {
-	// response = new CreateRoleResult(
-	// getService().createRole(dni.getBytes(), userId, selectedRole, authInfo,
-	// appIds));
-	// } catch (final MobileException e) {
-	// LOGGER.warn("Error durante la recuperacion de usuarios", e);
-	// return new CreateRoleResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
-	// }
-	// return response;
-	// }
-	//
-	// /**
-	// * M&eacute;todo encargado de extraer de la petici&oacute;n la informaci&oacute;n asociada a la
-	// * autorizaci&oacute;n.
-	// *
-	// * @param xmlDoc
-	// * Documento que representa la petici&oacute;n XML.
-	// * @return un objeto de tipo AuthorizationInfo que contiene la informaci&oacute;n
-	// * contenido en la petici&oacute;n sobre la autorizaci&oacute;n.
-	// */
-	// private AuthorizationInfo getAuthInfo(Document xmlDoc) {
-	// AuthorizationInfo res = null;
-	//
-	// if (xmlDoc.getElementsByTagName("authParams").item(0) != null) {
-	//
-	// res = new AuthorizationInfo();
-	//
-	// String initDateAsString =
-	// xmlDoc.getElementsByTagName("initDate").item(0).getTextContent();
-	// String endDateAsString =
-	// xmlDoc.getElementsByTagName("endDate").item(0).getTextContent();
-	// String authType =
-	// xmlDoc.getElementsByTagName("authType").item(0).getTextContent();
-	// String observations =
-	// xmlDoc.getElementsByTagName("obs").item(0).getTextContent();
-	//
-	// Date initDate = new Date(Long.valueOf(initDateAsString));
-	// Date endDate = new Date(Long.valueOf(endDateAsString));
-	//
-	// res.setInitDate(initDate);
-	// res.setEndDate(endDate);
-	// res.setType(authType);
-	// res.setObservations(observations);
-	//
-	// }
-	//
-	// return res;
-	// }
-	//
+	/**
+	 * Procesa la petici&oacute;n de listado de autorizaciones.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado del servicio de listar las autorizaciones.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processListAuthorizations(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Parseamos la peticion
+		GenericRequestParser.parse(doc);
+
+		// Recuperamos el DNI del usuario
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Listamos las autorizaciones registradas
+		final ListAuthorizations authorizationsList = listAuthorizations(dni);
+
+		// Construimos la respuesta para la aplicacion movil.
+		return XmlResponsesFactory.createListAuthorizationsResponse(authorizationsList);
+	}
+
+	/**
+	 * Lista las autorizaciones de un usuario.
+	 * @param dni DNI del usuario del que se desean obtener las autorizaciones.
+	 * @return Resultado con el listado de autorizaciones o el error recibido.
+	 */
+	private ListAuthorizations listAuthorizations(final String dni) {
+
+		final ListAuthorizations response;
+		try {
+			final List<Authorization> authorizationsList = new ArrayList<>();
+			final MobileAutorizacionesList auths = getService().recuperarAutorizaciones(dni.getBytes());
+			for (final MobileAutorizacion mobileAuth : auths.getAutorizacion()) {
+				final Authorization auth = new Authorization();
+				auth.setId(mobileAuth.getId());
+				auth.setType(Authorization.getFormatedType(mobileAuth.getPfAuthorizationType().getCodigo()));
+				auth.setUser(buildGenericUser(mobileAuth.getPfUser()));
+				auth.setAuthorizedUser(buildGenericUser(mobileAuth.getPfAuthorizedUser()));
+				auth.setState(Authorization.getFormatedState(mobileAuth.getEstado()));
+				auth.setStartDate(DateTimeFormatter.getSignFolderFormatterInstance().parse(mobileAuth.getFrequest()));
+				if (mobileAuth.getFrevocation() != null) {
+					auth.setRevocationDate(DateTimeFormatter.getSignFolderFormatterInstance().parse(mobileAuth.getFrevocation()));
+				}
+				auth.setObservations(mobileAuth.getObservations());
+				// Indicamos expresamente si el usuario es quien emitio esa autorizacion
+				auth.setSended(dni.equalsIgnoreCase(mobileAuth.getPfUser().getCidentifierDNI()));
+				authorizationsList.add(auth);
+			}
+			response = new ListAuthorizations(authorizationsList);
+		} catch (final ParseException e) {
+			LOGGER.warn("El formato de las fechas recibidas no es el esperado", e); //$NON-NLS-1$
+			return new ListAuthorizations(FireSignResult.ERROR_TYPE_DOCUMENT);
+		} catch (final MobileException e) {
+			LOGGER.warn("Error durante la validacion de peticiones", e); //$NON-NLS-1$
+			return new ListAuthorizations(FireSignResult.ERROR_TYPE_COMMUNICATION);
+		}
+		return response;
+	}
+
+	private static GenericUser buildGenericUser(final MobileUsuarioGenerico user) {
+		return new GenericUser(
+				user.getId(),
+				user.getCidentifierDNI(),
+				user.getNombreCompleto());
+	}
+
+	/**
+	 * Procesa una petici&oacute;n para dar de alta una nueva autorizaci&oacute;n.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado del servicio de alta de autorizaci&oacute;n.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processSaveAuthorization(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Parseamos la peticion
+		final Authorization authorization = SaveAuthorizationRequestParser.parse(doc);
+
+		// Establecemos al usuario de la sesion como el emisor de la autorizacion
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+		authorization.setUser(new GenericUser(null, dni, null));
+
+		// Guardamos la autorizacion
+		final GenericResult result = saveAuthorization(dni, authorization);
+
+		// Construimos la respuesta para la aplicacion movil
+		return XmlResponsesFactory.createGenericResponse(result);
+	}
+
+	/**
+	 * Realiza la llamada al Portafirmas para el alta de una autorizaci&oacute;n de usuario.
+	 * @param authorization Autorizaci&oacute;n que dar de alta.
+	 * @return Resultado del proceso de alta.
+	 */
+	private GenericResult saveAuthorization(final String dni, final Authorization authorization) {
+
+		String typeId;
+		try {
+			typeId = AuthorizationUtils.translateAuthorizationCodeToId(getService(), dni.getBytes(), authorization.getType());
+		}
+		catch (final IllegalArgumentException e) {
+			LOGGER.error("Tipo de autorizacion no soportado", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_REQUEST);
+		}
+		catch (final MobileException e) {
+			LOGGER.error("Error al acceder al servicio de listado de tipos de autorizacion", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION, e.getMessage());
+		}
+		catch (final Exception e) {
+			LOGGER.error("Error al acceder al servicio de listado de tipos de autorizacion", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION);
+		}
+
+		final MobileAutorizacion mobileAuth = new MobileAutorizacion();
+		mobileAuth.setId(""); //$NON-NLS-1$
+
+		final MobileTipoGenerico type = new MobileTipoGenerico();
+		type.setId(typeId);
+		type.setCodigo(authorization.getType());
+		mobileAuth.setPfAuthorizationType(type);
+
+		final GenericUser user = authorization.getUser();
+		final MobileUsuarioGenerico mobileUser = new MobileUsuarioGenerico();
+		mobileUser.setId(user.getId());
+		mobileUser.setCidentifierDNI(user.getDni());
+		mobileUser.setNombreCompleto(user.getName());
+		mobileAuth.setPfUser(mobileUser);
+
+		final GenericUser authUser = authorization.getAuthorizedUser();
+		final MobileUsuarioGenerico mobileAuthUser = new MobileUsuarioGenerico();
+		mobileAuthUser.setId(authUser.getId());
+		mobileAuthUser.setCidentifierDNI(authUser.getDni());
+		mobileAuthUser.setNombreCompleto(authUser.getName());
+		mobileAuth.setPfAuthorizedUser(mobileAuthUser);
+
+		mobileAuth.setFrequest(DateTimeFormatter.getSignFolderFormatterInstance().format(new Date()));
+		if (authorization.getStartDate() != null) {
+			mobileAuth.setFauthorization(DateTimeFormatter.getSignFolderFormatterInstance().format(authorization.getStartDate()));
+		}
+		if (authorization.getRevocationDate() != null) {
+			mobileAuth.setFrevocation(DateTimeFormatter.getSignFolderFormatterInstance().format(authorization.getRevocationDate()));
+		}
+
+		mobileAuth.setObservations(authorization.getObservations());
+
+		GenericResult result;
+		try {
+			final String text = getService().salvarAutorizacionMobile(mobileAuth);
+			LOGGER.debug("Resultado alta autorizacion: " + text); //$NON-NLS-1$
+			result = new GenericResult(true);
+		}
+		catch (final MobileException e) {
+			LOGGER.error("Error al dar de alta la autorizacion", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION, e.getMessage());
+		}
+		catch (final Exception e) {
+			LOGGER.error("Error desconocido al dar de alta la autorizacion", e); //$NON-NLS-1$
+			result = new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Procesa una petici&oacute;n para revocar una autorizaci&oacute;n de usuario.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado de revocar la autorizaci&oacute;n.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processRevocateAuthorization(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Parseamos la peticion
+		final String authId = ChangeAuthorizationRequestParser.parse(doc);
+
+		// Recuperamos el DNI del validador
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Realizamos el cambio de estado de la autorizacion
+		final GenericResult result = changeAuthorizationState(dni, authId, AUTH_ACTION_REVOCATION);
+
+		// Construimos la respuesta para la aplicacion movil
+		return XmlResponsesFactory.createGenericResponse(result);
+	}
+
+	/**
+	 * Cambia el estado de una autorizaci&oacute;n de usuario.
+	 * @param dni DNI del usuario que realiza el cambio de estado.
+	 * @param authId Identificador de la autorizaci&oacute;n de la que cambiar el estado.
+	 * @param action Acci&oacute;n que se desea realizar.
+	 * @return
+	 */
+	private GenericResult changeAuthorizationState(final String dni, final String authId, final String action) {
+
+		GenericResult result;
+		try {
+			final String text = getService().cambiarEstadoAutorizacionMobile(
+					dni.getBytes(), action, authId);
+			LOGGER.debug("Resultado del cambio de estado de la autorizacion: " + text); //$NON-NLS-1$
+			result = new GenericResult(true);
+		}
+		catch (final MobileException e) {
+			LOGGER.error("Error al cambiar de estos la autorizacion", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION, e.getMessage());
+		}
+		catch (final Exception e) {
+			LOGGER.error("Error desconocido al cambiar de estos la autorizacion", e); //$NON-NLS-1$
+			result = new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Procesa una petici&oacute;n para aceptar una autorizaci&oacute;n de usuario.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado de aceptar la autorizaci&oacute;n.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processAcceptAuthorization(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Parseamos la peticion
+		final String authId = ChangeAuthorizationRequestParser.parse(doc);
+
+		// Recuperamos el DNI del validador
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Realizamos el cambio de estado de la autorizacion
+		final GenericResult result = changeAuthorizationState(dni, authId, AUTH_ACTION_ACCEPT);
+
+		// Construimos la respuesta para la aplicacion movil
+		return XmlResponsesFactory.createGenericResponse(result);
+	}
+
+	/**
+	 * Procesa la petici&oacute;n de listado de validadores.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado del servicio de listar los validadores del usuario.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processListValidators(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		GenericRequestParser.parse(doc);
+
+		// Recuperamos el DNI del usuario
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Listamos los validadores registrados
+		final ListValidators validatorsList = listValidators(dni);
+
+		// Construimos la respuesta para la aplicacion movil.
+		return XmlResponsesFactory.createListValidatorsResponse(validatorsList);
+	}
+
+	/**
+	 * Lista las autorizaciones de un usuario.
+	 * @param dni DNI del usuario del que se desean obtener las autorizaciones.
+	 * @return Resultado con el listado de autorizaciones o el error recibido.
+	 */
+	private ListValidators listValidators(final String dni) {
+		final ListValidators response;
+		try {
+			final List<Validator> validatorsList = new ArrayList<>();
+			final MobileValidadorList validators = getService().recuperarValidadoresMobile(dni.getBytes());
+			for (final MobileValidador mobileValidator : validators.getValidador()) {
+
+				final MobileUsuarioGenerico mobileUser = mobileValidator.getPfValidadorUser();
+				final GenericUser user = new GenericUser(
+						mobileUser.getId(),
+						mobileUser.getCidentifierDNI(),
+						mobileUser.getNombreCompleto());
+
+				final String validatorForApps = mobileValidator.getValidadorPorAplicacion();
+
+				final Validator validator = new Validator();
+				validator.setUser(user);
+				validator.setValidatorForApps(SIGNFOLDER_VALUE_TRUE.equalsIgnoreCase(validatorForApps));
+
+				validatorsList.add(validator);
+			}
+			response = new ListValidators(validatorsList);
+		} catch (final MobileException e) {
+			LOGGER.warn("Error durante la validacion de peticiones", e); //$NON-NLS-1$
+			return new ListValidators(FireSignResult.ERROR_TYPE_COMMUNICATION);
+		}
+		return response;
+	}
+
+	/**
+	 * Procesa una petici&oacute;n para dar de alta un nuevo validador.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado del servicio de alta del validador.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processSaveValidator(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Parseamos la peticion
+		final Validator validator = SaveValidatorRequestParser.parse(doc);
+
+		// Recuperamos el DNI del validador y la lista de peticiones a validar.
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Lanzamos todas las peticiones de validacion necesarias
+		final GenericResult result = saveValidator(dni, validator);
+
+		// Construimos la respuesta para la aplicacion movil
+		return XmlResponsesFactory.createGenericResponse(result);
+	}
+
+	/**
+	 * Realiza la llamada al Portafirmas para asignar un nuevo validador al usuario.
+	 * @param dni DNI del usuario que solicita el alta.
+	 * @param validator Informaci&oacute;n sobre el validador que dar de alta.
+	 * @return Resultado del proceso de alta.
+	 */
+	private GenericResult saveValidator(final String dni, final Validator validator) {
+
+		final GenericUser user = validator.getUser();
+
+		final MobileUsuarioGenerico mobileUser = new MobileUsuarioGenerico();
+		mobileUser.setId(user.getId());
+		mobileUser.setCidentifierDNI(user.getDni());
+		mobileUser.setNombreCompleto(user.getName());
+
+		final String forApps = validator.isValidatorForApps()
+				? SIGNFOLDER_VALUE_TRUE : SIGNFOLDER_VALUE_FALSE;
+
+		final MobileValidador mobileValidador = new MobileValidador();
+		mobileValidador.setPfValidadorUser(mobileUser);
+		mobileValidador.setValidadorPorAplicacion(forApps);
+
+		GenericResult result;
+		try {
+			final String text = getService().salvarValidadorMobile(dni.getBytes(), mobileValidador, VALID_ACTION_INSERT);
+			LOGGER.debug("Resultado alta validador: " + text); //$NON-NLS-1$
+			result = new GenericResult(true);
+		}
+		catch (final MobileException e) {
+			LOGGER.error("Error al dar de alta el validador", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION, e.getMessage());
+		}
+		catch (final Exception e) {
+			LOGGER.error("Error desconocido al dar de alta el validador", e); //$NON-NLS-1$
+			result = new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Procesa una petici&oacute;n para dar de baja un validador.
+	 * @param session Sesi&oacute;n HTTP.
+	 * @param xml Petici&oacute;n XML.
+	 * @return El resultado de dar de baja al validador.
+	 * @throws IOException Si no es posible remitir la petici&oacute;n.
+	 * @throws SAXException Si falla el procesado de la petici&oacute;n.
+	 */
+	private String processRevocateValidator(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+
+		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+
+		// Parseamos la peticion
+		final String validatorId = RemoveValidatorRequestParser.parse(doc);
+
+		// Recuperamos el DNI del validador
+		final String dni = (String) session.getAttribute(SessionParams.DNI);
+
+		// Realizamos la baja del validador
+		final GenericResult result = revocateValidator(dni, validatorId);
+
+		// Construimos la respuesta para la aplicacion movil
+		return XmlResponsesFactory.createGenericResponse(result);
+	}
+
+	/**
+	 * Solicita al Portafirmas que de de baja un validador.
+	 * @param dni DNI del usuario que realiza el cambio de estado.
+	 * @param authId Identificador de la autorizaci&oacute;n de la que cambiar el estado.
+	 * @param action Acci&oacute;n que se desea realizar.
+	 * @return Resultado de la operaci&oacute;n.
+	 */
+	private GenericResult revocateValidator(final String dni, final String validatorId) {
+
+		GenericResult result;
+		try {
+			final String text = getService().eliminarValidadorMobile(dni.getBytes(), validatorId);
+			LOGGER.debug("Resultado de la baja del validador: " + text); //$NON-NLS-1$
+			result = new GenericResult(true);
+		}
+		catch (final MobileException e) {
+			LOGGER.error("Error al dar de baja el validador", e); //$NON-NLS-1$
+			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION, e.getMessage());
+		}
+		catch (final Exception e) {
+			LOGGER.error("Error desconocido al dar de baja el validador", e); //$NON-NLS-1$
+			result = new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION);
+		}
+
+		return result;
+	}
+
 	// /**
 	// * M&eacute;todo encargado de extraer de la petici&oacute;n la lista de aplicaciones
 	// * asociadas a la creaci&oacute;n del validador.
@@ -2146,7 +2496,7 @@ public final class ProxyService extends HttpServlet {
 		if (hasValidatorConfig != null && hasValidatorConfig.size() > 0) {
 			final String config = hasValidatorConfig.get(0);
 			if (config != null) {
-				hasValidator =  Boolean.valueOf("S".equals(config));
+				hasValidator =  Boolean.valueOf(SIGNFOLDER_VALUE_TRUE.equals(config));
 			}
 		}
 		return hasValidator;
@@ -2160,7 +2510,7 @@ public final class ProxyService extends HttpServlet {
 		if (simConfiguratedState != null && simConfiguratedState.size() > 0) {
 			final String state = simConfiguratedState.get(0);
 			if (state != null) {
-				simConfigurated =  Boolean.valueOf("S".equals(state));
+				simConfigurated =  Boolean.valueOf(SIGNFOLDER_VALUE_TRUE.equals(state));
 			}
 		}
 		return simConfigurated;
@@ -2174,7 +2524,7 @@ public final class ProxyService extends HttpServlet {
 		if (notificationsConfiguratedState != null && notificationsConfiguratedState.size() > 0) {
 			final String state = notificationsConfiguratedState.get(0);
 			if (state != null) {
-				notificationsConfigurated = Boolean.valueOf("S".equals(state));
+				notificationsConfigurated = Boolean.valueOf(SIGNFOLDER_VALUE_TRUE.equals(state));
 			}
 		}
 		return notificationsConfigurated;

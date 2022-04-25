@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 public class ApproveRequestParser {
 
 	private static final String APPROVE_REQUEST_NODE = "apprv"; //$NON-NLS-1$
+	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
 	private static final String REQUESTS_NODE = "reqs"; //$NON-NLS-1$
 	private static final String REQUEST_ID_ATTRIBUTE = "id"; //$NON-NLS-1$
 
@@ -37,18 +38,25 @@ public class ApproveRequestParser {
 		}
 
 		final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		final int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
+		int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
-					"No se ha indicado el certificado necesario para la autenticacion en el nodo " + //$NON-NLS-1$
+					"No se ha indicado el listado de peticiones a aprobar con el nodo " + //$NON-NLS-1$
 							REQUESTS_NODE);
 		}
 		Element currentNode = (Element) nodes.item(nodeIndex);
-		currentNode = (Element) nodes.item(nodeIndex);
-		if (!REQUESTS_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
+
+		// Si nos proporcionan el nodo con el certificado (modo de funcionamiento antiguo),
+		// lo ignoramos y pasamos al siguiente nodo
+		if (CERT_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
+			nodeIndex = XmlUtils.nextNodeElementIndex(nodes, ++nodeIndex);
+			currentNode = (Element) nodes.item(nodeIndex);
+		}
+
+		if (currentNode == null || !REQUESTS_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el nodo " + REQUESTS_NODE + //$NON-NLS-1$
-					" en su lugar se encontro " + currentNode.getNodeName()); //$NON-NLS-1$
+					" en su lugar se encontro " + (currentNode != null ? currentNode.getNodeName() : null)); //$NON-NLS-1$
 		}
 
 		final ApproveRequestList appRequest = new ApproveRequestList();

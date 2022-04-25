@@ -432,4 +432,181 @@ public interface MobileService {
         throws MobileException
     ;
 
+    /**
+     * 
+     * @param dni
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileAutorizacionesList
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "autorizacionesList", targetNamespace = "")
+    @RequestWrapper(localName = "recuperarAutorizaciones", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RecuperarAutorizaciones")
+    @ResponseWrapper(localName = "recuperarAutorizacionesResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RecuperarAutorizacionesResponse")
+    public MobileAutorizacionesList recuperarAutorizaciones(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param dni
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileTiposAutorizacionList
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "tiposAutorizacionesList", targetNamespace = "")
+    @RequestWrapper(localName = "tiposAutorizacion", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.TiposAutorizacion")
+    @ResponseWrapper(localName = "tiposAutorizacionResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.TiposAutorizacionResponse")
+    public MobileTiposAutorizacionList tiposAutorizacion(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param filtroBusqueda
+     * @param modoBusqueda
+     * @param parametros
+     * @param dni
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileUsuariosList
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "mobileUsuariosList", targetNamespace = "")
+    @RequestWrapper(localName = "busquedaUsuariosMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.BusquedaUsuariosMobile")
+    @ResponseWrapper(localName = "busquedaUsuariosMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.BusquedaUsuariosMobileResponse")
+    public MobileUsuariosList busquedaUsuariosMobile(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni,
+        @WebParam(name = "filtroBusqueda", targetNamespace = "")
+        String filtroBusqueda,
+        @WebParam(name = "modoBusqueda", targetNamespace = "")
+        String modoBusqueda,
+        @WebParam(name = "parametros", targetNamespace = "")
+        MobileParameterList parametros)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param mobileAutorizacion
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "resultado", targetNamespace = "")
+    @RequestWrapper(localName = "salvarAutorizacionMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SalvarAutorizacionMobile")
+    @ResponseWrapper(localName = "salvarAutorizacionMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SalvarAutorizacionMobileResponse")
+    public String salvarAutorizacionMobile(
+        @WebParam(name = "mobileAutorizacion", targetNamespace = "")
+        MobileAutorizacion mobileAutorizacion)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param accion
+     * @param dni
+     * @param idAutorizacion
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "resultado", targetNamespace = "")
+    @RequestWrapper(localName = "cambiarEstadoAutorizacionMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.CambiarEstadoAutorizacionMobile")
+    @ResponseWrapper(localName = "cambiarEstadoAutorizacionMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.CambiarEstadoAutorizacionMobileResponse")
+    public String cambiarEstadoAutorizacionMobile(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni,
+        @WebParam(name = "accion", targetNamespace = "")
+        String accion,
+        @WebParam(name = "idAutorizacion", targetNamespace = "")
+        String idAutorizacion)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param dni
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileApplicationList
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "mobileApplicationList", targetNamespace = "")
+    @RequestWrapper(localName = "aplicacionesParaValidarMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.AplicacionesParaValidarMobile")
+    @ResponseWrapper(localName = "aplicacionesParaValidarMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.AplicacionesParaValidarMobileResponse")
+    public MobileApplicationList aplicacionesParaValidarMobile(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param dni
+     * @return
+     *     returns es.gob.afirma.signfolder.client.MobileValidadorList
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "mobileValidadorList", targetNamespace = "")
+    @RequestWrapper(localName = "recuperarValidadoresMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RecuperarValidadoresMobile")
+    @ResponseWrapper(localName = "recuperarValidadoresMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.RecuperarValidadoresMobileResponse")
+    public MobileValidadorList recuperarValidadoresMobile(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param primaryKeyValidador
+     * @param dni
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "resultado", targetNamespace = "")
+    @RequestWrapper(localName = "eliminarValidadorMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.EliminarValidadorMobile")
+    @ResponseWrapper(localName = "eliminarValidadorMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.EliminarValidadorMobileResponse")
+    public String eliminarValidadorMobile(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni,
+        @WebParam(name = "primaryKeyValidador", targetNamespace = "")
+        String primaryKeyValidador)
+        throws MobileException
+    ;
+
+    /**
+     * 
+     * @param accion
+     * @param validador
+     * @param dni
+     * @return
+     *     returns java.lang.String
+     * @throws MobileException
+     */
+    @WebMethod
+    @WebResult(name = "resultado", targetNamespace = "")
+    @RequestWrapper(localName = "salvarValidadorMobile", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SalvarValidadorMobile")
+    @ResponseWrapper(localName = "salvarValidadorMobileResponse", targetNamespace = "urn:juntadeandalucia:cice:pfirma:mobile:request:v2.0", className = "es.gob.afirma.signfolder.client.SalvarValidadorMobileResponse")
+    public String salvarValidadorMobile(
+        @WebParam(name = "dni", targetNamespace = "")
+        byte[] dni,
+        @WebParam(name = "validador", targetNamespace = "")
+        MobileValidador validador,
+        @WebParam(name = "accion", targetNamespace = "")
+        String accion)
+        throws MobileException
+    ;
+
 }

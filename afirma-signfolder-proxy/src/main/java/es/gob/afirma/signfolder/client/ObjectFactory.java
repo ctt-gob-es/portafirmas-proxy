@@ -6,7 +6,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.bind.annotation.XmlRegistry;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 
@@ -74,43 +73,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ConfiguracionUsuarioMobileResponse }
-     * 
-     */
-    public ConfiguracionUsuarioMobileResponse createConfiguracionUsuarioMobileResponse() {
-        return new ConfiguracionUsuarioMobileResponse();
-    }
-
-    /**
-     * Create an instance of {@link MobileConfiguracionUsuario }
-     * 
-     */
-    public MobileConfiguracionUsuario createMobileConfiguracionUsuario() {
-        return new MobileConfiguracionUsuario();
-    }
-
-    /**
      * Create an instance of {@link EstadoNotifyPushResponse }
      * 
      */
     public EstadoNotifyPushResponse createEstadoNotifyPushResponse() {
         return new EstadoNotifyPushResponse();
-    }
-
-    /**
-     * Create an instance of {@link ReportPreviewResponse }
-     * 
-     */
-    public ReportPreviewResponse createReportPreviewResponse() {
-        return new ReportPreviewResponse();
-    }
-
-    /**
-     * Create an instance of {@link MobileDocument }
-     * 
-     */
-    public MobileDocument createMobileDocument() {
-        return new MobileDocument();
     }
 
     /**
@@ -127,6 +94,14 @@ public class ObjectFactory {
      */
     public MobileRequest createMobileRequest() {
         return new MobileRequest();
+    }
+
+    /**
+     * Create an instance of {@link EliminarValidadorMobile }
+     * 
+     */
+    public EliminarValidadorMobile createEliminarValidadorMobile() {
+        return new EliminarValidadorMobile();
     }
 
     /**
@@ -162,6 +137,278 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link BusquedaUsuariosMobile }
+     * 
+     */
+    public BusquedaUsuariosMobile createBusquedaUsuariosMobile() {
+        return new BusquedaUsuariosMobile();
+    }
+
+    /**
+     * Create an instance of {@link MobileParameterList }
+     * 
+     */
+    public MobileParameterList createMobileParameterList() {
+        return new MobileParameterList();
+    }
+
+    /**
+     * Create an instance of {@link BusquedaUsuariosMobileResponse }
+     * 
+     */
+    public BusquedaUsuariosMobileResponse createBusquedaUsuariosMobileResponse() {
+        return new BusquedaUsuariosMobileResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileUsuariosList }
+     * 
+     */
+    public MobileUsuariosList createMobileUsuariosList() {
+        return new MobileUsuariosList();
+    }
+
+    /**
+     * Create an instance of {@link GetDocumentsToSign }
+     * 
+     */
+    public GetDocumentsToSign createGetDocumentsToSign() {
+        return new GetDocumentsToSign();
+    }
+
+    /**
+     * Create an instance of {@link FireTransaction }
+     * 
+     */
+    public FireTransaction createFireTransaction() {
+        return new FireTransaction();
+    }
+
+    /**
+     * Create an instance of {@link ApproveRequestResponse }
+     * 
+     */
+    public ApproveRequestResponse createApproveRequestResponse() {
+        return new ApproveRequestResponse();
+    }
+
+    /**
+     * Create an instance of {@link SalvarValidadorMobile }
+     * 
+     */
+    public SalvarValidadorMobile createSalvarValidadorMobile() {
+        return new SalvarValidadorMobile();
+    }
+
+    /**
+     * Create an instance of {@link MobileValidador }
+     * 
+     */
+    public MobileValidador createMobileValidador() {
+        return new MobileValidador();
+    }
+
+    /**
+     * Create an instance of {@link SalvarValidadorMobileResponse }
+     * 
+     */
+    public SalvarValidadorMobileResponse createSalvarValidadorMobileResponse() {
+        return new SalvarValidadorMobileResponse();
+    }
+
+    /**
+     * Create an instance of {@link RejectRequestResponse }
+     * 
+     */
+    public RejectRequestResponse createRejectRequestResponse() {
+        return new RejectRequestResponse();
+    }
+
+    /**
+     * Create an instance of {@link UpdateNotifyPush }
+     * 
+     */
+    public UpdateNotifyPush createUpdateNotifyPush() {
+        return new UpdateNotifyPush();
+    }
+
+    /**
+     * Create an instance of {@link SaveSign }
+     * 
+     */
+    public SaveSign createSaveSign() {
+        return new SaveSign();
+    }
+
+    /**
+     * Create an instance of {@link MobileDocSignInfoList }
+     * 
+     */
+    public MobileDocSignInfoList createMobileDocSignInfoList() {
+        return new MobileDocSignInfoList();
+    }
+
+    /**
+     * Create an instance of {@link SignPreview }
+     * 
+     */
+    public SignPreview createSignPreview() {
+        return new SignPreview();
+    }
+
+    /**
+     * Create an instance of {@link ApproveRequest }
+     * 
+     */
+    public ApproveRequest createApproveRequest() {
+        return new ApproveRequest();
+    }
+
+    /**
+     * Create an instance of {@link RegisterSIMUser }
+     * 
+     */
+    public RegisterSIMUser createRegisterSIMUser() {
+        return new RegisterSIMUser();
+    }
+
+    /**
+     * Create an instance of {@link MobileSIMUser }
+     * 
+     */
+    public MobileSIMUser createMobileSIMUser() {
+        return new MobileSIMUser();
+    }
+
+    /**
+     * Create an instance of {@link RecuperarAutorizaciones }
+     * 
+     */
+    public RecuperarAutorizaciones createRecuperarAutorizaciones() {
+        return new RecuperarAutorizaciones();
+    }
+
+    /**
+     * Create an instance of {@link ValidarPeticion }
+     * 
+     */
+    public ValidarPeticion createValidarPeticion() {
+        return new ValidarPeticion();
+    }
+
+    /**
+     * Create an instance of {@link SalvarAutorizacionMobile }
+     * 
+     */
+    public SalvarAutorizacionMobile createSalvarAutorizacionMobile() {
+        return new SalvarAutorizacionMobile();
+    }
+
+    /**
+     * Create an instance of {@link MobileAutorizacion }
+     * 
+     */
+    public MobileAutorizacion createMobileAutorizacion() {
+        return new MobileAutorizacion();
+    }
+
+    /**
+     * Create an instance of {@link DocumentPreviewResponse }
+     * 
+     */
+    public DocumentPreviewResponse createDocumentPreviewResponse() {
+        return new DocumentPreviewResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileDocument }
+     * 
+     */
+    public MobileDocument createMobileDocument() {
+        return new MobileDocument();
+    }
+
+    /**
+     * Create an instance of {@link SaveSignResponse }
+     * 
+     */
+    public SaveSignResponse createSaveSignResponse() {
+        return new SaveSignResponse();
+    }
+
+    /**
+     * Create an instance of {@link EstadoNotifyPush }
+     * 
+     */
+    public EstadoNotifyPush createEstadoNotifyPush() {
+        return new EstadoNotifyPush();
+    }
+
+    /**
+     * Create an instance of {@link TiposAutorizacion }
+     * 
+     */
+    public TiposAutorizacion createTiposAutorizacion() {
+        return new TiposAutorizacion();
+    }
+
+    /**
+     * Create an instance of {@link ConfiguracionUsuarioMobileResponse }
+     * 
+     */
+    public ConfiguracionUsuarioMobileResponse createConfiguracionUsuarioMobileResponse() {
+        return new ConfiguracionUsuarioMobileResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileConfiguracionUsuario }
+     * 
+     */
+    public MobileConfiguracionUsuario createMobileConfiguracionUsuario() {
+        return new MobileConfiguracionUsuario();
+    }
+
+    /**
+     * Create an instance of {@link RecuperarAutorizacionesResponse }
+     * 
+     */
+    public RecuperarAutorizacionesResponse createRecuperarAutorizacionesResponse() {
+        return new RecuperarAutorizacionesResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileAutorizacionesList }
+     * 
+     */
+    public MobileAutorizacionesList createMobileAutorizacionesList() {
+        return new MobileAutorizacionesList();
+    }
+
+    /**
+     * Create an instance of {@link RecuperarValidadoresMobileResponse }
+     * 
+     */
+    public RecuperarValidadoresMobileResponse createRecuperarValidadoresMobileResponse() {
+        return new RecuperarValidadoresMobileResponse();
+    }
+
+    /**
+     * Create an instance of {@link MobileValidadorList }
+     * 
+     */
+    public MobileValidadorList createMobileValidadorList() {
+        return new MobileValidadorList();
+    }
+
+    /**
+     * Create an instance of {@link ReportPreviewResponse }
+     * 
+     */
+    public ReportPreviewResponse createReportPreviewResponse() {
+        return new ReportPreviewResponse();
+    }
+
+    /**
      * Create an instance of {@link QueryApplicationsMobileResponse }
      * 
      */
@@ -175,6 +422,14 @@ public class ObjectFactory {
      */
     public MobileApplicationList createMobileApplicationList() {
         return new MobileApplicationList();
+    }
+
+    /**
+     * Create an instance of {@link CambiarEstadoAutorizacionMobileResponse }
+     * 
+     */
+    public CambiarEstadoAutorizacionMobileResponse createCambiarEstadoAutorizacionMobileResponse() {
+        return new CambiarEstadoAutorizacionMobileResponse();
     }
 
     /**
@@ -218,27 +473,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetDocumentsToSign }
+     * Create an instance of {@link EliminarValidadorMobileResponse }
      * 
      */
-    public GetDocumentsToSign createGetDocumentsToSign() {
-        return new GetDocumentsToSign();
+    public EliminarValidadorMobileResponse createEliminarValidadorMobileResponse() {
+        return new EliminarValidadorMobileResponse();
     }
 
     /**
-     * Create an instance of {@link FireTransaction }
+     * Create an instance of {@link SalvarAutorizacionMobileResponse }
      * 
      */
-    public FireTransaction createFireTransaction() {
-        return new FireTransaction();
-    }
-
-    /**
-     * Create an instance of {@link ApproveRequestResponse }
-     * 
-     */
-    public ApproveRequestResponse createApproveRequestResponse() {
-        return new ApproveRequestResponse();
+    public SalvarAutorizacionMobileResponse createSalvarAutorizacionMobileResponse() {
+        return new SalvarAutorizacionMobileResponse();
     }
 
     /**
@@ -247,6 +494,14 @@ public class ObjectFactory {
      */
     public SignPreviewResponse createSignPreviewResponse() {
         return new SignPreviewResponse();
+    }
+
+    /**
+     * Create an instance of {@link CambiarEstadoAutorizacionMobile }
+     * 
+     */
+    public CambiarEstadoAutorizacionMobile createCambiarEstadoAutorizacionMobile() {
+        return new CambiarEstadoAutorizacionMobile();
     }
 
     /**
@@ -271,22 +526,6 @@ public class ObjectFactory {
      */
     public MobileDocumentList createMobileDocumentList() {
         return new MobileDocumentList();
-    }
-
-    /**
-     * Create an instance of {@link RejectRequestResponse }
-     * 
-     */
-    public RejectRequestResponse createRejectRequestResponse() {
-        return new RejectRequestResponse();
-    }
-
-    /**
-     * Create an instance of {@link UpdateNotifyPush }
-     * 
-     */
-    public UpdateNotifyPush createUpdateNotifyPush() {
-        return new UpdateNotifyPush();
     }
 
     /**
@@ -338,27 +577,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link SaveSign }
+     * Create an instance of {@link RecuperarValidadoresMobile }
      * 
      */
-    public SaveSign createSaveSign() {
-        return new SaveSign();
-    }
-
-    /**
-     * Create an instance of {@link MobileDocSignInfoList }
-     * 
-     */
-    public MobileDocSignInfoList createMobileDocSignInfoList() {
-        return new MobileDocSignInfoList();
-    }
-
-    /**
-     * Create an instance of {@link SignPreview }
-     * 
-     */
-    public SignPreview createSignPreview() {
-        return new SignPreview();
+    public RecuperarValidadoresMobile createRecuperarValidadoresMobile() {
+        return new RecuperarValidadoresMobile();
     }
 
     /**
@@ -378,35 +601,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ApproveRequest }
+     * Create an instance of {@link TiposAutorizacionResponse }
      * 
      */
-    public ApproveRequest createApproveRequest() {
-        return new ApproveRequest();
+    public TiposAutorizacionResponse createTiposAutorizacionResponse() {
+        return new TiposAutorizacionResponse();
     }
 
     /**
-     * Create an instance of {@link RegisterSIMUser }
+     * Create an instance of {@link MobileTiposAutorizacionList }
      * 
      */
-    public RegisterSIMUser createRegisterSIMUser() {
-        return new RegisterSIMUser();
-    }
-
-    /**
-     * Create an instance of {@link MobileSIMUser }
-     * 
-     */
-    public MobileSIMUser createMobileSIMUser() {
-        return new MobileSIMUser();
-    }
-
-    /**
-     * Create an instance of {@link ValidarPeticion }
-     * 
-     */
-    public ValidarPeticion createValidarPeticion() {
-        return new ValidarPeticion();
+    public MobileTiposAutorizacionList createMobileTiposAutorizacionList() {
+        return new MobileTiposAutorizacionList();
     }
 
     /**
@@ -415,14 +622,6 @@ public class ObjectFactory {
      */
     public ValidateUser createValidateUser() {
         return new ValidateUser();
-    }
-
-    /**
-     * Create an instance of {@link DocumentPreviewResponse }
-     * 
-     */
-    public DocumentPreviewResponse createDocumentPreviewResponse() {
-        return new DocumentPreviewResponse();
     }
 
     /**
@@ -450,19 +649,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link SaveSignResponse }
+     * Create an instance of {@link AplicacionesParaValidarMobile }
      * 
      */
-    public SaveSignResponse createSaveSignResponse() {
-        return new SaveSignResponse();
+    public AplicacionesParaValidarMobile createAplicacionesParaValidarMobile() {
+        return new AplicacionesParaValidarMobile();
     }
 
     /**
-     * Create an instance of {@link EstadoNotifyPush }
+     * Create an instance of {@link AplicacionesParaValidarMobileResponse }
      * 
      */
-    public EstadoNotifyPush createEstadoNotifyPush() {
-        return new EstadoNotifyPush();
+    public AplicacionesParaValidarMobileResponse createAplicacionesParaValidarMobileResponse() {
+        return new AplicacionesParaValidarMobileResponse();
     }
 
     /**
@@ -514,6 +713,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link MobileTipoGenerico }
+     * 
+     */
+    public MobileTipoGenerico createMobileTipoGenerico() {
+        return new MobileTipoGenerico();
+    }
+
+    /**
      * Create an instance of {@link MobileRoleList }
      * 
      */
@@ -546,6 +753,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link MobileUsuarioGenerico }
+     * 
+     */
+    public MobileUsuarioGenerico createMobileUsuarioGenerico() {
+        return new MobileUsuarioGenerico();
+    }
+
+    /**
      * Create an instance of {@link MobileFiltroGenerico }
      * 
      */
@@ -559,6 +774,14 @@ public class ObjectFactory {
      */
     public MobileFiltroEtiqueta createMobileFiltroEtiqueta() {
         return new MobileFiltroEtiqueta();
+    }
+
+    /**
+     * Create an instance of {@link MobileClaveValor }
+     * 
+     */
+    public MobileClaveValor createMobileClaveValor() {
+        return new MobileClaveValor();
     }
 
     /**
@@ -697,12 +920,12 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "", name = "fexpiration", scope = MobileRequest.class)
-    public JAXBElement<XMLGregorianCalendar> createMobileRequestFexpiration(XMLGregorianCalendar value) {
-        return new JAXBElement<XMLGregorianCalendar>(_MobileRequestFexpiration_QNAME, XMLGregorianCalendar.class, MobileRequest.class, value);
+    public JAXBElement<String> createMobileRequestFexpiration(String value) {
+        return new JAXBElement<String>(_MobileRequestFexpiration_QNAME, String.class, MobileRequest.class, value);
     }
 
     /**
@@ -805,12 +1028,12 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "", name = "fentry", scope = MobileRequest.class)
-    public JAXBElement<XMLGregorianCalendar> createMobileRequestFentry(XMLGregorianCalendar value) {
-        return new JAXBElement<XMLGregorianCalendar>(_MobileRequestFentry_QNAME, XMLGregorianCalendar.class, MobileRequest.class, value);
+    public JAXBElement<String> createMobileRequestFentry(String value) {
+        return new JAXBElement<String>(_MobileRequestFentry_QNAME, String.class, MobileRequest.class, value);
     }
 
     /**

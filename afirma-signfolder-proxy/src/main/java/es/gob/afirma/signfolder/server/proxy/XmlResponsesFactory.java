@@ -21,22 +21,17 @@ final class XmlResponsesFactory {
 
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"; //$NON-NLS-1$
 
-	private static final String XML_PRESIGN_OPEN = "<pres>"; //$NON-NLS-1$
-	private static final String XML_PRESIGN_CLOSE = "</pres>"; //$NON-NLS-1$
-	private static final String XML_POSTSIGN_OPEN = "<posts>"; //$NON-NLS-1$
-	private static final String XML_POSTSIGN_CLOSE = "</posts>"; //$NON-NLS-1$
-
 	private XmlResponsesFactory() {
 		// No instanciable
 	}
 
 	static String createPresignResponse(final TriphaseRequestBean triRequest) {
 		final StringBuilder sb = new StringBuilder(XML_HEADER);
-		sb.append(XML_PRESIGN_OPEN);
+		sb.append("<pres>"); //$NON-NLS-1$
 		for (int i = 0; i < triRequest.size(); i++) {
 			sb.append(createSingleReqPresignNode(triRequest.get(i)));
 		}
-		sb.append(XML_PRESIGN_CLOSE);
+		sb.append("</pres>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 
@@ -88,11 +83,11 @@ final class XmlResponsesFactory {
 
 	public static String createPostsignResponse(final TriphaseRequestBean triRequest) {
 		final StringBuilder sb = new StringBuilder(XML_HEADER);
-		sb.append(XML_POSTSIGN_OPEN);
+		sb.append("<posts>"); //$NON-NLS-1$
 		for (int i = 0; i < triRequest.size(); i++) {
 			sb.append(createSingleReqPostsignNode(triRequest.get(i)));
 		}
-		sb.append(XML_POSTSIGN_CLOSE);
+		sb.append("</posts>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 
@@ -421,7 +416,7 @@ final class XmlResponsesFactory {
 	public static String createGetUserConfigurationResponse(final GetUserConfigResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
-		sb.append("<rsgtsrcg>"); //$NON-NLS-1$
+		sb.append("<rsgtsrcg v=\"").append(getProxyVersion()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (result.isError()) {
 			sb.append("<err>"); //$NON-NLS-1$
 			String msg;
@@ -446,6 +441,14 @@ final class XmlResponsesFactory {
 		}
 		sb.append("</rsgtsrcg>"); //$NON-NLS-1$
 		return sb.toString();
+	}
+
+	/**
+	 * Obtiene el c&oacute;digo de versi&oacute;n declarada por el servicio proxy.
+	 * @return C&oacute;digo de versi&oacute;n del servicio.
+	 */
+	private static String getProxyVersion() {
+		return VersionService.getVersionCode();
 	}
 
 	/**
@@ -748,37 +751,27 @@ final class XmlResponsesFactory {
 	 *            Resultado recibida del portafirmas-web.
 	 * @return resultado a enviar al portafirmas-m&oacute;vil.
 	 */
-	public static String createGetUserResponse(final GetUserResult result) {
+	public static String createFindUserResponse(final FindUserResult result) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(XML_HEADER);
-		sb.append("<rsgtsr"); //$NON-NLS-1$
-		sb.append(" n=\""); //$NON-NLS-1$
-		sb.append(result.getUsers().size());
-		sb.append("\">"); //$NON-NLS-1$
+		sb.append("<rsfinduser>"); //$NON-NLS-1$
+
 		if (result.isError()) {
-			sb.append("<err>"); //$NON-NLS-1$
 			String msg;
 			switch (result.getErrorType()) {
-			case 1:
+			case FindUserResult.ERROR_TYPE_COMMUNICATION:
 				msg = "Error de comunicacion con Portafirmas Web"; //$NON-NLS-1$
-				break;
-			case 2:
-				msg = "Error en la peticion realizada a Portafirmas Web"; //$NON-NLS-1$
-				break;
-			case 3:
-				msg = "Error en el procesado de la peticion/respuesta de Portafirmas Web"; //$NON-NLS-1$
 				break;
 			default:
 				msg = "Error desconocido"; //$NON-NLS-1$
 			}
-			sb.append(msg);
-			sb.append("</err>"); //$NON-NLS-1$
+			sb.append("<err>").append(msg).append("</err>"); //$NON-NLS-1$ //$NON-NLS-2$
 		} else {
-			sb.append("<rsgtus>"); //$NON-NLS-1$
+			sb.append("<users>"); //$NON-NLS-1$
 			addUsersToResult(sb, result.getUsers());
-			sb.append("</rsgtus>"); //$NON-NLS-1$
+			sb.append("</users>"); //$NON-NLS-1$
 		}
-		sb.append("</rsgtsr>"); //$NON-NLS-1$
+		sb.append("</rsfinduser>"); //$NON-NLS-1$
 		return sb.toString();
 	}
 
@@ -791,72 +784,19 @@ final class XmlResponsesFactory {
 	 * @param users
 	 *            Lista de usuarios a a&ntilde;adir.
 	 */
-	private static void addUsersToResult(final StringBuilder sb, final List<User> users) {
-		if (users != null) {
-			for (int i = 0; i < users.size(); i++) {
-				sb.append("<user>"); //$NON-NLS-1$
-				final User user = users.get(i);
-				sb.append("<name>"); //$NON-NLS-1$
-				sb.append(user.getName());
-				sb.append("</name>"); //$NON-NLS-1$
-				sb.append("<surname>"); //$NON-NLS-1$
-				sb.append(user.getSurname());
-				sb.append("</surname>"); //$NON-NLS-1$
-				sb.append("<secondSurname>"); //$NON-NLS-1$
-				sb.append(user.getSecondSurname());
-				sb.append("</secondSurname>"); //$NON-NLS-1$
-				sb.append("<LDAPUser>"); //$NON-NLS-1$
-				sb.append(user.getLDAPUser());
-				sb.append("</LDAPUser>"); //$NON-NLS-1$
-				sb.append("<ID>"); //$NON-NLS-1$
-				sb.append(user.getID());
-				sb.append("</ID>"); //$NON-NLS-1$
-				sb.append("<position>"); //$NON-NLS-1$
-				sb.append(user.getPosition());
-				sb.append("</position>"); //$NON-NLS-1$
-				sb.append("<headquarter>"); //$NON-NLS-1$
-				sb.append(user.getHeadquarter());
-				sb.append("</headquarter>"); //$NON-NLS-1$
-				if (user.getProfiles() != null && user.getProfiles().size() > 0) {
-					sb.append("<profiles>"); //$NON-NLS-1$
-					for (int e = 0; e < user.getProfiles().size(); e++) {
-						sb.append("<profile>"); //$NON-NLS-1$
-						sb.append(user.getProfiles().get(e).getValue());
-						sb.append("</profile>"); //$NON-NLS-1$
-					}
-					sb.append("</profiles>"); //$NON-NLS-1$
-				}
-				if (user.getDataContact() != null && user.getDataContact().size() > 0) {
-					sb.append("<dataContacts>"); //$NON-NLS-1$
-					for (int a = 0; a < user.getDataContact().size(); a++) {
-						sb.append("<dataContact>"); //$NON-NLS-1$
-						sb.append("<email>"); //$NON-NLS-1$
-						sb.append(user.getDataContact().get(a).getEmail());
-						sb.append("</email>"); //$NON-NLS-1$
-						sb.append("<notify>"); //$NON-NLS-1$
-						sb.append(user.getDataContact().get(a).isNotify());
-						sb.append("</notify>"); //$NON-NLS-1$
-						sb.append("</dataContact>"); //$NON-NLS-1$
-					}
-					sb.append("</dataContacts>"); //$NON-NLS-1$
-				}
-				sb.append("<attachSignature>"); //$NON-NLS-1$
-				sb.append(user.isAttachSignature());
-				sb.append("</attachSignature>"); //$NON-NLS-1$
-				sb.append("<attachReport>"); //$NON-NLS-1$
-				sb.append(user.isAttachReport());
-				sb.append("</attachReport>"); //$NON-NLS-1$
-				sb.append("<pageSize>"); //$NON-NLS-1$
-				sb.append(user.getPageSize());
-				sb.append("</pageSize>"); //$NON-NLS-1$
-				sb.append("<applyAppFilter>"); //$NON-NLS-1$
-				sb.append(user.isApplyAppFilter());
-				sb.append("</applyAppFilter>"); //$NON-NLS-1$
-				sb.append("<showPreviousSigner>"); //$NON-NLS-1$
-				sb.append(user.isShowPreviousSigner());
-				sb.append("</showPreviousSigner>"); //$NON-NLS-1$
-				sb.append("</user>"); //$NON-NLS-1$
-			}
+	private static void addUsersToResult(final StringBuilder sb, final List<GenericUser> users) {
+
+		// Si el listado es nulo o vacio, no hacemos nada
+		if (users == null || users.isEmpty()) {
+			return;
+		}
+
+		for (final GenericUser user : users) {
+			sb.append("<user ") //$NON-NLS-1$
+				.append("id=\"").append(user.getId()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+				.append("dni=\"").append(user.getDni()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("<![CDATA[").append(user.getName()).append("]]>"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append("</user>"); //$NON-NLS-1$
 		}
 	}
 
@@ -904,17 +844,17 @@ final class XmlResponsesFactory {
 		sb.append(" success=\""); //$NON-NLS-1$
 		sb.append(result.isSuccess());
 		sb.append("\">"); //$NON-NLS-1$
-		// Mensaje de error.
-		if (result.getErrorType() == 1 || result.getErrorType() == 2 || result.getErrorType() == 3) {
+		// Mensaje de error
+		if (!result.isSuccess()) {
 			sb.append("<errorMsg>"); //$NON-NLS-1$
 			switch (result.getErrorType()) {
-			case 1:
+			case CreateRoleResult.ERROR_TYPE_COMMUNICATION:
 				sb.append("Error de comunicacion con Portafirmas Web"); //$NON-NLS-1$
 				break;
-			case 2:
+			case CreateRoleResult.ERROR_TYPE_REQUEST:
 				sb.append("Error en la peticion realizada a Portafirmas Web"); //$NON-NLS-1$
 				break;
-			case 3:
+			case CreateRoleResult.ERROR_TYPE_DOCUMENT:
 				sb.append("Error en el procesado de la peticion/respuesta de Portafirmas Web"); //$NON-NLS-1$
 				break;
 			default:
@@ -962,6 +902,153 @@ final class XmlResponsesFactory {
 			sb.append(result.getResultado());
 		}
 		sb.append("</pdtpshsttsrs>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	/**
+	 *  Construye el XML de respuesta a la peticion de listado de autorizaciones de un usuario.
+	 * @param authorizationsList Resultado del listado de autorizaciones de un usuario.
+	 * @return XML con el resultado del listar las autorizaciones.
+	 */
+	public static String createListAuthorizationsResponse(final ListAuthorizations authorizationsList) {
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER);
+		sb.append("<rsauthlist>"); //$NON-NLS-1$
+		if (authorizationsList.isError()) {
+			sb.append("<errorMsg>"); //$NON-NLS-1$
+			switch (authorizationsList.getErrorType()) {
+			case ListAuthorizations.ERROR_TYPE_COMMUNICATION:
+				sb.append("Error de comunicacion con Portafirmas Web"); //$NON-NLS-1$
+				break;
+			default:
+				sb.append("Error desconocido"); //$NON-NLS-1$
+			}
+			sb.append("</errorMsg>"); //$NON-NLS-1$
+		}
+		else {
+			sb.append("<authlist>"); //$NON-NLS-1$
+			for (final Authorization auth : authorizationsList.getAuthorizationsList()) {
+				sb.append("<auth ") //$NON-NLS-1$
+					.append("id=\"").append(auth.getId()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+					.append("type=\"").append(auth.getType()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+					.append("state=\"").append(auth.getState()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+					.append("startdate=\"").append(DateTimeFormatter.getAppFormatterInstance().format(auth.getStartDate())).append("\" "); //$NON-NLS-1$ //$NON-NLS-2$
+				if (auth.getRevocationDate() != null) {
+					sb.append("revdate=\"").append(DateTimeFormatter.getAppFormatterInstance().format(auth.getRevocationDate())).append("\" "); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				if (auth.isSended()) {
+					sb.append("sended=\"").append(auth.isSended()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				sb.append(">"); //$NON-NLS-1$
+
+				final GenericUser user = auth.getUser();
+				sb.append("<user ") //$NON-NLS-1$
+					.append("id=\"").append(user.getId()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+					.append("dni=\"").append(user.getDni()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("<![CDATA[").append(user.getName()).append("]]>"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("</user>"); //$NON-NLS-1$
+
+				final GenericUser authUser = auth.getAuthorizedUser();
+				sb.append("<authuser ") //$NON-NLS-1$
+					.append("id=\"").append(authUser.getId()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+					.append("dni=\"").append(authUser.getDni()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("<![CDATA[").append(authUser.getName()).append("]]>"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("</authuser>"); //$NON-NLS-1$
+
+				if (auth.getObservations() != null) {
+					sb.append("<observations><![CDATA[").append(auth.getObservations()).append("]]></observations>"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+
+				sb.append("</auth>"); //$NON-NLS-1$
+			}
+			sb.append("</authlist>"); //$NON-NLS-1$
+		}
+		sb.append("</rsauthlist>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	/**
+	 *  Construye el XML de respuesta de una peticion en la que solo se indica si
+	 *  el resultado fue correcto o no.
+	 * @param result Resultado de la operaci&oacute;n.
+	 * @return XML con el resultado de la operaci&oacute;n.
+	 */
+	public static String createGenericResponse(final GenericResult result) {
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER);
+		sb.append("<rs>"); //$NON-NLS-1$
+		sb.append("<result>").append(result.isSuccess()).append("</result>"); //$NON-NLS-1$ //$NON-NLS-2$
+		// Mensaje de error
+		if (!result.isSuccess()) {
+			sb.append("<errorMsg>"); //$NON-NLS-1$
+			if (result.getErrorMessage() != null) {
+				sb.append(result.getErrorMessage());
+			}
+			else {
+				switch (result.getErrorType()) {
+				case GenericResult.ERROR_TYPE_COMMUNICATION:
+					sb.append("Error de comunicacion con Portafirmas Web"); //$NON-NLS-1$
+					break;
+				case GenericResult.ERROR_TYPE_REQUEST:
+					sb.append("Error en la peticion realizada a Portafirmas Web"); //$NON-NLS-1$
+					break;
+				case GenericResult.ERROR_TYPE_DOCUMENT:
+					sb.append("Error en el procesado de la peticion/respuesta de Portafirmas Web"); //$NON-NLS-1$
+					break;
+				default:
+					sb.append("Error desconocido"); //$NON-NLS-1$
+				}
+			}
+			sb.append("</errorMsg>"); //$NON-NLS-1$
+		}
+		sb.append("</rs>"); //$NON-NLS-1$
+
+		return sb.toString();
+	}
+
+	/**
+	 *  Construye el XML de respuesta a la peticion de listado de validadores de un usuario.
+	 * @param validatorsList Resultado del listado de validadores de un usuario.
+	 * @return XML con el resultado del listar las validadores.
+	 */
+	public static String createListValidatorsResponse(final ListValidators validatorsList) {
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(XML_HEADER);
+		sb.append("<rsvalidlist>"); //$NON-NLS-1$
+		if (validatorsList.isError()) {
+			sb.append("<err>"); //$NON-NLS-1$
+			switch (validatorsList.getErrorType()) {
+			case ListValidators.ERROR_TYPE_COMMUNICATION:
+				sb.append("Error de comunicacion con Portafirmas Web"); //$NON-NLS-1$
+				break;
+			default:
+				sb.append("Error desconocido"); //$NON-NLS-1$
+			}
+			sb.append("</err>"); //$NON-NLS-1$
+		}
+		else {
+			sb.append("<validlist>"); //$NON-NLS-1$
+			for (final Validator auth : validatorsList.getValidatorsList()) {
+				sb.append("<valid ") //$NON-NLS-1$
+					.append("forapps=\"").append(auth.isValidatorForApps()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+
+				final GenericUser user = auth.getUser();
+				sb.append("<user ") //$NON-NLS-1$
+					.append("id=\"").append(user.getId()).append("\" ") //$NON-NLS-1$ //$NON-NLS-2$
+					.append("dni=\"").append(user.getDni()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("<![CDATA[").append(user.getName()).append("]]>"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("</user>"); //$NON-NLS-1$
+
+				sb.append("</valid>"); //$NON-NLS-1$
+			}
+			sb.append("</validlist>"); //$NON-NLS-1$
+		}
+		sb.append("</rsvalidlist>"); //$NON-NLS-1$
 
 		return sb.toString();
 	}

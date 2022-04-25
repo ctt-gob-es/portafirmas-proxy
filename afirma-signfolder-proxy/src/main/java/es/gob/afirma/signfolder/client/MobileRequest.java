@@ -7,7 +7,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
@@ -25,8 +24,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="view" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="text" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="ref" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="fentry" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
- *         &lt;element name="fexpiration" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *         &lt;element name="fentry" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="fexpiration" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="importanceLevel" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="application" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="workflow" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0"/>
@@ -83,9 +82,9 @@ public class MobileRequest {
     @XmlElementRef(name = "ref", type = JAXBElement.class, required = false)
     protected JAXBElement<String> ref;
     @XmlElementRef(name = "fentry", type = JAXBElement.class, required = false)
-    protected JAXBElement<XMLGregorianCalendar> fentry;
+    protected JAXBElement<String> fentry;
     @XmlElementRef(name = "fexpiration", type = JAXBElement.class, required = false)
-    protected JAXBElement<XMLGregorianCalendar> fexpiration;
+    protected JAXBElement<String> fexpiration;
     @XmlElementRef(name = "importanceLevel", type = JAXBElement.class, required = false)
     protected JAXBElement<String> importanceLevel;
     @XmlElementRef(name = "application", type = JAXBElement.class, required = false)
@@ -234,10 +233,10 @@ public class MobileRequest {
      * 
      * @return
      *     possible object is
-     *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
      *     
      */
-    public JAXBElement<XMLGregorianCalendar> getFentry() {
+    public JAXBElement<String> getFentry() {
         return fentry;
     }
 
@@ -246,10 +245,10 @@ public class MobileRequest {
      * 
      * @param value
      *     allowed object is
-     *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
      *     
      */
-    public void setFentry(JAXBElement<XMLGregorianCalendar> value) {
+    public void setFentry(JAXBElement<String> value) {
         this.fentry = value;
     }
 
@@ -258,10 +257,10 @@ public class MobileRequest {
      * 
      * @return
      *     possible object is
-     *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
      *     
      */
-    public JAXBElement<XMLGregorianCalendar> getFexpiration() {
+    public JAXBElement<String> getFexpiration() {
         return fexpiration;
     }
 
@@ -270,10 +269,10 @@ public class MobileRequest {
      * 
      * @param value
      *     allowed object is
-     *     {@link JAXBElement }{@code <}{@link XMLGregorianCalendar }{@code >}
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
      *     
      */
-    public void setFexpiration(JAXBElement<XMLGregorianCalendar> value) {
+    public void setFexpiration(JAXBElement<String> value) {
         this.fexpiration = value;
     }
 

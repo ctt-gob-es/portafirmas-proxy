@@ -19,6 +19,11 @@ public class VerifyPetitionParser {
 	private static final String ROOT_NODE = "verfreq"; //$NON-NLS-1$
 
 	/**
+	 * Constante que define el nombre del elemento que designa el certificado del usuario (no se utiliza).
+	 */
+	private static final String CERT_NODE = "cert"; //$NON-NLS-1$
+
+	/**
 	 * Constante que define el nombre del elemento que designa al listado de peticiones.
 	 */
 	private static final String REQUESTS_NODE = "reqs"; //$NON-NLS-1$
@@ -44,25 +49,33 @@ public class VerifyPetitionParser {
 		}
 
 		final NodeList nodes = doc.getDocumentElement().getChildNodes();
-		final int requestsNodeIdx = XmlUtils.nextNodeElementIndex(nodes, 0);
+		int nodeIndex = XmlUtils.nextNodeElementIndex(nodes, 0);
 
-		if (requestsNodeIdx == -1) {
+		if (nodeIndex == -1) {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el nodo " + REQUESTS_NODE + //$NON-NLS-1$
 					" en la peticion"); //$NON-NLS-1$
 		}
 
-		final Element requestsNode = (Element) nodes.item(requestsNodeIdx);
-		if (!REQUESTS_NODE.equalsIgnoreCase(requestsNode.getNodeName())) {
+		Element currentNode = (Element) nodes.item(nodeIndex);
+
+		// Si nos proporcionan el nodo con el certificado (modo de funcionamiento antiguo),
+		// lo ignoramos y pasamos al siguiente nodo
+		if (CERT_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
+			nodeIndex = XmlUtils.nextNodeElementIndex(nodes, ++nodeIndex);
+			currentNode = (Element) nodes.item(nodeIndex);
+		}
+
+		if (currentNode == null || !REQUESTS_NODE.equalsIgnoreCase(currentNode.getNodeName())) {
 			throw new IllegalArgumentException(
 					"No se ha encontrado el nodo " + REQUESTS_NODE + //$NON-NLS-1$
-					" en su lugar se encontro " + requestsNode.getNodeName()); //$NON-NLS-1$
+					" en su lugar se encontro " + (currentNode != null ? currentNode.getNodeName() : null)); //$NON-NLS-1$
 		}
 
 		final List<String> requestIds = new ArrayList<>();
 
 		Node requestNode = null;
-		final NodeList requestNodes = requestsNode.getChildNodes();
+		final NodeList requestNodes = currentNode.getChildNodes();
 		int requestIdx = XmlUtils.nextNodeElementIndex(requestNodes, 0);
 		while (requestIdx != -1) {
 			requestNode = requestNodes.item(requestIdx);

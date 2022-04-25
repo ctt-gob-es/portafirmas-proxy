@@ -87,267 +87,267 @@ public class User {
 
 	/**
 	 * Get method for the <i>name</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	/**
 	 * Set method for the <i>name</i> attribute.
-	 * 
+	 *
 	 * @param name
 	 *            new value of the attribute.
 	 */
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
 	/**
 	 * Get method for the <i>surname</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getSurname() {
-		return surname;
+		return this.surname;
 	}
 
 	/**
 	 * Set method for the <i>surname</i> attribute.
-	 * 
+	 *
 	 * @param surname
 	 *            new value of the attribute.
 	 */
-	public void setSurname(String surname) {
+	public void setSurname(final String surname) {
 		this.surname = surname;
 	}
 
 	/**
 	 * Get method for the <i>secondSurname</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getSecondSurname() {
-		return secondSurname;
+		return this.secondSurname;
 	}
 
 	/**
 	 * Set method for the <i>secondSurname</i> attribute.
-	 * 
+	 *
 	 * @param secondSurname
 	 *            new value of the attribute.
 	 */
-	public void setSecondSurname(String secondSurname) {
+	public void setSecondSurname(final String secondSurname) {
 		this.secondSurname = secondSurname;
 	}
 
 	/**
 	 * Get method for the <i>LDAPUser</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getLDAPUser() {
-		return LDAPUser;
+		return this.LDAPUser;
 	}
 
 	/**
 	 * Set method for the <i>LDAPUser</i> attribute.
-	 * 
+	 *
 	 * @param LDAPUser
 	 *            new value of the attribute.
 	 */
-	public void setLDAPUser(String LDAPUser) {
+	public void setLDAPUser(final String LDAPUser) {
 		this.LDAPUser = LDAPUser;
 	}
 
 	/**
 	 * Get method for the <i>ID</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getID() {
-		return ID;
+		return this.ID;
 	}
 
 	/**
 	 * Set method for the <i>ID</i> attribute.
-	 * 
+	 *
 	 * @param ID
 	 *            new value of the attribute.
 	 */
-	public void setID(String ID) {
+	public void setID(final String ID) {
 		this.ID = ID;
 	}
 
 	/**
 	 * Get method for the <i>position</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getPosition() {
-		return position;
+		return this.position;
 	}
 
 	/**
 	 * Set method for the <i>position</i> attribute.
-	 * 
+	 *
 	 * @param position
 	 *            new value of the attribute.
 	 */
-	public void setPosition(String position) {
+	public void setPosition(final String position) {
 		this.position = position;
 	}
 
 	/**
 	 * Get method for the <i>headquarter</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public String getHeadquarter() {
-		return headquarter;
+		return this.headquarter;
 	}
 
 	/**
 	 * Set method for the <i>headquarter</i> attribute.
-	 * 
+	 *
 	 * @param headquarter
 	 *            new value of the attribute.
 	 */
-	public void setHeadquarter(String headquarter) {
+	public void setHeadquarter(final String headquarter) {
 		this.headquarter = headquarter;
 	}
 
 	/**
 	 * Get method for the <i>profiles</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public List<UserProfile> getProfiles() {
-		return profiles;
+		return this.profiles;
 	}
 
 	/**
 	 * Set method for the <i>profiles</i> attribute.
-	 * 
+	 *
 	 * @param profiles
 	 *            new value of the attribute.
 	 */
-	public void setProfiles(List<UserProfile> profiles) {
+	public void setProfiles(final List<UserProfile> profiles) {
 		this.profiles = profiles;
 	}
 
 	/**
 	 * Get method for the <i>dataContact</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public List<ContactData> getDataContact() {
-		return dataContact;
+		return this.dataContact;
 	}
 
 	/**
 	 * Set method for the <i>dataContact</i> attribute.
-	 * 
+	 *
 	 * @param dataContact
 	 *            new value of the attribute.
 	 */
-	public void setDataContact(List<ContactData> dataContact) {
+	public void setDataContact(final List<ContactData> dataContact) {
 		this.dataContact = dataContact;
 	}
 
 	/**
 	 * Get method for the <i>attachSignature</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public boolean isAttachSignature() {
-		return attachSignature;
+		return this.attachSignature;
 	}
 
 	/**
 	 * Set method for the <i>attachSignature</i> attribute.
-	 * 
+	 *
 	 * @param attachSignature
 	 *            new value of the attribute.
 	 */
-	public void setAttachSignature(boolean attachSignature) {
+	public void setAttachSignature(final boolean attachSignature) {
 		this.attachSignature = attachSignature;
 	}
 
 	/**
 	 * Get method for the <i>attachReport</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public boolean isAttachReport() {
-		return attachReport;
+		return this.attachReport;
 	}
 
 	/**
 	 * Set method for the <i>attachReport</i> attribute.
-	 * 
+	 *
 	 * @param attachReport
 	 *            new value of the attribute.
 	 */
-	public void setAttachReport(boolean attachReport) {
+	public void setAttachReport(final boolean attachReport) {
 		this.attachReport = attachReport;
 	}
 
 	/**
 	 * Get method for the <i>pageSize</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public int getPageSize() {
-		return pageSize;
+		return this.pageSize;
 	}
 
 	/**
 	 * Set method for the <i>pageSize</i> attribute.
-	 * 
+	 *
 	 * @param pageSize
 	 *            new value of the attribute.
 	 */
-	public void setPageSize(int pageSize) {
+	public void setPageSize(final int pageSize) {
 		this.pageSize = pageSize;
 	}
 
 	/**
 	 * Get method for the <i>applyAppFilter</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public boolean isApplyAppFilter() {
-		return applyAppFilter;
+		return this.applyAppFilter;
 	}
 
 	/**
 	 * Set method for the <i>applyAppFilter</i> attribute.
-	 * 
+	 *
 	 * @param applyAppFilter
 	 *            new value of the attribute.
 	 */
-	public void setApplyAppFilter(boolean applyAppFilter) {
+	public void setApplyAppFilter(final boolean applyAppFilter) {
 		this.applyAppFilter = applyAppFilter;
 	}
 
 	/**
 	 * Get method for the <i>showPreviousSigner</i> attribute.
-	 * 
+	 *
 	 * @return the value of the attribute.
 	 */
 	public boolean isShowPreviousSigner() {
-		return showPreviousSigner;
+		return this.showPreviousSigner;
 	}
 
 	/**
 	 * Set method for the <i>showPreviousSigner</i> attribute.
-	 * 
+	 *
 	 * @param showPreviousSigner
 	 *            new value of the attribute.
 	 */
-	public void setShowPreviousSigner(boolean showPreviousSigner) {
+	public void setShowPreviousSigner(final boolean showPreviousSigner) {
 		this.showPreviousSigner = showPreviousSigner;
 	}
 

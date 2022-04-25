@@ -1,6 +1,5 @@
 package es.gob.afirma.signfolder.server.proxy;
 
-
 /** Petici&oacute;n de firma.
  * @author Carlos Gamuci */
 public class SignRequest {
