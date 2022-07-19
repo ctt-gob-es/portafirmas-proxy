@@ -35,7 +35,6 @@ public class AuthorizationUtils {
 		if (authTypes == null) {
 			authTypes = initAuthorizationTypesMap(service, dni);
 		}
-		System.out.println("Queremos obtener el codigo del tipo de autorizacion: " + code);
 
 		final String id = authTypes.get(code);
 		if (id == null) {

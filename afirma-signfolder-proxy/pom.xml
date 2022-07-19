@@ -16,7 +16,13 @@
 		<dependency>
 			<groupId>es.gob.afirma</groupId>
 			<artifactId>afirma-core</artifactId>
-			<version>1.7</version>
+			<version>1.8-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>es.gob.afirma.lib</groupId>
+					<artifactId>afirma-lib-jmimemagic</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
@@ -60,7 +66,7 @@
 					<archive>  
 						<addMavenDescriptor>false</addMavenDescriptor> 
 					</archive>
-					<packagingExcludes>WEB-INF\classes\pfmovil.properties</packagingExcludes>
+					<packagingExcludes>WEB-INF\classes\pfmovil.properties,WEB-INF\classes\logback.xml</packagingExcludes>
 				</configuration>
 			</plugin>
 			<plugin>

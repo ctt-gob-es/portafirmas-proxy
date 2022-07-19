@@ -17,6 +17,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +42,9 @@ import javax.servlet.http.HttpSession;
 import javax.xml.bind.JAXBElement;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
+import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.soap.SOAPFaultException;
 
 import org.slf4j.Logger;
@@ -182,7 +185,6 @@ public final class ProxyService extends HttpServlet {
 	static {
 		try {
 			DEBUG = Boolean.parseBoolean(System.getProperty(SYSTEM_PROPERTY_DEBUG));
-			DEBUG = true;
 			if (DEBUG) {
 				// Desactivamos las comprobaciones de los certificados SSL servidor durante las conexiones de red
 				disabledSslSecurity();
@@ -2733,7 +2735,16 @@ public final class ProxyService extends HttpServlet {
 		if (DEBUG) {
 			disabledSslSecurity();
 		}
-		return this.mobileService.getMobileServicePort();
+		final MobileService servicePort = this.mobileService.getMobileServicePort();
+
+		// Agrega cabeceras HTTP
+		final Map<String, List<String>> requestHeaders = new HashMap<>();
+		requestHeaders.put("Expect", Arrays.asList("100-Continue")); //$NON-NLS-1$ //$NON-NLS-2$
+
+		final BindingProvider bindingProvider = (BindingProvider) servicePort;
+	    bindingProvider.getRequestContext().put(MessageContext.HTTP_REQUEST_HEADERS, requestHeaders);
+
+		return servicePort;
 	}
 
 	/**

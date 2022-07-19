@@ -69,6 +69,8 @@ public class TriSigner {
 
 	/** Codificaci&oacute;n de texto por defecto. */
 	private static final String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
+	/** Tiempo de espera por defecto (-1 es para indicar el por defecto de Java. */
+	private static final int DEFAULT_TIMEOUT = -1;
 
 	/** Manejador del log. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(TriSigner.class);
@@ -133,7 +135,11 @@ public class TriSigner {
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
-			final byte[] triphaseResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), UrlHttpMethod.POST);
+			// Agregamos la cabecera Expect: 100-Continue para que el servidor no se queje de peticiones grandes
+			final Properties headers = new Properties();
+			headers.setProperty("Expect", "100-Continue"); //$NON-NLS-1$ //$NON-NLS-2$
+
+			final byte[] triphaseResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), DEFAULT_TIMEOUT, UrlHttpMethod.POST, headers);
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Respuesta de prefirma del servicio de firma:\n{}", new String(triphaseResult)); //$NON-NLS-1$
@@ -280,7 +286,11 @@ public class TriSigner {
 				urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_DOCID).append(HTTP_EQUALS).append(content);
 			}
 
-			triSignFinalResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), UrlHttpMethod.POST);
+			// Agregamos la cabecera Expect: 100-Continue para que el servidor no se queje de peticiones grandes
+			final Properties headers = new Properties();
+			headers.setProperty("Expect", "100-Continue"); //$NON-NLS-1$ //$NON-NLS-2$
+
+			triSignFinalResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), DEFAULT_TIMEOUT, UrlHttpMethod.POST, headers);
 			urlBuffer.setLength(0);
 		}
 		catch (final CertificateEncodingException e) {
