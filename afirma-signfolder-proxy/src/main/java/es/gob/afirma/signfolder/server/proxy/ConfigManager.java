@@ -37,6 +37,12 @@ public class ConfigManager {
 	/** Propiedad que establece el endpoint del servicio del Portafirmas. */
 	private static final String PROPERTY_SIGNFOLDER_URL = "signfolder.ws.url"; //$NON-NLS-1$
 
+	/** Propiedad que establece el usuario para el acceso al servicio de portafirmas. */
+	private static final String PROPERTY_SIGNFOLDER_USERNAME = "signfolder.ws.username"; //$NON-NLS-1$
+
+	/** Propiedad que establece la contrase&ntilde;a para el acceso al servicio de portafirmas. */
+	private static final String PROPERTY_SIGNFOLDER_PASSWORD = "signfolder.ws.password"; //$NON-NLS-1$
+
 	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
 	private static final String PROPERTY_TRIPHASE_SERVICE_URL = "triphase.server.url"; //$NON-NLS-1$
 
@@ -271,5 +277,29 @@ public class ConfigManager {
 			}
 		}
 		return mappedText;
+	}
+
+	/**
+	 * Devuelve el nombre de usuario para el acceso a los servicios del Portafirmas web.
+	 * @return Nombre de usuario o {@code null} si no se defini&oacute;.
+	 */
+	public static String getSignfolderUsername() {
+		final String username = getProperty(PROPERTY_SIGNFOLDER_USERNAME);
+		if (username != null && username.isEmpty()) {
+			return null;
+		}
+		return username;
+	}
+
+	/**
+	 * Devuelve la contrase&ntilde;a para el acceso a los servicios del Portafirmas web.
+	 * @return Contrase&ntilde;a o {@code null} si no se defini&oacute;.
+	 */
+	public static String getSignfolderPassword() {
+		final String passw = getProperty(PROPERTY_SIGNFOLDER_PASSWORD);
+		if (passw != null && passw.isEmpty()) {
+			return null;
+		}
+		return passw;
 	}
 }

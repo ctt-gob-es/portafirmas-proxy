@@ -26,11 +26,10 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _MobileDocumentData_QNAME = new QName("", "data");
-    private final static QName _MobileDocumentSize_QNAME = new QName("", "size");
-    private final static QName _MobileDocumentSignatureType_QNAME = new QName("", "signatureType");
-    private final static QName _MobileDocumentSignatureParameters_QNAME = new QName("", "signatureParameters");
-    private final static QName _MobileDocumentSignAlgorithm_QNAME = new QName("", "signAlgorithm");
+    private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
+    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate");
+    private final static QName _MobileSignLineType_QNAME = new QName("", "type");
+    private final static QName _MobileDocSignInfoValidar_QNAME = new QName("", "validar");
     private final static QName _MobileRequestIdentifier_QNAME = new QName("", "identifier");
     private final static QName _MobileRequestFexpiration_QNAME = new QName("", "fexpiration");
     private final static QName _MobileRequestRejectedText_QNAME = new QName("", "rejectedText");
@@ -45,9 +44,11 @@ public class ObjectFactory {
     private final static QName _MobileRequestApplication_QNAME = new QName("", "application");
     private final static QName _MobileRequestText_QNAME = new QName("", "text");
     private final static QName _MobileRequestFentry_QNAME = new QName("", "fentry");
-    private final static QName _MobileSignLineMobileSignerList_QNAME = new QName("", "mobileSignerList");
-    private final static QName _MobileSignLineTerminate_QNAME = new QName("", "terminate");
-    private final static QName _MobileSignLineType_QNAME = new QName("", "type");
+    private final static QName _MobileDocumentData_QNAME = new QName("", "data");
+    private final static QName _MobileDocumentSize_QNAME = new QName("", "size");
+    private final static QName _MobileDocumentSignatureType_QNAME = new QName("", "signatureType");
+    private final static QName _MobileDocumentSignatureParameters_QNAME = new QName("", "signatureParameters");
+    private final static QName _MobileDocumentSignAlgorithm_QNAME = new QName("", "signAlgorithm");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: es.gob.afirma.signfolder.client
@@ -865,49 +866,39 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link DataHandler }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "data", scope = MobileDocument.class)
-    @XmlMimeType("application/octet-stream")
-    public JAXBElement<DataHandler> createMobileDocumentData(DataHandler value) {
-        return new JAXBElement<DataHandler>(_MobileDocumentData_QNAME, DataHandler.class, MobileDocument.class, value);
+    @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
+    public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
+        return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Integer }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "size", scope = MobileDocument.class)
-    public JAXBElement<Integer> createMobileDocumentSize(Integer value) {
-        return new JAXBElement<Integer>(_MobileDocumentSize_QNAME, Integer.class, MobileDocument.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link MobileSignFormat }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "", name = "signatureType", scope = MobileDocument.class)
-    public JAXBElement<MobileSignFormat> createMobileDocumentSignatureType(MobileSignFormat value) {
-        return new JAXBElement<MobileSignFormat>(_MobileDocumentSignatureType_QNAME, MobileSignFormat.class, MobileDocument.class, value);
+    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
+    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
+        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
     }
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "signatureParameters", scope = MobileDocument.class)
-    public JAXBElement<String> createMobileDocumentSignatureParameters(String value) {
-        return new JAXBElement<String>(_MobileDocumentSignatureParameters_QNAME, String.class, MobileDocument.class, value);
+    @XmlElementDecl(namespace = "", name = "type", scope = MobileSignLine.class)
+    public JAXBElement<String> createMobileSignLineType(String value) {
+        return new JAXBElement<String>(_MobileSignLineType_QNAME, String.class, MobileSignLine.class, value);
     }
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "signAlgorithm", scope = MobileDocument.class)
-    public JAXBElement<String> createMobileDocumentSignAlgorithm(String value) {
-        return new JAXBElement<String>(_MobileDocumentSignAlgorithm_QNAME, String.class, MobileDocument.class, value);
+    @XmlElementDecl(namespace = "", name = "validar", scope = MobileDocSignInfo.class)
+    public JAXBElement<String> createMobileDocSignInfoValidar(String value) {
+        return new JAXBElement<String>(_MobileDocSignInfoValidar_QNAME, String.class, MobileDocSignInfo.class, value);
     }
 
     /**
@@ -1037,30 +1028,49 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link MobileStringList }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link DataHandler }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "mobileSignerList", scope = MobileSignLine.class)
-    public JAXBElement<MobileStringList> createMobileSignLineMobileSignerList(MobileStringList value) {
-        return new JAXBElement<MobileStringList>(_MobileSignLineMobileSignerList_QNAME, MobileStringList.class, MobileSignLine.class, value);
+    @XmlElementDecl(namespace = "", name = "data", scope = MobileDocument.class)
+    @XmlMimeType("application/octet-stream")
+    public JAXBElement<DataHandler> createMobileDocumentData(DataHandler value) {
+        return new JAXBElement<DataHandler>(_MobileDocumentData_QNAME, DataHandler.class, MobileDocument.class, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link Integer }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "terminate", scope = MobileSignLine.class)
-    public JAXBElement<Boolean> createMobileSignLineTerminate(Boolean value) {
-        return new JAXBElement<Boolean>(_MobileSignLineTerminate_QNAME, Boolean.class, MobileSignLine.class, value);
+    @XmlElementDecl(namespace = "", name = "size", scope = MobileDocument.class)
+    public JAXBElement<Integer> createMobileDocumentSize(Integer value) {
+        return new JAXBElement<Integer>(_MobileDocumentSize_QNAME, Integer.class, MobileDocument.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link MobileSignFormat }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "signatureType", scope = MobileDocument.class)
+    public JAXBElement<MobileSignFormat> createMobileDocumentSignatureType(MobileSignFormat value) {
+        return new JAXBElement<MobileSignFormat>(_MobileDocumentSignatureType_QNAME, MobileSignFormat.class, MobileDocument.class, value);
     }
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "type", scope = MobileSignLine.class)
-    public JAXBElement<String> createMobileSignLineType(String value) {
-        return new JAXBElement<String>(_MobileSignLineType_QNAME, String.class, MobileSignLine.class, value);
+    @XmlElementDecl(namespace = "", name = "signatureParameters", scope = MobileDocument.class)
+    public JAXBElement<String> createMobileDocumentSignatureParameters(String value) {
+        return new JAXBElement<String>(_MobileDocumentSignatureParameters_QNAME, String.class, MobileDocument.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "signAlgorithm", scope = MobileDocument.class)
+    public JAXBElement<String> createMobileDocumentSignAlgorithm(String value) {
+        return new JAXBElement<String>(_MobileDocumentSignAlgorithm_QNAME, String.class, MobileDocument.class, value);
     }
 
 }

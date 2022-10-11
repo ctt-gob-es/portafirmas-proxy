@@ -1,7 +1,7 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 /**
- * Resultado gen&eacute;rico de una petici&oacute;n al servicio proxy. &Uacte;nicamente indica
+ * Resultado gen&eacute;rico de una petici&oacute;n al servicio proxy. &Uacute;nicamente indica
  * si la operaci&oacute;n finaliz&oacute; correctamente o si se produjo un error.
  */
 public class GenericResult {

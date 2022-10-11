@@ -39,27 +39,57 @@ final class XmlResponsesFactory {
 		final StringBuilder sb = new StringBuilder("<req id=\""); //$NON-NLS-1$
 		sb.append(triphaseRequest.getRef());
 		sb.append("\" status=\""); //$NON-NLS-1$
+		// La prefirma termino correctamente
 		if (triphaseRequest.isStatusOk()) {
-			sb.append("OK\">"); //$NON-NLS-1$
-			for (final TriphaseSignDocumentRequest docReq : triphaseRequest) {
-				sb.append("<doc docid=\"").append(docReq.getId()) //$NON-NLS-1$
-						.append("\" cop=\"").append(docReq.getCryptoOperation()) //$NON-NLS-1$
-						.append("\" sigfrmt=\"").append(docReq.getSignatureFormat()) //$NON-NLS-1$
-						.append("\" mdalgo=\"").append(docReq.getMessageDigestAlgorithm()).append("\">") //$NON-NLS-1$ //$NON-NLS-2$
-						.append("<params>") //$NON-NLS-1$
-						.append(docReq.getParams() != null ? escapeXmlCharacters(docReq.getParams()) : "") //$NON-NLS-1$
-						.append("</params>") //$NON-NLS-1$
-						.append("<result>"); //$NON-NLS-1$
-				// Ahora mismo las firmas se envian de una en una, asi que
-				// usamos directamente la primera de ellas
-				final Map<String, String> triSign = docReq.getPartialResult().getTriSigns().get(0).getDict();
-				for (final String key : triSign.keySet().toArray(new String[triSign.size()])) {
-					sb.append("<p n=\"").append(key).append("\">").append(triSign.get(key)).append("</p>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			sb.append("OK\""); //$NON-NLS-1$
+			if (triphaseRequest.isNeedConfirmation()) {
+				final StringBuilder requirements = new StringBuilder();
+				for (final String requirement : triphaseRequest.getRequirement().toArray(new String[0])) {
+					if (requirements.length() == 0) {
+						requirements.append(requirement);
+					} else {
+						requirements.append(";").append(requirement); //$NON-NLS-1$
+					}
 				}
-				sb.append("</result></doc>"); //$NON-NLS-1$
+				sb.append(" rqstText=\"").append(requirements).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+
+			sb.append(">"); //$NON-NLS-1$
+			for (final TriphaseSignDocumentRequest docReq : triphaseRequest) {
+
+				// Si el documento necesita confirmacion, solo indicaremos el identificador
+				// y el tipo de confirmacion
+				if (docReq.isNeedConfirmation()) {
+					sb.append("<doc docid=\"").append(docReq.getId()) //$NON-NLS-1$
+						.append("\" needcnf=\"").append(docReq.isNeedConfirmation()).append("\" />"); //$NON-NLS-1$ //$NON-NLS-2$
+					continue;
+				}
+
+				// Proporcionamos toda la informacion de la prefirma
+				sb.append("<doc docid=\"").append(docReq.getId()) //$NON-NLS-1$
+					.append("\" cop=\"").append(docReq.getCryptoOperation()) //$NON-NLS-1$
+					.append("\" sigfrmt=\"").append(docReq.getSignatureFormat()) //$NON-NLS-1$
+					.append("\" mdalgo=\"").append(docReq.getMessageDigestAlgorithm()) //$NON-NLS-1$
+					.append("\">") //$NON-NLS-1$
+					.append("<params>") //$NON-NLS-1$
+					.append(docReq.getParams() != null ? escapeXmlCharacters(docReq.getParams()) : "") //$NON-NLS-1$
+					.append("</params>"); //$NON-NLS-1$
+				if (docReq.getPartialResult() != null) {
+					sb.append("<result>"); //$NON-NLS-1$
+					// Ahora mismo las firmas se envian de una en una, asi que
+					// usamos directamente la primera de ellas
+					final Map<String, String> triSign = docReq.getPartialResult().getTriSigns().get(0).getDict();
+					for (final String key : triSign.keySet().toArray(new String[triSign.size()])) {
+						sb.append("<p n=\"").append(key).append("\">").append(triSign.get(key)).append("</p>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					}
+					sb.append("</result>"); //$NON-NLS-1$
+				}
+				sb.append("</doc>"); //$NON-NLS-1$
 			}
 			sb.append("</req>"); //$NON-NLS-1$
-		} else {
+		}
+		// La prefirma fallo
+		else {
 			String exceptionb64 = null;
 			final Throwable t = triphaseRequest.getThrowable();
 			if (t != null) {

@@ -16,7 +16,7 @@ public class GenericUserParser {
 
 	/**
 	 * Parsea la informaci&oacute;n de un usuario gen&eacute;rico.
-	 * @param userNode Nodo de usuario.
+	 * @param userElement Elemento de usuario.
 	 * @return Informaci&oacute;n del usuario.
 	 */
 	public static GenericUser parse(final Element userElement) {
@@ -25,7 +25,7 @@ public class GenericUserParser {
 
 	/**
 	 * Parsea la informaci&oacute;n de un usuario gen&eacute;rico.
-	 * @param userNode Nodo de usuario.
+	 * @param userElement Elemento de usuario.
 	 * @param relaxed Indica si se debe realizar una an&aacute;lisis laxo, con lo cual basta con
 	 * encontrar el DNI del usuario.
 	 * @return Informaci&oacute;n del usuario.

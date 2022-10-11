@@ -144,7 +144,7 @@ public final class SessionCollector {
     /**
      * Busca una sesion en el pool de sesiones para eliminarla junto con sus datos temporales.
      * Si se establecio tambien un DAO de sesiones compartidas, se elimina tambi&eacute;n del mismo.
-     * @param id Identificador de la sesi&oacute;n.
+     * @param session Sesi&oacute;n de la aplicaci&oacute;n.
      */
     public static void removeSession(final HttpSession session) {
     	if (session == null) {

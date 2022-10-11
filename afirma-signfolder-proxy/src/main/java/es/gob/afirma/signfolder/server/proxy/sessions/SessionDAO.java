@@ -86,9 +86,12 @@ public class SessionDAO {
 		return uuid;
 	}
 
-	/** Actualiza la sesi&oacute;n compartida.
+	/**
+	 * Actualiza la sesi&oacute;n compartida.
 	 * @param session Sesi&oacute;n con los datos a volcar.
-	 * @param sessionId Identificador de la sesi&oacute;n compartida. */
+	 * @param sessionId Identificador de la sesi&oacute;n compartida.
+	 * @throws IOException Cuando falla el guardado de la sesi&oacute;n.
+	 */
 	public void writeSession(final HttpSession session, final String sessionId) throws IOException {
 
 		final File sharedFile = new File(this.dir, sessionId);

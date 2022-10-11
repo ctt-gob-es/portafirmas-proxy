@@ -42,8 +42,10 @@ import javax.servlet.http.HttpSession;
 import javax.xml.bind.JAXBElement;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.ws.Binding;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
+import javax.xml.ws.handler.Handler;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.soap.SOAPFaultException;
 
@@ -52,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import es.gob.afirma.core.RuntimeConfigNeededException;
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.core.signers.TriphaseData;
@@ -92,9 +95,11 @@ import es.gob.afirma.signfolder.client.MobileUsuarioGenerico;
 import es.gob.afirma.signfolder.client.MobileUsuariosList;
 import es.gob.afirma.signfolder.client.MobileValidador;
 import es.gob.afirma.signfolder.client.MobileValidadorList;
+import es.gob.afirma.signfolder.client.ObjectFactory;
 import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
+import es.gob.afirma.signfolder.soap.security.SecurityHandler;
 
 /**
  * Servicio Web para firma trif&aacute;sica.
@@ -105,7 +110,8 @@ public final class ProxyService extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String DEFAULT_CHARSET = "utf-8"; //$NON-NLS-1$
+	private static final String DEFAULT_CHARSET_NAME = "utf-8"; //$NON-NLS-1$
+	private static Charset DEFAULT_CHARSET;
 
 	private static final String SIGNATURE_SERVICE_URL = "TRIPHASE_SERVER_URL"; //$NON-NLS-1$
 
@@ -198,6 +204,14 @@ public final class ProxyService extends HttpServlet {
 			}
 		} catch (final Exception e) {
 			LOGGER.warn("Error al habilitar todas las opciones de depuracion", e); //$NON-NLS-1$
+		}
+
+		// Juego de caracteres que se usara por defecto
+		try {
+			DEFAULT_CHARSET = Charset.forName(DEFAULT_CHARSET_NAME);
+		}
+		catch (final Exception e) {
+			LOGGER.error("No se reconocio el juego de caracteres por defecto: ", e); //$NON-NLS-1$
 		}
 
 		// Creamos un DocumentBuilderFactory seguro con el que analizar los documentos XML
@@ -363,7 +377,7 @@ public final class ProxyService extends HttpServlet {
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("XML de la peticion:\n{}", new String(xml)); //$NON-NLS-1$
+			LOGGER.debug("XML de la peticion:\n{}", new String(xml, DEFAULT_CHARSET)); //$NON-NLS-1$
 		}
 
 		Object ret;
@@ -453,7 +467,7 @@ public final class ProxyService extends HttpServlet {
 				try {
 					parameters.put(
 							param.substring(0, param.indexOf('=')),
-							URLDecoder.decode(param.substring(param.indexOf('=') + 1), DEFAULT_CHARSET));
+							URLDecoder.decode(param.substring(param.indexOf('=') + 1), DEFAULT_CHARSET_NAME));
 				}
 				catch (final Exception e) {
 					LOGGER.warn("Error al decodificar un parametro de la peticion: " + e); //$NON-NLS-1$
@@ -671,8 +685,8 @@ public final class ProxyService extends HttpServlet {
 
 		final LoginRequestData loginRequestData = new LoginRequestData(session.getId());
 		// Establecemos los datos a firmar (Token)
-		loginRequestData.setData(new StringBuilder().append(session.getCreationTime()).append("|") //$NON-NLS-1$
-				.append(UUID.randomUUID().toString()).toString().getBytes());
+		loginRequestData.setData(("" + session.getCreationTime() + "|" //$NON-NLS-1$ //$NON-NLS-2$
+				+ UUID.randomUUID().toString()).getBytes(DEFAULT_CHARSET));
 
 		return loginRequestData;
 	}
@@ -1005,7 +1019,7 @@ public final class ProxyService extends HttpServlet {
 		LOGGER.info("Registro de dispositivo: \nDispositivo: {}\nPlataforma: {}\nToken de registro: {}", //$NON-NLS-1$
 				user.getIdDispositivo(), user.getPlataforma(), user.getIdRegistro());
 
-		final MobileSIMUserStatus status = getService().registerSIMUser(dni.getBytes(), user);
+		final MobileSIMUserStatus status = getService().registerSIMUser(dni.getBytes(DEFAULT_CHARSET), user);
 
 		LOGGER.info("Resultado del registro:\nResultado: {}\nTexto: {}\nDetalle: {}", //$NON-NLS-1$
 				status.getDetails(), status.getStatusCode(), status.getStatusText(), status.getDetails());
@@ -1098,12 +1112,19 @@ public final class ProxyService extends HttpServlet {
 		final MobileDocSignInfoList signInfoList = new MobileDocSignInfoList();
 		final List<MobileDocSignInfo> list = signInfoList.getMobileDocSignInfo();
 
+		final ObjectFactory factory = new ObjectFactory();
+
 		MobileDocSignInfo signInfo;
 		for (final TriphaseSignDocumentRequest docReq : req) {
 			signInfo = new MobileDocSignInfo();
 			signInfo.setDocumentId(docReq.getId());
 			signInfo.setSignFormat(docReq.getSignatureFormat());
 			signInfo.setSignature(new DataHandler(new ByteArrayDataSource(docReq.getResult(), null)));
+			LOGGER.info(" =========== Vamos a guardar el documento: " + docReq.getId());
+			if (docReq.isNeedConfirmation()) {
+				LOGGER.info(" =========== Desactivamos validacion para el documento: " + docReq.getId());
+				signInfo.setValidar(factory.createMobileDocSignInfoValidar("false")); //$NON-NLS-1$
+			}
 			list.add(signInfo);
 		}
 
@@ -1186,7 +1207,7 @@ public final class ProxyService extends HttpServlet {
 		}
 
 		// Solicitud de lista de peticiones
-		final MobileRequestList mobileRequestsList = getService().queryRequestList(dni.getBytes(),
+		final MobileRequestList mobileRequestsList = getService().queryRequestList(dni.getBytes(DEFAULT_CHARSET),
 				listRequest.getState(), Integer.toString(listRequest.getNumPage()),
 				Integer.toString(listRequest.getPageSize()), formatsList, filterList);
 
@@ -1265,7 +1286,7 @@ public final class ProxyService extends HttpServlet {
 			// obligatorio
 			// Si falla devuelve una excepcion.
 			try {
-				service.rejectRequest(dni.getBytes(), id, rejectRequest.getRejectReason());
+				service.rejectRequest(dni.getBytes(DEFAULT_CHARSET), id, rejectRequest.getRejectReason());
 				rejectionsResults.add(Boolean.TRUE);
 			} catch (final Exception e) {
 				LOGGER.warn("Error en el rechazo de la peticion " + id, e); //$NON-NLS-1$
@@ -1310,7 +1331,7 @@ public final class ProxyService extends HttpServlet {
 	private Detail getRequestDetail(final String dni, final DetailRequest request) throws MobileException {
 
 		// Solicitud de lista de peticiones
-		final MobileRequest mobileRequest = getService().queryRequest(dni.getBytes(), request.getRequestId());
+		final MobileRequest mobileRequest = getService().queryRequest(dni.getBytes(DEFAULT_CHARSET), request.getRequestId());
 
 		// Listado de documentos de la peticion
 		final List<MobileDocument> mobileDocs = mobileRequest.getDocumentList().getDocument();
@@ -1434,7 +1455,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private DocumentData previewDocument(final String dni, final PreviewRequest request)
 			throws MobileException, IOException {
-		return buildDocumentData(getService().documentPreview(dni.getBytes(), request.getDocId()));
+		return buildDocumentData(getService().documentPreview(dni.getBytes(DEFAULT_CHARSET), request.getDocId()));
 	}
 
 	/**
@@ -1453,7 +1474,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private DocumentData previewSign(final String dni, final PreviewRequest request)
 			throws MobileException, IOException {
-		return buildDocumentData(getService().signPreview(dni.getBytes(), request.getDocId()));
+		return buildDocumentData(getService().signPreview(dni.getBytes(DEFAULT_CHARSET), request.getDocId()));
 	}
 
 	/**
@@ -1472,7 +1493,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private DocumentData previewSignReport(final String dni, final PreviewRequest request)
 			throws MobileException, IOException {
-		return buildDocumentData(getService().reportPreview(dni.getBytes(), request.getDocId()));
+		return buildDocumentData(getService().reportPreview(dni.getBytes(DEFAULT_CHARSET), request.getDocId()));
 	}
 
 	/**
@@ -1550,7 +1571,7 @@ public final class ProxyService extends HttpServlet {
 	private AppConfiguration loadConfiguration(final String dni, final ConfigurationRequest request)
 			throws MobileException, IOException {
 
-		final MobileApplicationList appList = getService().queryApplicationsMobile(dni.getBytes());
+		final MobileApplicationList appList = getService().queryApplicationsMobile(dni.getBytes(DEFAULT_CHARSET));
 
 		final List<String> appIds = new ArrayList<>();
 		final List<String> appNames = new ArrayList<>();
@@ -1589,7 +1610,7 @@ public final class ProxyService extends HttpServlet {
 
 		for (final ApproveRequest appReq : appRequests) {
 			try {
-				service.approveRequest(dni.getBytes(), appReq.getRequestTagId());
+				service.approveRequest(dni.getBytes(DEFAULT_CHARSET), appReq.getRequestTagId());
 			} catch (final MobileException e) {
 				appReq.setOk(false);
 			}
@@ -1657,7 +1678,7 @@ public final class ProxyService extends HttpServlet {
 
 		MobileFireTrasactionResponse response;
 		try {
-			response = getService().fireTransaction(dni.getBytes(), requestsRefList);
+			response = getService().fireTransaction(dni.getBytes(DEFAULT_CHARSET), requestsRefList);
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la carga de documentos en FIRe", e); //$NON-NLS-1$
 			return new FireLoadDataResult();
@@ -1773,7 +1794,7 @@ public final class ProxyService extends HttpServlet {
 	private FindUserResult getUsers(final String dni, final String mode, final String text) {
 		MobileUsuariosList response;
 		try {
-			response = getService().busquedaUsuariosMobile(dni.getBytes(), text, mode, null);
+			response = getService().busquedaUsuariosMobile(dni.getBytes(DEFAULT_CHARSET), text, mode, null);
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la recuperacion de usuarios", e); //$NON-NLS-1$
 			return new FindUserResult(FindUserResult.ERROR_TYPE_COMMUNICATION);
@@ -1833,7 +1854,7 @@ public final class ProxyService extends HttpServlet {
 	private VerifyPetitionResult verifyPetitions(final String dni, final String petitionId) {
 		VerifyPetitionResult response;
 		try {
-			response = new VerifyPetitionResult(getService().validarPeticion(dni.getBytes(), petitionId), petitionId);
+			response = new VerifyPetitionResult(getService().validarPeticion(dni.getBytes(DEFAULT_CHARSET), petitionId), petitionId);
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la validacion de peticiones", e); //$NON-NLS-1$
 			return new VerifyPetitionResult(FireSignResult.ERROR_TYPE_COMMUNICATION, petitionId);
@@ -1877,7 +1898,7 @@ public final class ProxyService extends HttpServlet {
 		final ListAuthorizations response;
 		try {
 			final List<Authorization> authorizationsList = new ArrayList<>();
-			final MobileAutorizacionesList auths = getService().recuperarAutorizaciones(dni.getBytes());
+			final MobileAutorizacionesList auths = getService().recuperarAutorizaciones(dni.getBytes(DEFAULT_CHARSET));
 			for (final MobileAutorizacion mobileAuth : auths.getAutorizacion()) {
 				final Authorization auth = new Authorization();
 				auth.setId(mobileAuth.getId());
@@ -1947,7 +1968,7 @@ public final class ProxyService extends HttpServlet {
 
 		String typeId;
 		try {
-			typeId = AuthorizationUtils.translateAuthorizationCodeToId(getService(), dni.getBytes(), authorization.getType());
+			typeId = AuthorizationUtils.translateAuthorizationCodeToId(getService(), dni.getBytes(DEFAULT_CHARSET), authorization.getType());
 		}
 		catch (final IllegalArgumentException e) {
 			LOGGER.error("Tipo de autorizacion no soportado", e); //$NON-NLS-1$
@@ -2049,7 +2070,7 @@ public final class ProxyService extends HttpServlet {
 		GenericResult result;
 		try {
 			final String text = getService().cambiarEstadoAutorizacionMobile(
-					dni.getBytes(), action, authId);
+					dni.getBytes(DEFAULT_CHARSET), action, authId);
 			LOGGER.debug("Resultado del cambio de estado de la autorizacion: " + text); //$NON-NLS-1$
 			result = new GenericResult(true);
 		}
@@ -2123,7 +2144,7 @@ public final class ProxyService extends HttpServlet {
 		final ListValidators response;
 		try {
 			final List<Validator> validatorsList = new ArrayList<>();
-			final MobileValidadorList validators = getService().recuperarValidadoresMobile(dni.getBytes());
+			final MobileValidadorList validators = getService().recuperarValidadoresMobile(dni.getBytes(DEFAULT_CHARSET));
 			for (final MobileValidador mobileValidator : validators.getValidador()) {
 
 				final MobileUsuarioGenerico mobileUser = mobileValidator.getPfValidadorUser();
@@ -2197,7 +2218,7 @@ public final class ProxyService extends HttpServlet {
 
 		GenericResult result;
 		try {
-			final String text = getService().salvarValidadorMobile(dni.getBytes(), mobileValidador, VALID_ACTION_INSERT);
+			final String text = getService().salvarValidadorMobile(dni.getBytes(DEFAULT_CHARSET), mobileValidador, VALID_ACTION_INSERT);
 			LOGGER.debug("Resultado alta validador: " + text); //$NON-NLS-1$
 			result = new GenericResult(true);
 		}
@@ -2249,7 +2270,7 @@ public final class ProxyService extends HttpServlet {
 
 		GenericResult result;
 		try {
-			final String text = getService().eliminarValidadorMobile(dni.getBytes(), validatorId);
+			final String text = getService().eliminarValidadorMobile(dni.getBytes(DEFAULT_CHARSET), validatorId);
 			LOGGER.debug("Resultado de la baja del validador: " + text); //$NON-NLS-1$
 			result = new GenericResult(true);
 		}
@@ -2311,7 +2332,7 @@ public final class ProxyService extends HttpServlet {
 
 		MobileFireRequestList response;
 		try {
-			response = getService().signFireCloud(dni.getBytes(), requestList, transactionId);
+			response = getService().signFireCloud(dni.getBytes(DEFAULT_CHARSET), requestList, transactionId);
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la firma de documentos con FIRe", e); //$NON-NLS-1$
 			return new FireSignResult(FireSignResult.ERROR_TYPE_COMMUNICATION);
@@ -2348,7 +2369,7 @@ public final class ProxyService extends HttpServlet {
 	private GetUserConfigResult getUserConfiguration(final String dni) {
 		MobileConfiguracionUsuario userConfig;
 		try {
-			userConfig = getService().configuracionUsuarioMobile(dni.getBytes());
+			userConfig = getService().configuracionUsuarioMobile(dni.getBytes(DEFAULT_CHARSET));
 		} catch (final MobileException e) {
 			LOGGER.warn("Error durante la recuperacion de la configuracion de usuario.", e); //$NON-NLS-1$
 			return new GetUserConfigResult(GetUserConfigResult.ERROR_TYPE_COMMUNICATION);
@@ -2376,6 +2397,7 @@ public final class ProxyService extends HttpServlet {
 			result.setNotificationActivated(notificationActivated);
 		}
 		catch (final Exception e) {
+			LOGGER.warn("La configuracion de usuario recibida del servidor no es correcta", e); //$NON-NLS-1$
 			result = new GetUserConfigResult(GetUserConfigResult.ERROR_TYPE_RESPONSE);
 		}
 
@@ -2569,15 +2591,26 @@ public final class ProxyService extends HttpServlet {
 
 							docRequest.setCryptoOperation(downloadedDoc.getOperationType());
 
-							// Del servicio remoto obtener los parametros de
-							// configuracion, tal como deben pasarse al cliente
-							// Lo pasamos a base 64 URL_SAFE para que no afecten
-							// al envio de datos
-							final String extraParams = downloadedDoc.getSignatureParameters() != null
-									? downloadedDoc.getSignatureParameters().getValue() : null;
-
-							if (extraParams != null) {
-								docRequest.setParams(Base64.encode(extraParams.getBytes(), true));
+							// Si el documento descargado define la configuracion que se debe aplicar,
+							// la sumamos a la configuracion ya establecida para la firma
+							// Lo pasamos a base 64 URL_SAFE para que no afecten al envio de datos
+							final String downloadedExtraParams = downloadedDoc.getSignatureParameters() != null
+									? downloadedDoc.getSignatureParameters().getValue()
+									: null;
+							//								if (downloadedExtraParams != null) {
+							//									docRequest.setParams(Base64.encode(downloadedExtraParams.getBytes(DEFAULT_CHARSET), true));
+							//								}
+							if (downloadedExtraParams != null) {
+								String params;
+								final String currentParamsB64 = docRequest.getParams();
+								if (currentParamsB64 != null && !currentParamsB64.trim().isEmpty()) {
+									params = new String(Base64.decode(currentParamsB64, true), DEFAULT_CHARSET);
+									params += "\n" + downloadedExtraParams; //$NON-NLS-1$
+								}
+								else {
+									params = downloadedExtraParams;
+								}
+								docRequest.setParams(Base64.encode(params.getBytes(DEFAULT_CHARSET), true));
 							}
 
 							final DataHandler dataHandler = downloadedDoc.getData() != null
@@ -2603,13 +2636,23 @@ public final class ProxyService extends HttpServlet {
 						throw new Exception("No se obtuvo el contenido del documento: " + docRequest.getId()); //$NON-NLS-1$
 					}
 
+					// Los documentos no deben estar marcados como que necesitan
+					// confirmacion del usuario antes de prefirmarse
+					docRequest.setNeedConfirmation(false);
+
+					// Prefirmamos
 					LOGGER.debug("Procedemos a realizar la prefirma del documento " + docRequest.getId()); //$NON-NLS-1$
-					TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(),
-							ConfigManager.getForcedExtraParams());
+					try {
+						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(),
+								ConfigManager.getForcedExtraParams());
+					}
+					catch (final RuntimeConfigNeededException e) {
+						docRequest.setNeedConfirmation(true);
+						singleRequest.addConfirmationRequirement(e.getRequestorText());
+					}
 				}
 			} catch (final Exception e) {
-				LOGGER.warn("Error en la prefirma de la peticion " + //$NON-NLS-1$
-						singleRequest.getRef(), e);
+				LOGGER.warn("Error en la prefirma de la peticion " + singleRequest.getRef(), e); //$NON-NLS-1$
 				singleRequest.setStatusOk(false);
 				singleRequest.setThrowable(e);
 			}
@@ -2687,15 +2730,22 @@ public final class ProxyService extends HttpServlet {
 								} else {
 									docRequest.setContent((String) content);
 								}
-								// Del servicio remoto obtener los parametros de
-								// configuracion, tal como deben pasarse al
-								// cliente
-								// Lo pasamos a base 64 URL_SAFE para que no
-								// afecten al envio de datos
-								final String extraParams = downloadedDoc.getSignatureParameters() != null
+								// Si el documento descargado define la configuracion que se debe aplicar,
+								// la sumamos a la configuracion ya establecida para la firma
+								// Lo pasamos a base 64 URL_SAFE para que no afecten al envio de datos
+								final String downloadedExtraParams = downloadedDoc.getSignatureParameters() != null
 										? downloadedDoc.getSignatureParameters().getValue() : null;
-								if (extraParams != null) {
-									docRequest.setParams(Base64.encode(extraParams.getBytes(), true));
+								if (downloadedExtraParams != null) {
+									String params;
+									final String currentParamsB64 = docRequest.getParams();
+									if (currentParamsB64 != null) {
+										params = new String(Base64.decode(currentParamsB64, true), DEFAULT_CHARSET);
+										params += "\n" + downloadedExtraParams; //$NON-NLS-1$
+									}
+									else {
+										params = downloadedExtraParams;
+									}
+									docRequest.setParams(Base64.encode(params.getBytes(DEFAULT_CHARSET), true));
 								}
 							}
 						}
@@ -2742,6 +2792,13 @@ public final class ProxyService extends HttpServlet {
 		requestHeaders.put("Expect", Arrays.asList("100-Continue")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		final BindingProvider bindingProvider = (BindingProvider) servicePort;
+
+		if (ConfigManager.getSignfolderUsername() != null &&  ConfigManager.getSignfolderPassword() != null) {
+			final Handler handler = new SecurityHandler(ConfigManager.getSignfolderUsername(), ConfigManager.getSignfolderPassword());
+			final Binding binding = bindingProvider.getBinding();
+			binding.setHandlerChain(Arrays.asList(handler));
+		}
+
 	    bindingProvider.getRequestContext().put(MessageContext.HTTP_REQUEST_HEADERS, requestHeaders);
 
 		return servicePort;
@@ -2776,7 +2833,7 @@ public final class ProxyService extends HttpServlet {
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 
 		final EstadoNotifyPushResponse response = new EstadoNotifyPushResponse();
-		response.setValorNotifyPush(getService().estadoNotifyPush(dni.getBytes()));
+		response.setValorNotifyPush(getService().estadoNotifyPush(dni.getBytes(DEFAULT_CHARSET)));
 
 		// Construimos la respuesta para la aplicacion movil.
 		return XmlResponsesFactory.createGetPushStatusResponse(response);
@@ -2815,7 +2872,7 @@ public final class ProxyService extends HttpServlet {
 
 		// Realizamos la llamada.
 		final UpdateNotifyPushResponse response = new UpdateNotifyPushResponse();
-		response.setResultado(getService().updateNotifyPush(dni.getBytes(), enableRequest));
+		response.setResultado(getService().updateNotifyPush(dni.getBytes(DEFAULT_CHARSET), enableRequest));
 
 		return XmlResponsesFactory.createUpdatePushStatusResponse(response);
 	}
@@ -2846,7 +2903,7 @@ public final class ProxyService extends HttpServlet {
 		 */
 		public void print(final String message) {
 			try (final OutputStream os = this.response.getOutputStream();) {
-				os.write(message.getBytes(Charset.forName(DEFAULT_CHARSET)));
+				os.write(message.getBytes(DEFAULT_CHARSET));
 			} catch (final Exception e) {
 				LOGGER.error("Error al devolver el resultado al cliente a traves del metodo print", e); //$NON-NLS-1$
 			}

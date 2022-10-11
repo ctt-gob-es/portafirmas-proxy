@@ -3,10 +3,13 @@ package es.gob.afirma.signfolder.server.proxy;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +26,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import es.gob.afirma.core.AOException;
+import es.gob.afirma.core.RuntimeConfigNeededException;
+import es.gob.afirma.core.RuntimeConfigNeededException.RequestType;
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.core.misc.http.UrlHttpManagerFactory;
 import es.gob.afirma.core.misc.http.UrlHttpMethod;
 import es.gob.afirma.core.signers.AOSignConstants;
+import es.gob.afirma.core.signers.AOTriphaseException;
 import es.gob.afirma.core.signers.TriphaseData;
 import es.gob.afirma.core.signers.TriphaseData.TriSign;
 
@@ -64,8 +70,28 @@ public class TriSigner {
 	private static final String PARAMETER_NAME_EXTRA_PARAM = "params"; //$NON-NLS-1$
 	private static final String PARAMETER_NAME_SESSION_DATA = "session"; //$NON-NLS-1$
 
+
+	/** Prefijo del mensaje de error del servicio de firma trifasica. */
+	private static final String ERROR_PREFIX = "ERR-"; //$NON-NLS-1$
+	/** Prefijo del mensaje de error cuando para completar la operaci&oacute;n se requiere intervenci&oacute;n del usuario. */
+	private static final String CONFIG_NEEDED_ERROR_PREFIX = ERROR_PREFIX + "21:"; //$NON-NLS-1$
+
 	/** Indicador de finalizaci&oacute;n correcta de proceso. */
 	private static final String SUCCESS = "OK"; //$NON-NLS-1$
+
+	// Codigos asociados a los errores conocidos que requieren confirmacion del usuario
+	private static final String ERROR_CODE_SIGNING_CERTIFIED_PDF = "signingCertifiedPdf"; //$NON-NLS-1$
+	private static final String ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN = "signingPdfWithUnregisteredSigns"; //$NON-NLS-1$
+	private static final String ERROR_CODE_SIGNING_MODIFIED_PDF_FORM = "signingModifiedPdfForm"; //$NON-NLS-1$
+	private static final String ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT = "pdfShadowAttackSuspect"; //$NON-NLS-1$
+	private static final String ERROR_CODE_SIGNING_LTS_SIGNATURE = "signingLts"; //$NON-NLS-1$
+
+	// ExtraParams asociados a los errores que requieren confirmacion del usuario
+	private static final String EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF = "allowSigningCertifiedPdfs"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN = "allowCosigningUnregisteredSignatures"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_MODIFIED_PDF_FORM = "allowModifiedForm"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT = "allowShadowAttack"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE = "allowSignLTSignature"; //$NON-NLS-1$
 
 	/** Codificaci&oacute;n de texto por defecto. */
 	private static final String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
@@ -144,6 +170,16 @@ public class TriSigner {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Respuesta de prefirma del servicio de firma:\n{}", new String(triphaseResult)); //$NON-NLS-1$
 			}
+
+			// Comprobamos que no se trate de un error
+			if (triphaseResult.length > 8) {
+				final String headMsg = new String(Arrays.copyOf(triphaseResult, 8), StandardCharsets.UTF_8);
+				if (headMsg.startsWith(ERROR_PREFIX)) {
+					final String msg = new String(triphaseResult, StandardCharsets.UTF_8);
+					throw buildInternalException(msg, extraParams);
+				}
+			}
+
 			final TriphaseData triphaseData = loadTriphaseResponse(triphaseResult);
 			docReq.setPartialResult(triphaseData);
 			urlBuffer.setLength(0);
@@ -171,12 +207,26 @@ public class TriSigner {
 		 if (params != null && params.length() > 0) {
 			 byte[] paramsBytes;
 			 try {
+
+				 // Identificamos si podemos usar el juego de caracteres que deseamos o el por defecto
+				 Charset charset;
 				 try {
-					 paramsBytes = new String(Base64.decode(params), DEFAULT_ENCODING).replace("\\n", "\n").getBytes(DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-				 } catch (final UnsupportedEncodingException e) {
-					 paramsBytes = new String(Base64.decode(params)).replace("\\n", "\n").getBytes(); //$NON-NLS-1$ //$NON-NLS-2$
+					 charset = Charset.forName(DEFAULT_ENCODING);
 				 }
-				 extraParams.load(new ByteArrayInputStream(paramsBytes));
+				 catch (final Exception e) {
+					charset = null;
+				}
+
+				 // Cargamos el Properties de una forma u otra segun si hemos podidod definir el juego de caracteres o no
+				 if (charset != null) {
+					 paramsBytes = new String(Base64.decode(params), charset).replace("\\n", "\n").getBytes(charset); //$NON-NLS-1$ //$NON-NLS-2$
+					 final InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(paramsBytes), charset);
+					 extraParams.load(reader);
+				 }
+				 else {
+					 paramsBytes = new String(Base64.decode(params)).replace("\\n", "\n").getBytes(); //$NON-NLS-1$ //$NON-NLS-2$
+					 extraParams.load(new ByteArrayInputStream(paramsBytes));
+				 }
 			 } catch (final IOException e) {
 				 throw new AOException("Error al decodificar los parametros de firma", e); //$NON-NLS-1$
 			 }
@@ -187,14 +237,16 @@ public class TriSigner {
 
 	/**
 	 * Agrega a los extraParams cualquier par&aacute;metro necesario en base al formato
-	 * de firma establecido. Esto es necesario porque el Portafirmas utiliza el nombre
-	 * de formato para configurar las firmas cuando el cliente @firma lo hace en base
-	 * a extraParams.
+	 * de firma establecido.
 	 * @param extraParams Conjunto de par&aacute;metros.
 	 * @param format Formato de firma definido para el documento.
 	 */
 	private static void addFormatExtraParam(final Properties extraParams, final String format) {
 		if (format != null) {
+			// Las firmas XAdES obtendran su estructura segun lo indicado en el
+			// nombre del formato. Esto es necesario porque el Portafirmas utiliza
+			// el nombrede formato para configurar las firmas cuando el cliente
+			// @firma lo hace en base a extraParams
 			if (format.toUpperCase().contains("XADES")) { //$NON-NLS-1$
 				if (format.toUpperCase().contains("ENVELOPING")) { //$NON-NLS-1$
 					extraParams.setProperty("format", AOSignConstants.SIGN_FORMAT_XADES_ENVELOPING); //$NON-NLS-1$
@@ -202,6 +254,14 @@ public class TriSigner {
 				else if (format.toUpperCase().contains("ENVELOPED")) { //$NON-NLS-1$
 					extraParams.setProperty("format", AOSignConstants.SIGN_FORMAT_XADES_ENVELOPED); //$NON-NLS-1$
 				}
+			}
+			// La firma PAdES siempre configuraran la politica de firma de la AGE v1.9
+			if (format.equals("PDF")) { //$NON-NLS-1$
+				extraParams.setProperty("signatureSubFilter", "ETSI.CAdES.detached"); //$NON-NLS-1$ //$NON-NLS-2$
+				extraParams.setProperty("policyIdentifier", "2.16.724.1.3.1.1.2.1.9"); //$NON-NLS-1$ //$NON-NLS-2$
+				extraParams.setProperty("policyIdentifierHash", "G7roucf600+f03r/o0bAOQ6WAs0="); //$NON-NLS-1$ //$NON-NLS-2$
+				extraParams.setProperty("policyIdentifierHashAlgorithm", "1.3.14.3.2.26"); //$NON-NLS-1$ //$NON-NLS-2$
+				extraParams.setProperty("policyQualifier", "https://sede.060.gob.es/politica_de_firma_anexo_1.pdf"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
 	}
@@ -478,5 +538,56 @@ public class TriSigner {
 		return -1;
 	}
 
+	/** Construye una excepci&oacute;n a partir del mensaje interno de error
+	 * notificado por el servidor trif&aacute;sico.
+	 * @param msg Mensaje de error devuelto por el servidor trif&aacute;sico.
+	 * @param extraParams Configuraci&oacute;n aplicada en la operaci&oacute;n.
+	 * @return Excepci&oacute;n construida.
+	 */
+	private static AOException buildInternalException(final String msg, final Properties extraParams) {
 
+		AOException exception = null;
+		final int separatorPos = msg.indexOf(":"); //$NON-NLS-1$
+		if (msg.startsWith(CONFIG_NEEDED_ERROR_PREFIX)) {
+			final int separatorPos2 = msg.indexOf(":", separatorPos + 1); //$NON-NLS-1$
+			final String errorCode = msg.substring(separatorPos + 1, separatorPos2);
+			final String errorMsg = msg.substring(separatorPos2 + 1);
+
+			// Incrustamos aqui la logica para la identificacion de cada uno de los
+			// errores conocidos asociados a que se necesita mas informacion del usuario
+			switch (errorCode) {
+			case ERROR_CODE_SIGNING_CERTIFIED_PDF:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_CERTIFIED_PDF, EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF);
+				break;
+			case ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN, EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN);
+				break;
+			case ERROR_CODE_SIGNING_MODIFIED_PDF_FORM:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_MODIFIED_PDF_FORM, EXTRAPARAM_MODIFIED_PDF_FORM);
+				break;
+			case ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT, EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT);
+				break;
+			case ERROR_CODE_SIGNING_LTS_SIGNATURE:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_LTS_SIGNATURE, EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE);
+				break;
+			default:
+				exception = new AOException("La firma requiere una interaccion del usuario no soportada: " + msg); //$NON-NLS-1$
+				break;
+			}
+		}
+
+		if (exception == null) {
+			final int internalExceptionPos = msg.indexOf(":", separatorPos + 1); //$NON-NLS-1$
+			if (internalExceptionPos > 0) {
+				final String intMessage = msg.substring(internalExceptionPos + 1).trim();
+				exception = AOTriphaseException.parseException(intMessage);
+			}
+			else {
+				exception = new AOException(msg);
+			}
+		}
+
+		return exception;
+	}
 }

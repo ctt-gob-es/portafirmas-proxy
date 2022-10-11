@@ -53,7 +53,7 @@ public class SessionInfo extends HashMap<String, Object> {
 
 	/**
 	 * Recupera la fecha de caducidad de la sesi&oacute;n si esta establecida.
-	 * @param expirationDate Fecha de caducidad.
+	 * @return Fecha de caducidad.
 	 */
 	public long getExpirationDate() {
 		return this.expirationDate;

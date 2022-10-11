@@ -37,7 +37,7 @@ public class VerifyPetitionResult {
 
 	/**
 	 * Constructor para errores.
-	 * @param errorParam
+	 * @param errorParam Identificador del tipo de error.
 	 * @param idParam Identificador de petici&oacute;n.
 	 */
 	public VerifyPetitionResult(final int errorParam, final String idParam) {

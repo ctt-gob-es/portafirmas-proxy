@@ -1,12 +1,16 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.ws.Binding;
+import javax.xml.ws.BindingProvider;
+import javax.xml.ws.handler.Handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +19,7 @@ import es.gob.afirma.signfolder.client.MobileException;
 import es.gob.afirma.signfolder.client.MobileService;
 import es.gob.afirma.signfolder.client.MobileService_Service;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
+import es.gob.afirma.signfolder.soap.security.SecurityHandler;
 
 /**
  * Servicio para la obtenci&oacute;n del resultado del inicio de sesi&oacute;n con Cl@ve.
@@ -62,6 +67,11 @@ public class ClaveResultService extends HttpServlet {
 
 		// Conectamos con el Portafirmas web para descifrarla
 		final MobileService service = new MobileService_Service(ConfigManager.getSignfolderUrl()).getMobileServicePort();
+
+		if (ConfigManager.getSignfolderUsername() != null &&  ConfigManager.getSignfolderPassword() != null) {
+			addSecuityHeaders(service);
+		}
+
 		String dni;
 		try {
 			dni = service.procesarRespuestaClave(samlResponse, "https://www.prueba.es");	// XXX: Esta URL ahora carece de utilidad
@@ -87,5 +97,21 @@ public class ClaveResultService extends HttpServlet {
 		SessionCollector.updateSession(session);
 
 		response.sendRedirect("ok.jsp?dni=" + dni); //$NON-NLS-1$
+	}
+
+	/**
+	 * Agrega las cabeceras de seguridad para la conexi&oacute;n con los
+	 * servicios web del Portafirmas.
+	 * @param servicePort Puerto para el envio de las peticiones al
+	 * portafirmas.
+	 */
+	private static void addSecuityHeaders(final MobileService servicePort) {
+
+		final BindingProvider bindingProvider = (BindingProvider) servicePort;
+
+		final Handler handler = new SecurityHandler(ConfigManager.getSignfolderUsername(), ConfigManager.getSignfolderPassword());
+
+        final Binding binding = bindingProvider.getBinding();
+        binding.setHandlerChain(Arrays.asList(handler));
 	}
 }

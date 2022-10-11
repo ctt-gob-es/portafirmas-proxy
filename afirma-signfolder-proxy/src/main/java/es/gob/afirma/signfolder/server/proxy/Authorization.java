@@ -81,7 +81,7 @@ public class Authorization {
 	}
 
 	/**
-	 * Recupera el usuario que emiti&oacuteM la autorizaci&oacute;n.
+	 * Recupera el usuario que emiti&oacute; la autorizaci&oacute;n.
 	 * @return Usuario que emiti&oacute; la autorizaci&oacute;n.
 	 */
 	public GenericUser getUser() {
@@ -89,7 +89,7 @@ public class Authorization {
 	}
 
 	/**
-	 * Establece el usuario que emiti&oacuteM la autorizaci&oacute;n.
+	 * Establece el usuario que emiti&oacute; la autorizaci&oacute;n.
 	 * @param user Usuario que emiti&oacute; la autorizaci&oacute;n.
 	 */
 	public void setUser(final GenericUser user) {

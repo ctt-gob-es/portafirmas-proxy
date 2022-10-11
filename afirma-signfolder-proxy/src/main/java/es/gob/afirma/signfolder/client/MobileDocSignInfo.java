@@ -2,8 +2,10 @@
 package es.gob.afirma.signfolder.client;
 
 import javax.activation.DataHandler;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlMimeType;
 import javax.xml.bind.annotation.XmlType;
 
@@ -21,6 +23,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="documentId" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="signature" type="{http://www.w3.org/2001/XMLSchema}base64Binary" minOccurs="0"/>
  *         &lt;element name="signFormat" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="validar" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -33,7 +36,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "mobileDocSignInfo", namespace = "urn:juntadeandalucia:cice:pfirma:mobile:type:v2.0", propOrder = {
     "documentId",
     "signature",
-    "signFormat"
+    "signFormat",
+    "validar"
 })
 public class MobileDocSignInfo {
 
@@ -41,6 +45,8 @@ public class MobileDocSignInfo {
     @XmlMimeType("application/octet-stream")
     protected DataHandler signature;
     protected String signFormat;
+    @XmlElementRef(name = "validar", type = JAXBElement.class, required = false)
+    protected JAXBElement<String> validar;
 
     /**
      * Obtiene el valor de la propiedad documentId.
@@ -112,6 +118,30 @@ public class MobileDocSignInfo {
      */
     public void setSignFormat(String value) {
         this.signFormat = value;
+    }
+
+    /**
+     * Obtiene el valor de la propiedad validar.
+     * 
+     * @return
+     *     possible object is
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
+     *     
+     */
+    public JAXBElement<String> getValidar() {
+        return validar;
+    }
+
+    /**
+     * Define el valor de la propiedad validar.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link JAXBElement }{@code <}{@link String }{@code >}
+     *     
+     */
+    public void setValidar(JAXBElement<String> value) {
+        this.validar = value;
     }
 
 }

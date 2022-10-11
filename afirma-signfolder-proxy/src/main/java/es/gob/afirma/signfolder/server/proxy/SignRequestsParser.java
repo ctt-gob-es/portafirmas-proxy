@@ -84,21 +84,6 @@ final class SignRequestsParser {
 
 		// Nos aseguramos de procesar solo nodos de tipo Element
 		final int nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, 0);
-		/*if (nodeIndex == -1 || !CERTIFICATE_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
-			throw new IllegalArgumentException("La peticion de firma trifasica no contiene el nodo " + //$NON-NLS-1$
-					CERTIFICATE_NODE + " con el certificado de firma a utilizar"); //$NON-NLS-1$
-		}
-
-		final byte[] certEncoded;
-		try {
-			certEncoded = Base64.decode(requestNodes.item(nodeIndex).getTextContent().trim());
-		} catch (final Exception e) {
-			throw new IllegalArgumentException(
-					"No se ha podido obtener la codificacion del certificado a partir del XML: " + e); //$NON-NLS-1$
-		}
-
-		nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
-		*/
 		if (nodeIndex == -1 || !REQUESTS_LIST_NODE.equalsIgnoreCase(requestNodes.item(nodeIndex).getNodeName())) {
 			throw new IllegalArgumentException("La peticion de firma trifasica no contiene el nodo " + //$NON-NLS-1$
 					REQUESTS_LIST_NODE + " con el listado de peticiones de firma de documentos"); //$NON-NLS-1$
@@ -187,6 +172,7 @@ final class SignRequestsParser {
 		private static final String CRYPTO_OPERATION_ATTRIBUTE = "cop"; //$NON-NLS-1$
 		private static final String SIGNATURE_FORMAT_ATTRIBUTE = "sigfrmt"; //$NON-NLS-1$
 		private static final String MESSAGE_DIGEST_ALGORITHM_ATTRIBUTE = "mdalgo"; //$NON-NLS-1$
+		private static final String NEED_CONFIRMATION_ATTRIBUTE = "needcnf"; //$NON-NLS-1$
 		private static final String PARAMS_TRIPHASE_NODE = "params"; //$NON-NLS-1$
 		private static final String RESULT_TRIPHASE_RESULT_NODE = "result"; //$NON-NLS-1$
 
@@ -248,9 +234,14 @@ final class SignRequestsParser {
 			attributeNode = attributes.getNamedItem(MESSAGE_DIGEST_ALGORITHM_ATTRIBUTE);
 			messageDigestAlgorithm = attributeNode != null ? attributeNode.getNodeValue() : null;
 
+			attributeNode = attributes.getNamedItem(NEED_CONFIRMATION_ATTRIBUTE);
+			final boolean needConfirmation = attributeNode != null ? Boolean.parseBoolean(attributeNode.getNodeValue()) : false;
+
 			final NodeList docNodeChilds = trisignDocumentRequestNode.getChildNodes();
 			if (docNodeChilds == null || docNodeChilds.getLength() == 0) {
-				return new TriphaseSignDocumentRequest(docId, signatureFormat, messageDigestAlgorithm, null);
+				final TriphaseSignDocumentRequest docRequest = new TriphaseSignDocumentRequest(docId, signatureFormat, messageDigestAlgorithm, null);
+				docRequest.setNeedConfirmation(needConfirmation);
+				return docRequest;
 			}
 
 			String params = null;
@@ -278,16 +269,6 @@ final class SignRequestsParser {
 				signatureFormat.equals(SIGN_FORMAT_OOXML) ||
 				signatureFormat.equals(SIGN_FORMAT_ODF)) {
 					cryptoOperation = PORTAFIRMAS_CRYPTO_OPERATION_SIGN;
-
-				if (signatureFormat.equals(SIGN_FORMAT_PDF)) {
-					// Configuramos la politica de firma de la AGE v1.9 para PAdES
-					params = params == null ? "\n" : params + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
-					params += "signatureSubFilter=ETSI.CAdES.detached" + //$NON-NLS-1$
-							"\npolicyIdentifier=2.16.724.1.3.1.1.2.1.9" + //$NON-NLS-1$
-							"\npolicyIdentifierHash=G7roucf600+f03r/o0bAOQ6WAs0=" + //$NON-NLS-1$
-							"\npolicyIdentifierHashAlgorithm=1.3.14.3.2.26" + //$NON-NLS-1$
-							"\npolicyQualifier=https://sede.060.gob.es/politica_de_firma_anexo_1.pdf"; //$NON-NLS-1$
-				}
 			}
 			else {
 				attributeNode = attributes.getNamedItem(CRYPTO_OPERATION_ATTRIBUTE);
@@ -305,10 +286,12 @@ final class SignRequestsParser {
 				params += "target=leafs"; //$NON-NLS-1$
 			}
 
-			return new TriphaseSignDocumentRequest(
+			final TriphaseSignDocumentRequest docRequest = new TriphaseSignDocumentRequest(
 					docId, normalizeOperationType(cryptoOperation), signatureFormat,
 					messageDigestAlgorithm, params, null,
 					partialResult);
+			docRequest.setNeedConfirmation(needConfirmation);
+			return docRequest;
 		}
 
 		/**
