@@ -184,6 +184,8 @@ public final class ProxyService extends HttpServlet {
 	private static TrustManager[] DUMMY_TRUST_MANAGER = null;
 	private static HostnameVerifier HOSTNAME_VERIFIER = null;
 
+	private DocumentCache documentCache = null;
+
 	private final DocumentBuilder documentBuilder;
 
 	private final MobileService_Service mobileService;
@@ -237,6 +239,24 @@ public final class ProxyService extends HttpServlet {
 			throw new IllegalStateException("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$
 		}
 
+		// Activamos la cache si se configuro
+		if (ConfigManager.isCacheEnabled()) {
+			final String cacheSystemClassname = ConfigManager.getCacheSystemClass();
+			try {
+				final Class<?> docCacheClass = Class.forName(cacheSystemClassname);
+				if (DocumentCache.class.isAssignableFrom(docCacheClass)) {
+					this.documentCache = (DocumentCache) docCacheClass.newInstance();
+				}
+				else {
+					LOGGER.error("La clase de cache configurada no implementa la clase es.gob.afirma.signfolder.server.proxy.DocumentCache"); //$NON-NLS-1$
+				}
+			}
+			catch (final Exception e) {
+				LOGGER.error("La clase de cache configurada no es valida", e); //$NON-NLS-1$
+				this.documentCache = null;
+			}
+		}
+
 		// Si esta configurada la variable SIGNATURE_SERVICE_URL en el sistema,
 		// se utiliza en lugar de propiedad
 		// interna de la aplicacion
@@ -244,12 +264,12 @@ public final class ProxyService extends HttpServlet {
 			final String systemSignatureServiceUrl = System.getProperty(SIGNATURE_SERVICE_URL);
 			if (systemSignatureServiceUrl != null) {
 				ConfigManager.setTriphaseServiceUrl(systemSignatureServiceUrl);
-				LOGGER.info("Se sustituye la URL del servicio de firma por la configurada en la propiedad del sistema " //$NON-NLS-1$
-						+ SIGNATURE_SERVICE_URL + " con el valor: " + systemSignatureServiceUrl); //$NON-NLS-1$
+				LOGGER.info("Se sustituye la URL del servicio de firma por la configurada en la propiedad del sistema {} con el valor: {}", //$NON-NLS-1$
+						SIGNATURE_SERVICE_URL, systemSignatureServiceUrl);
 			}
 		} catch (final Exception e) {
-			LOGGER.warn("No se ha podido recuperar la URL del servicio de firma configurado en la variable " //$NON-NLS-1$
-					+ SIGNATURE_SERVICE_URL + " del sistema: " + e); //$NON-NLS-1$
+			LOGGER.warn("No se ha podido recuperar la URL del servicio de firma configurado en la variable {} del sistema: {}", //$NON-NLS-1$
+					SIGNATURE_SERVICE_URL, e);
 		}
 	}
 
@@ -1120,9 +1140,7 @@ public final class ProxyService extends HttpServlet {
 			signInfo.setDocumentId(docReq.getId());
 			signInfo.setSignFormat(docReq.getSignatureFormat());
 			signInfo.setSignature(new DataHandler(new ByteArrayDataSource(docReq.getResult(), null)));
-			LOGGER.info(" =========== Vamos a guardar el documento: " + docReq.getId());
 			if (docReq.isNeedConfirmation()) {
-				LOGGER.info(" =========== Desactivamos validacion para el documento: " + docReq.getId());
 				signInfo.setValidar(factory.createMobileDocSignInfoValidar("false")); //$NON-NLS-1$
 			}
 			list.add(signInfo);
@@ -2568,80 +2586,44 @@ public final class ProxyService extends HttpServlet {
 		final MobileService service = getService();
 		for (final TriphaseRequest singleRequest : triRequests) {
 
-			LOGGER.debug("Prefirma de la peticion: " + singleRequest.getRef()); //$NON-NLS-1$
+			// Si esta habilitada la cache, tratamos de recuperar los documentos de ella
+			boolean loaded = false;
+			if (this.documentCache != null) {
+				try {
+					loadDocumentsFromCache(singleRequest, false);
+					loaded = true;
+					LOGGER.info("Se han cargado de cache los documentos de la peticion: {}", singleRequest.getRef()); //$NON-NLS-1$
+				}
+				catch (final Exception e) {
+					// No hacemos nada
+				}
+			}
+			// Si aun no se han cargado los documentos, los descargamos del Portafirmas
+			if (!loaded) {
+				try {
+					loadDocumentsFromService(singleRequest, null, triRequests.getCertificate().getEncoded(), service);
+					LOGGER.info("Se han descargado del Portafirmas los documentos de la peticion: {}", singleRequest.getRef()); //$NON-NLS-1$
+				}
+				catch (final Exception e2) {
+					LOGGER.warn("Error al cargar los documentos de la peticion " + singleRequest.getRef(), e2); //$NON-NLS-1$
+					singleRequest.setStatusOk(false);
+					singleRequest.setThrowable(e2);
+					continue;
+				}
+			}
+
+			LOGGER.debug("Prefirma de la peticion: {}", singleRequest.getRef()); //$NON-NLS-1$
 
 			try {
-				LOGGER.info("Recuperamos los documentos de la peticion " + singleRequest.getRef()); //$NON-NLS-1$
-				final MobileDocumentList downloadedDocs = service
-						.getDocumentsToSign(triRequests.getCertificate().getEncoded(), singleRequest.getRef());
-				if (singleRequest.size() != downloadedDocs.getDocument().size()) {
-					throw new Exception("No se han recuperado tantos documentos como los indicados en la peticion " //$NON-NLS-1$
-							+ singleRequest.getRef());
-				}
-
 				// Prefirmamos cada documento de la peticion
 				for (final TriphaseSignDocumentRequest docRequest : singleRequest) {
-					// Buscamos para la prefirma el documento descargado que
-					// corresponde para la peticion
-					// de firma del documento actual
-					for (final MobileDocument downloadedDoc : downloadedDocs.getDocument()) {
-						if (downloadedDoc.getIdentifier().equals(docRequest.getId())) {
-
-							LOGGER.debug("Procesamos documento con el id: " + downloadedDoc.getIdentifier()); //$NON-NLS-1$
-
-							docRequest.setCryptoOperation(downloadedDoc.getOperationType());
-
-							// Si el documento descargado define la configuracion que se debe aplicar,
-							// la sumamos a la configuracion ya establecida para la firma
-							// Lo pasamos a base 64 URL_SAFE para que no afecten al envio de datos
-							final String downloadedExtraParams = downloadedDoc.getSignatureParameters() != null
-									? downloadedDoc.getSignatureParameters().getValue()
-									: null;
-							//								if (downloadedExtraParams != null) {
-							//									docRequest.setParams(Base64.encode(downloadedExtraParams.getBytes(DEFAULT_CHARSET), true));
-							//								}
-							if (downloadedExtraParams != null) {
-								String params;
-								final String currentParamsB64 = docRequest.getParams();
-								if (currentParamsB64 != null && !currentParamsB64.trim().isEmpty()) {
-									params = new String(Base64.decode(currentParamsB64, true), DEFAULT_CHARSET);
-									params += "\n" + downloadedExtraParams; //$NON-NLS-1$
-								}
-								else {
-									params = downloadedExtraParams;
-								}
-								docRequest.setParams(Base64.encode(params.getBytes(DEFAULT_CHARSET), true));
-							}
-
-							final DataHandler dataHandler = downloadedDoc.getData() != null
-									? downloadedDoc.getData().getValue() : null;
-							if (dataHandler == null) {
-								throw new IllegalArgumentException("No se han recuperado los datos del documento"); //$NON-NLS-1$
-							}
-							final Object content = dataHandler.getContent();
-							if (content instanceof InputStream) {
-								docRequest.setContent(
-										Base64.encode(AOUtil.getDataFromInputStream((InputStream) content), true));
-							} else if (content instanceof String) {
-								docRequest.setContent(((String) content).replace('+', '-').replace('/', '_'));
-							} else {
-								throw new IOException(
-										"El tipo con el que se devuelve el contenido del documento no esta soportado: " //$NON-NLS-1$
-												+ (content == null ? null : content.getClass()));
-							}
-							break;
-						}
-					}
-					if (docRequest.getContent() == null) {
-						throw new Exception("No se obtuvo el contenido del documento: " + docRequest.getId()); //$NON-NLS-1$
-					}
 
 					// Los documentos no deben estar marcados como que necesitan
 					// confirmacion del usuario antes de prefirmarse
 					docRequest.setNeedConfirmation(false);
 
 					// Prefirmamos
-					LOGGER.debug("Procedemos a realizar la prefirma del documento " + docRequest.getId()); //$NON-NLS-1$
+					LOGGER.debug("Procedemos a realizar la prefirma del documento {}", docRequest.getId()); //$NON-NLS-1$
 					try {
 						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(),
 								ConfigManager.getForcedExtraParams());
@@ -2655,6 +2637,17 @@ public final class ProxyService extends HttpServlet {
 				LOGGER.warn("Error en la prefirma de la peticion " + singleRequest.getRef(), e); //$NON-NLS-1$
 				singleRequest.setStatusOk(false);
 				singleRequest.setThrowable(e);
+				continue;
+			}
+
+			// Cacheamos los documentos
+			if (this.documentCache != null) {
+				try {
+					saveInCache(singleRequest);
+				}
+				catch (final Exception e) {
+					LOGGER.warn("No se pudieron cachear los documentos de la peticion {}: {}", singleRequest.getRef(), e); //$NON-NLS-1$
+				}
 			}
 		}
 	}
@@ -2678,7 +2671,7 @@ public final class ProxyService extends HttpServlet {
 		// toda la peticion
 		for (final TriphaseRequest triRequest : triRequests) {
 
-			LOGGER.debug("Postfirma de la peticion: " + triRequest.getRef()); //$NON-NLS-1$
+			LOGGER.debug("Postfirma de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
 
 			// Sustituir. Algunos formatos de firma no requeriran que se vuelva
 			// a descargar el
@@ -2692,66 +2685,44 @@ public final class ProxyService extends HttpServlet {
 				final TriphaseData triData = docRequest.getPartialResult();
 				if (triData.getSignsCount() > 0 && (!triData.getSign(0).getDict().containsKey(CRYPTO_PARAM_NEED_DATA)
 						|| Boolean.parseBoolean(triData.getSign(0).getDict().get(CRYPTO_PARAM_NEED_DATA)))) {
-					LOGGER.debug("Descargamos el documento '" + docRequest.getId() + "' para su uso en la postfirma"); //$NON-NLS-1$ //$NON-NLS-2$
+					LOGGER.debug("Se necesitara el documento '" + docRequest.getId() + "' para su uso en la postfirma"); //$NON-NLS-1$ //$NON-NLS-2$
 					requestNeedContent.add(docRequest.getId());
 				}
 			}
 
-			// Descargamos los documentos originales si los necesitamos
-			MobileDocumentList downloadedDocs = null;
+			// Obtenemos los documentos originales si los necesitamos
 			if (!requestNeedContent.isEmpty()) {
-				try {
-					downloadedDocs = service.getDocumentsToSign(triRequests.getCertificate().getEncoded(),
-							triRequest.getRef());
-				} catch (final Exception ex) {
-					LOGGER.warn("Ocurrio un error al descargar los documentos de la peticion " + triRequest.getRef() //$NON-NLS-1$
-							+ ": " + ex); //$NON-NLS-1$
-					triRequest.setStatusOk(false);
-					continue;
+				// Si esta habilitada la cache, tratamos de recuperar los documentos de ella
+				boolean loaded = false;
+				if (this.documentCache != null) {
+					try {
+						loadDocumentsFromCache(triRequest, true);
+						loaded = true;
+						LOGGER.info("Se han cargado de cache los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
+					} catch (final Exception e) {
+						// No hacemos nada
+					}
+				}
+				// Si aun no se han cargado los documentos, los descargamos del Portafirmas
+				if (!loaded) {
+					try {
+						loadDocumentsFromService(triRequest, requestNeedContent, triRequests.getCertificate().getEncoded(), service);
+						LOGGER.info("Se han descargado del Portafirmas los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
+					} catch (final Exception e2) {
+						LOGGER.warn("Ocurrio un error al cargar los documentos de la peticion {}: {}", triRequest.getRef(), e2); //$NON-NLS-1$
+						triRequest.setStatusOk(false);
+						triRequest.setThrowable(e2);
+						continue;
+					}
 				}
 			}
+
 
 			// Para cada documento, le asignamos su documento (si es necesario)
 			// y lo postfirmamos
 			try {
 				for (final TriphaseSignDocumentRequest docRequest : triRequest) {
-
-					// Asignamos el documento a la peticion si es necesario
-					if (downloadedDocs != null && requestNeedContent.contains(docRequest.getId())) {
-						// Buscamos para la postfirma el documento descargado
-						// que corresponde para la peticion
-						// de firma del documento actual
-						for (final MobileDocument downloadedDoc : downloadedDocs.getDocument()) {
-							if (downloadedDoc.getIdentifier().equals(docRequest.getId())) {
-								final Object content = downloadedDoc.getData().getValue().getContent();
-								if (content instanceof InputStream) {
-									docRequest.setContent(
-											Base64.encode(AOUtil.getDataFromInputStream((InputStream) content), true));
-								} else {
-									docRequest.setContent((String) content);
-								}
-								// Si el documento descargado define la configuracion que se debe aplicar,
-								// la sumamos a la configuracion ya establecida para la firma
-								// Lo pasamos a base 64 URL_SAFE para que no afecten al envio de datos
-								final String downloadedExtraParams = downloadedDoc.getSignatureParameters() != null
-										? downloadedDoc.getSignatureParameters().getValue() : null;
-								if (downloadedExtraParams != null) {
-									String params;
-									final String currentParamsB64 = docRequest.getParams();
-									if (currentParamsB64 != null) {
-										params = new String(Base64.decode(currentParamsB64, true), DEFAULT_CHARSET);
-										params += "\n" + downloadedExtraParams; //$NON-NLS-1$
-									}
-									else {
-										params = downloadedExtraParams;
-									}
-									docRequest.setParams(Base64.encode(params.getBytes(DEFAULT_CHARSET), true));
-								}
-							}
-						}
-					}
-
-					LOGGER.debug("Procedemos a realizar la postfirma del documento"); //$NON-NLS-1$
+					LOGGER.debug("Procedemos a realizar la postfirma del documento: {}", docRequest.getId()); //$NON-NLS-1$
 					TriSigner.doPostSign(docRequest, triRequests.getCertificate(),
 							ConfigManager.getTriphaseServiceUrl(), ConfigManager.getForcedExtraParams());
 				}
@@ -2768,10 +2739,138 @@ public final class ProxyService extends HttpServlet {
 				service.saveSign(triRequests.getCertificate().getEncoded(), triRequest.getRef(),
 						transformToWsParams(triRequest));
 			} catch (final Exception ex) {
-				LOGGER.warn("Ocurrio un error al guardar la peticion de firma " + triRequest.getRef(), ex); //$NON-NLS-1$
+				LOGGER.warn("Ocurrio un error al guardar los documentos de la peticion de firma " + triRequest.getRef(), ex); //$NON-NLS-1$
 				triRequest.setStatusOk(false);
 			}
 		}
+	}
+
+	/**
+	 * Guarda un documento en cach&eacute;.
+	 * @param docRequest Documento de una petici&oacute;n.
+	 * @throws IOException Cuando no se puede guardar alguno de los documentos.
+	 */
+	private void saveInCache(final TriphaseRequest triRequest) throws IOException {
+
+		final String requestRef = triRequest.getRef();
+		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
+			final String docId = docRequest.getId();
+			final byte[] content = Base64.decode(docRequest.getContent(), true);
+			this.documentCache.saveDocument(requestRef, docId, content);
+		}
+	}
+
+	/**
+	 * Carga los documentos de la peticion de cach&eacute;.
+	 * @param triRequest Peticion de la que cargar los documentos.
+	 * @param delete Indica si se debe eliminar el documento de cach&eacute; tras cargarlo.
+	 * @throws IOException Cuando no puede cargar alguno de los documentos.
+	 */
+	private void loadDocumentsFromCache(final TriphaseRequest triRequest, final boolean delete) throws IOException {
+
+		final String requestRef = triRequest.getRef();
+		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
+			final String docId = docRequest.getId();
+			final byte[] content = this.documentCache.loadDocument(requestRef, docId, delete);
+			docRequest.setContent(Base64.encode(content, true));
+		}
+	}
+
+	/**
+	 * Carga el contenido de los documentos de una petici&oacute;n descarg&aacute;ndolos del servicio Portafirmas.
+	 * @param triRequest Petici&oacute;n de la que descargar los documentos.
+	 * @param requestNeedContent Conjunto de identificadores de los documentos que se necesitan.
+	 * @param certEncoded Certificado con el que hacer la petici&oacute;n al sevicio.
+	 * @param service Servicio del Portafirmas.
+	 * @throws IOException Cuando falla la obtenci&oacute;n de datos del servicio.
+	 * @throws MobileException Cuando falla la llamada al servicio.
+	 */
+	private static void loadDocumentsFromService(final TriphaseRequest triRequest, final Set<String> requestNeedContent,
+			final byte[] certEncoded, final MobileService service) throws IOException, MobileException {
+
+		// Descargamos los documentos de la peticion
+		final MobileDocumentList downloadedDocs = service.getDocumentsToSign(certEncoded, triRequest.getRef());
+
+		if (downloadedDocs == null) {
+			throw new IOException("No se descargaron los documentos de la peticion: " + triRequest.getRef()); //$NON-NLS-1$
+		}
+		if (triRequest.size() != downloadedDocs.getDocument().size()) {
+			throw new IOException("No se han recuperado tantos documentos como los indicados en la peticion " //$NON-NLS-1$
+					+ triRequest.getRef());
+		}
+
+		// Asociamos el contenido a cada uno de los documentos
+		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
+
+			LOGGER.debug("Procesamos documento con el id: " + docRequest.getId()); //$NON-NLS-1$
+
+			// Si no se restringe de que documentos obtener el contenido o si se trata de uno de los
+			// documentos que se necesitaban, se asocia el contenido descargado al documento de la peticion
+			if (requestNeedContent == null || requestNeedContent.contains(docRequest.getId())) {
+
+				final MobileDocument downloadedDoc = getDownloadedDocument(docRequest.getId(), downloadedDocs);
+
+				if (downloadedDoc == null) {
+					throw new IOException("No se encontro entre los documentos descargados aquel con identificador: " + docRequest.getId()); //$NON-NLS-1$
+				}
+
+				// Establecemos la operacion
+				docRequest.setCryptoOperation(downloadedDoc.getOperationType());
+
+				// Si el documento descargado define la configuracion que se debe aplicar,
+				// la sumamos a la configuracion ya establecida para la firma
+				// Lo pasamos a base 64 URL_SAFE para que no afecten al envio de datos
+				final String downloadedExtraParams = downloadedDoc.getSignatureParameters() != null
+						? downloadedDoc.getSignatureParameters().getValue()
+						: null;
+				if (downloadedExtraParams != null) {
+					String params;
+					final String currentParamsB64 = docRequest.getParams();
+					if (currentParamsB64 != null && !currentParamsB64.trim().isEmpty()) {
+						params = new String(Base64.decode(currentParamsB64, true), DEFAULT_CHARSET);
+						params += "\n" + downloadedExtraParams; //$NON-NLS-1$
+					}
+					else {
+						params = downloadedExtraParams;
+					}
+					docRequest.setParams(Base64.encode(params.getBytes(DEFAULT_CHARSET), true));
+				}
+
+				// Asociamos el contenido
+				final DataHandler dataHandler = downloadedDoc.getData() != null
+						? downloadedDoc.getData().getValue() : null;
+				if (dataHandler == null) {
+					throw new IllegalArgumentException("No se han recuperado los datos del documento"); //$NON-NLS-1$
+				}
+				final Object content = dataHandler.getContent();
+				if (content instanceof InputStream) {
+					docRequest.setContent(
+							Base64.encode(AOUtil.getDataFromInputStream((InputStream) content), true));
+				} else if (content instanceof String) {
+					docRequest.setContent(((String) content).replace('+', '-').replace('/', '_'));
+				} else {
+					throw new IOException(
+							"El tipo con el que se devuelve el contenido del documento no esta soportado: " //$NON-NLS-1$
+							+ (content == null ? null : content.getClass()));
+				}
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Obtiene el documento con el identificador indicado de entre un listado de documentos descargados.
+	 * @param id Identificador del documento deseado.
+	 * @param downloadedDocs Listado de documentos descargados.
+	 * @return Documento descargado o {@code null} si no se encontr&oacute;.
+	 */
+	private static MobileDocument getDownloadedDocument(final String id, final MobileDocumentList downloadedDocs) {
+		for (final MobileDocument downloadedDoc : downloadedDocs.getDocument()) {
+			if (downloadedDoc.getIdentifier().equals(id)) {
+				return downloadedDoc;
+			}
+		}
+		return null;
 	}
 
 	/**

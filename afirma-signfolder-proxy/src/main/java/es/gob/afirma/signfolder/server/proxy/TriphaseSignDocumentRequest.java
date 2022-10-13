@@ -101,10 +101,11 @@ public final class TriphaseSignDocumentRequest {
 	/**
 	 * Establece el tipo de operaci&oacute;n criptogr&aacute;fica que debe realizarse sobre
 	 * el documento.
-	 * @param cryptoOperation Operaci&oacute;n criptogr&aacute;fica.
+	 * @param cryptoOperation Operaci&oacute;n criptogr&aacute;fica o {@code null} para asignar
+	 * la operaci&oacute;n por defecto.
 	 */
 	public void setCryptoOperation(final String cryptoOperation) {
-		this.cryptoOperation = cryptoOperation;
+		this.cryptoOperation = cryptoOperation != null ? cryptoOperation : DEFAULT_CRYPTO_OPERATION;
 	}
 
 	/** Recupera el formato de firma.

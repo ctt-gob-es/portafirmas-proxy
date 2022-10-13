@@ -23,7 +23,6 @@ public class ConfigManager {
 	/** Variable de entorno que determina el directorio en el que buscar el fichero de configuraci&oacute;n. */
 	private static final String ENVIRONMENT_VAR_CONFIG_DIR = "pfmovil.config.path"; //$NON-NLS-1$
 
-
 	private static final String SYS_PROP_PREFIX = "${"; //$NON-NLS-1$
 
 	private static final String SYS_PROP_SUFIX = "}"; //$NON-NLS-1$
@@ -60,9 +59,24 @@ public class ConfigManager {
 	 * sesiones compartidas antes de lanzar el proceso de limpieza. */
 	private static final String PROPERTY_REQUESTS_TO_CLEAN = "share.sessions.requeststoclean"; //$NON-NLS-1$
 
+	/** Propiedad que establece si se debe utilizar cach&eacute; para el guardado temporal de los
+	 * documentos del Portafirmas durante el proceso de firma. */
+	private static final String PROPERTY_CACHE_ENABLED = "cache.enabled"; //$NON-NLS-1$
+
+	/** Propiedad que establece el nombre de la clase que gestiona la cach&eacute; temporal para el
+	 * guardado de los documentos Portafirmas durante el proceso de firma. */
+	private static final String PROPERTY_CACHE_SYSTEM_CLASS = "cache.system.class"; //$NON-NLS-1$
+
+	/** Propiedad que establece el numero de milisegundos a partir del cual se considera caducado
+	 * un documento en cache. */
+	private static final String PROPERTY_CACHE_SYSTEM_EXPIRATION_TIME = "cache.system.expirationtime"; //$NON-NLS-1$
+
 	/** N&uacute;mero de accesos que, por defecto, se pueden realizar al directorio de sesiones
 	 * compartidas antes de lanzar el proceso de limpieza. */
 	private static final int DEFAULT_VALUE_REQUESTS_TO_CLEAN = 1000;
+
+	/** N&uacute;mero de milisegundos que por defecto tardan en caducar los ficheros en cache. */
+	private static final int DEFAULT_EXPIRATION_TIME = 1000;
 
 
 	private static Properties config = null;
@@ -232,7 +246,6 @@ public class ConfigManager {
 	 * @return Ruta del directorio temporal compartido o {@code null} si no se ha configurado.
 	 */
 	public static int getRequestToClean() {
-
 		int numRequests;
 		final String request = getProperty(PROPERTY_REQUESTS_TO_CLEAN);
 		try {
@@ -245,6 +258,11 @@ public class ConfigManager {
 		return numRequests;
 	}
 
+	/**
+	 * Obtiene una propiedad del fichero de configuraci&oacute;n.
+	 * @param prop Nombre de la propiedad.
+	 * @return Valor de la propiedad o {@code null} si no est&aacute; definida.
+	 */
 	public static String getProperty(final String prop) {
 		return config != null ? mapSystemProperties(config.getProperty(prop)) : null;
 	}
@@ -301,5 +319,48 @@ public class ConfigManager {
 			return null;
 		}
 		return passw;
+	}
+
+	/**
+	 * Indica si se debe usar el sistema de cache o no.
+	 * @return {@code true} si se debe usar la cach&eacute;, no en caso contrario.
+	 */
+	public static boolean isCacheEnabled() {
+		final String cacheEnabledValue = getProperty(PROPERTY_CACHE_ENABLED);
+		return Boolean.parseBoolean(cacheEnabledValue);
+	}
+
+	/**
+	 * Clase que define el sistema de cach&eacute; que se debe utilizar.
+	 * @return Nombre completo de la clase para la gestion de cach&eacute;.
+	 */
+	public static String getCacheSystemClass() {
+		final String cacheSystemClassValue = getProperty(PROPERTY_CACHE_SYSTEM_CLASS);
+		if (cacheSystemClassValue != null && cacheSystemClassValue.isEmpty()) {
+			return null;
+		}
+		return cacheSystemClassValue;
+	}
+
+	/**
+	 * Obtiene el tiempo de caducidad de los documentos en cach&eacute;.
+	 * @return Milisegundos que duran los documentos en cach&eacute; sin eliminar.
+	 */
+	public static long getCacheExpirationTime() {
+
+		long expirationTime = DEFAULT_EXPIRATION_TIME;
+		final String expirationTimeValue = getProperty(PROPERTY_CACHE_SYSTEM_EXPIRATION_TIME);
+		if (expirationTimeValue != null || expirationTimeValue.isEmpty()) {
+			try {
+				final long configuredTime = Long.parseLong(expirationTimeValue);
+				if (configuredTime > 0) {
+					expirationTime = configuredTime;
+				}
+			}
+			catch (final Exception e) {
+				LOGGER.warn("No se ha indicado un numero valido ");
+			}
+		}
+		return expirationTime;
 	}
 }
