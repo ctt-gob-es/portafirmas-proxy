@@ -175,6 +175,9 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String VALID_ACTION_INSERT = "insertar"; //$NON-NLS-1$
 
+	/** N&uacute;mero de peticiones a la cach&eacute; que se deben realizar entre una limpieza y otra. */
+	private final int DEFAULT_CACHE_REQUEST_TO_CLEAN = 1000;
+
 	static final Logger LOGGER = LoggerFactory.getLogger(ProxyService.class);
 
 	private static boolean DEBUG;
@@ -189,6 +192,11 @@ public final class ProxyService extends HttpServlet {
 	private final DocumentBuilder documentBuilder;
 
 	private final MobileService_Service mobileService;
+
+
+	/** N&uacute;mero de peticiones a la cach&eacute; que quedan hasta la siguiente limpieza. */
+	private int numCacheRequestToClean = this.DEFAULT_CACHE_REQUEST_TO_CLEAN;
+
 
 	static {
 		try {
@@ -2584,39 +2592,39 @@ public final class ProxyService extends HttpServlet {
 		// Si falla la prefirma de
 		// un documento, se da por erronea la prefirma de toda la peticion
 		final MobileService service = getService();
-		for (final TriphaseRequest singleRequest : triRequests) {
+		for (final TriphaseRequest triRequest : triRequests) {
 
 			// Si esta habilitada la cache, tratamos de recuperar los documentos de ella
-			boolean loaded = false;
+			boolean loadedFromCache = false;
 			if (this.documentCache != null) {
 				try {
-					loadDocumentsFromCache(singleRequest, false);
-					loaded = true;
-					LOGGER.info("Se han cargado de cache los documentos de la peticion: {}", singleRequest.getRef()); //$NON-NLS-1$
+					loadDocumentsFromCache(triRequest, false);
+					loadedFromCache = true;
+					LOGGER.info(" ==== Se han cargado de cache los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 				catch (final Exception e) {
-					// No hacemos nada
+					LOGGER.debug("No se encontraron en cache todos los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 			}
 			// Si aun no se han cargado los documentos, los descargamos del Portafirmas
-			if (!loaded) {
+			if (!loadedFromCache) {
 				try {
-					loadDocumentsFromService(singleRequest, null, triRequests.getCertificate().getEncoded(), service);
-					LOGGER.info("Se han descargado del Portafirmas los documentos de la peticion: {}", singleRequest.getRef()); //$NON-NLS-1$
+					loadDocumentsFromService(triRequest, null, triRequests.getCertificate().getEncoded(), service);
+					LOGGER.info(" ==== Se han descargado del Portafirmas los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 				catch (final Exception e2) {
-					LOGGER.warn("Error al cargar los documentos de la peticion " + singleRequest.getRef(), e2); //$NON-NLS-1$
-					singleRequest.setStatusOk(false);
-					singleRequest.setThrowable(e2);
+					LOGGER.warn("Error al cargar los documentos de la peticion " + triRequest.getRef(), e2); //$NON-NLS-1$
+					triRequest.setStatusOk(false);
+					triRequest.setThrowable(e2);
 					continue;
 				}
 			}
 
-			LOGGER.debug("Prefirma de la peticion: {}", singleRequest.getRef()); //$NON-NLS-1$
+			LOGGER.debug("Prefirma de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
 
 			try {
 				// Prefirmamos cada documento de la peticion
-				for (final TriphaseSignDocumentRequest docRequest : singleRequest) {
+				for (final TriphaseSignDocumentRequest docRequest : triRequest) {
 
 					// Los documentos no deben estar marcados como que necesitan
 					// confirmacion del usuario antes de prefirmarse
@@ -2630,23 +2638,24 @@ public final class ProxyService extends HttpServlet {
 					}
 					catch (final RuntimeConfigNeededException e) {
 						docRequest.setNeedConfirmation(true);
-						singleRequest.addConfirmationRequirement(e.getRequestorText());
+						triRequest.addConfirmationRequirement(e.getRequestorText());
 					}
 				}
 			} catch (final Exception e) {
-				LOGGER.warn("Error en la prefirma de la peticion " + singleRequest.getRef(), e); //$NON-NLS-1$
-				singleRequest.setStatusOk(false);
-				singleRequest.setThrowable(e);
+				LOGGER.warn("Error en la prefirma de la peticion " + triRequest.getRef(), e); //$NON-NLS-1$
+				triRequest.setStatusOk(false);
+				triRequest.setThrowable(e);
 				continue;
 			}
 
-			// Cacheamos los documentos
-			if (this.documentCache != null) {
+			// Cacheamos los documentos si a cache esta habilitada y no estan ya cacheados
+			if (this.documentCache != null && !loadedFromCache) {
 				try {
-					saveInCache(singleRequest);
+					saveInCache(triRequest);
+					LOGGER.info(" ==== Se guardaron en cache los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 				catch (final Exception e) {
-					LOGGER.warn("No se pudieron cachear los documentos de la peticion {}: {}", singleRequest.getRef(), e); //$NON-NLS-1$
+					LOGGER.warn("No se pudieron cachear los documentos de la peticion {}: {}", triRequest.getRef(), e); //$NON-NLS-1$
 				}
 			}
 		}
@@ -2698,7 +2707,7 @@ public final class ProxyService extends HttpServlet {
 					try {
 						loadDocumentsFromCache(triRequest, true);
 						loaded = true;
-						LOGGER.info("Se han cargado de cache los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
+						LOGGER.info(" ==== Se han cargado de cache los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
 					} catch (final Exception e) {
 						// No hacemos nada
 					}
@@ -2757,6 +2766,7 @@ public final class ProxyService extends HttpServlet {
 			final String docId = docRequest.getId();
 			final byte[] content = Base64.decode(docRequest.getContent(), true);
 			this.documentCache.saveDocument(requestRef, docId, content);
+			countCacheAccess();
 		}
 	}
 
@@ -2773,6 +2783,24 @@ public final class ProxyService extends HttpServlet {
 			final String docId = docRequest.getId();
 			final byte[] content = this.documentCache.loadDocument(requestRef, docId, delete);
 			docRequest.setContent(Base64.encode(content, true));
+			countCacheAccess();
+		}
+	}
+
+	/**
+	 * Contabiliza un acceso a la cache y, cuando se alcanza el limite preestablecido,
+	 * ejecuta el hilo para su limpieza y reinicia el contador.
+	 */
+	private void countCacheAccess() {
+		synchronized (this.documentCache) {
+			this.numCacheRequestToClean--;
+
+			LOGGER.info("Reducimos el contador de cache: " + this.numCacheRequestToClean);
+
+			if (this.numCacheRequestToClean <= 0) {
+				this.numCacheRequestToClean = this.DEFAULT_CACHE_REQUEST_TO_CLEAN;
+				new CleanerThread(this.documentCache, ConfigManager.getCacheExpirationTime()).start();
+			}
 		}
 	}
 
@@ -3018,6 +3046,35 @@ public final class ProxyService extends HttpServlet {
 			} catch (final Exception e) {
 				LOGGER.error("Error al devolver el resultado al cliente a traves del metodo write", e); //$NON-NLS-1$
 			}
+		}
+	}
+
+	/**
+	 * Hilo para la limpieza de sesiones en disco.
+	 */
+	class CleanerThread extends Thread {
+
+		private final Logger LOGGER_THREAD = LoggerFactory.getLogger(CleanerThread.class);
+
+		private final DocumentCache cache;
+		private final long expirationTime;
+
+		/**
+		 * Crea un hilo para le borrado de los ficheros de sesi&oacute;n caducados.
+		 * @param dir Directorio con los ficheros de sesion.
+		 * @param soft Indica si se desea una limpieza cuidadosa {@code true}}
+		 */
+		public CleanerThread(final DocumentCache cache, final long expirationTime) {
+			this.cache = cache;
+			this.expirationTime = expirationTime;
+		}
+
+		@Override
+		public void run() {
+
+			this.LOGGER_THREAD.debug("Se inicia el hilo de limpieza de la cache"); //$NON-NLS-1$
+
+			this.cache.cleanExpiredFiles(this.expirationTime);
 		}
 	}
 }

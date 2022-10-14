@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
@@ -50,7 +51,11 @@ public final class SecurityHandler implements SOAPHandler<SOAPMessageContext> {
         try {
             if ((Boolean) context.get("javax.xml.ws.handler.message.outbound")) { //$NON-NLS-1$
 
-                final SOAPHeader soapHeader = context.getMessage().getSOAPPart().getEnvelope().addHeader();
+            	final SOAPEnvelope envelope = context.getMessage().getSOAPPart().getEnvelope();
+            	SOAPHeader soapHeader = envelope.getHeader();
+            	if (soapHeader == null) {
+            		soapHeader = envelope.addHeader();
+            	}
 
                 final SOAPElement token = soapHeader
                 		.addChildElement(new QName(WSSE_NAMESPACE, "Security")) //$NON-NLS-1$
