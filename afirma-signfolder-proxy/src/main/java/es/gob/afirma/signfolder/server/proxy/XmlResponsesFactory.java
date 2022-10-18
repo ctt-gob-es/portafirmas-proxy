@@ -267,25 +267,18 @@ final class XmlResponsesFactory {
 		sb.append("</docs>"); //$NON-NLS-1$
 
 		// Los adjuntos son opcionales
-		boolean firstTime = true;
-		for (final SignRequestDocument att : requestDetails.getAttached()) {
-			if (firstTime) {
-				sb.append("<attachedList>"); //$NON-NLS-1$
-				firstTime = false;
+		final SignRequestDocument[] attachDocuments = requestDetails.getAttached();
+		if (attachDocuments != null && attachDocuments.length > 0) {
+			sb.append("<attachedList>"); //$NON-NLS-1$
+			for (final SignRequestDocument att : requestDetails.getAttached()) {
+				sb.append("<attached docid=\"").append(att.getId()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("<nm>").append(escapeXmlCharacters(att.getName())).append("</nm>"); //$NON-NLS-1$ //$NON-NLS-2$
+				if (att.getSize() != null) {
+					sb.append("<sz>").append(att.getSize()).append("</sz>"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				sb.append("<mmtp>").append(att.getMimeType()).append("</mmtp>"); //$NON-NLS-1$ //$NON-NLS-2$
+				sb.append("</attached>"); //$NON-NLS-1$
 			}
-			sb.append("<attached docid=\"").append(att.getId()).append("\">"); //$NON-NLS-1$ //$NON-NLS-2$
-			sb.append("<nm>").append(escapeXmlCharacters(att.getName())).append("</nm>"); //$NON-NLS-1$ //$NON-NLS-2$
-			if (att.getSize() != null) {
-				sb.append("<sz>").append(att.getSize()).append("</sz>"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			sb.append("<mmtp>").append(att.getMimeType()).append("</mmtp>"); //$NON-NLS-1$ //$NON-NLS-2$
-			sb.append("<sigfrmt>").append(att.getSignFormat()).append("</sigfrmt>"); //$NON-NLS-1$ //$NON-NLS-2$
-			sb.append("<mdalgo>").append(att.getMessageDigestAlgorithm()).append("</mdalgo>"); //$NON-NLS-1$ //$NON-NLS-2$
-			sb.append("<params>").append(att.getParams() != null ? escapeXmlCharacters(att.getParams()) : "") //$NON-NLS-1$ //$NON-NLS-2$
-					.append("</params>"); //$NON-NLS-1$
-			sb.append("</attached>"); //$NON-NLS-1$
-		}
-		if (!firstTime) {
 			sb.append("</attachedList>"); //$NON-NLS-1$
 		}
 

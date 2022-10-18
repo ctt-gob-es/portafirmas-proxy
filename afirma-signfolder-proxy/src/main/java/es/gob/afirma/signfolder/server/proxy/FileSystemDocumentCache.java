@@ -10,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Date;
 
@@ -25,20 +27,37 @@ public class FileSystemDocumentCache implements DocumentCache {
 	/** Propiedad en la que se almacenara el directorio temporal para el guardado de documentos en cache. */
 	private static final String CONFIG_PROPERTY_CACHE_DIR = "cache.filesystem.dir"; //$NON-NLS-1$
 
+	/** Tama&ntilde:o de la cabecera. */
+	private static final int HEADER_SIZE = 50;
+
     private static final int BUFFER_SIZE = 4096;
 
     private static final String DEFAULT_CACHE_DIR = "proxy_cache"; //$NON-NLS-1$
+
+	private static final Charset CHARSET = StandardCharsets.UTF_8;
+
+	private static final String FILENAME_REF_SEP = "_"; //$NON-NLS-1$
+
+	private static final String HEADER_ENTRIES_SEP = "%"; //$NON-NLS-1$
+	private static final String HEADER_ENTRY_PREFIX_COP = "c:"; //$NON-NLS-1$
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemDocumentCache.class);
 
 	private static File cacheDir = null;
 
 	@Override
-	public void saveDocument(final String requestRef, final String docId, final byte[] content) throws IOException {
+	public void saveDocument(final String requestRef, final String docId, final String cop, final byte[] content) throws IOException {
 
 		final File dir = getCacheDir();
-		final File tempFile = new File(dir, requestRef + "_" + docId); //$NON-NLS-1$
+		final File tempFile = new File(dir, requestRef + FILENAME_REF_SEP + docId);
+
+		// Guardamos el fichero en disco anteponiendo a su contenido una cabecera con
+		// los datos que deseamos
 		try (OutputStream fos = new FileOutputStream(tempFile)) {
+			final byte[] headerContent = (HEADER_ENTRY_PREFIX_COP + cop + HEADER_ENTRIES_SEP).getBytes(CHARSET);
+			final byte[] header = new byte[HEADER_SIZE];
+			System.arraycopy(headerContent, 0, header, 0, headerContent.length);
+			fos.write(header);
 			fos.write(content);
 		}
 	}
@@ -74,19 +93,28 @@ public class FileSystemDocumentCache implements DocumentCache {
 	}
 
 	@Override
-	public byte[] loadDocument(final String requestRef, final String docId, final boolean delete) throws IOException {
+	public CachedDocument loadDocument(final String requestRef, final String docId, final boolean delete) throws IOException {
 
 		final File dir = getCacheDir();
-		final File tempFile = new File(dir, requestRef + "_" + docId); //$NON-NLS-1$
+		final File tempFile = new File(dir, requestRef + FILENAME_REF_SEP + docId);
 		if (!tempFile.isFile()) {
 			throw new FileNotFoundException("No se ha encontrado el documento " + docId + " en cache"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		byte[] content;
+		final byte[] header = new byte[HEADER_SIZE];
 		try (InputStream fis = new FileInputStream(tempFile);
 			 InputStream bis = new BufferedInputStream(fis)) {
+			// Leemos la cabecera de tamano fijo
+			if (bis.read(header) < header.length) {
+				throw new IOException("El documento almacenado en cache no alcanzaba el tamano minimo"); //$NON-NLS-1$
+			}
+			// Leemos el resto del fichero, que sera el contenido del documento
 			content = readData(bis);
 		}
+
+		// Extraemos la operacion cryptografica de la cache
+		final String cop = readCryptoOperation(header);
 
 		if (delete) {
 			if (!Files.deleteIfExists(tempFile.toPath())) {
@@ -94,16 +122,36 @@ public class FileSystemDocumentCache implements DocumentCache {
 			}
 		}
 
-		return content;
+		return new CachedDocument(cop, content);
 	}
 
-    /** Lee un flujo de datos de entrada y los recupera en forma de array de
+
+	/**
+	 * Lee la operaci&oacute;n criptogr&aacute;fica de entre los datos de cabecera.
+	 * @param header Datos de cabecera.
+	 * @return Operaci&oacute;n criptogr&aacute;fica o {@code null} si no se identifica.
+	 */
+    private static String readCryptoOperation(final byte[] header) {
+		final String headerContent = new String(header, CHARSET);
+		final String[] headerEntries = headerContent.split(HEADER_ENTRIES_SEP);
+
+		String cop = null;
+		for (final String headerEntry : headerEntries) {
+			// Operacion criptografica
+			if (headerEntry.startsWith(HEADER_ENTRY_PREFIX_COP)) {
+				cop = headerEntry.substring(HEADER_ENTRY_PREFIX_COP.length());
+			}
+		}
+		return cop;
+	}
+
+	/** Lee un flujo de datos de entrada y los recupera en forma de array de
      * bytes. Este m&eacute;todo consume, pero no cierra el flujo de datos de
      * entrada.
      * @param input Flujo de donde se toman los datos.
      * @return Los datos obtenidos del flujo.
      * @throws IOException Cuando ocurre un problema durante la lectura. */
-    public static byte[] readData(final InputStream input) throws IOException {
+    private static byte[] readData(final InputStream input) throws IOException {
         if (input == null) {
             return new byte[0];
         }
@@ -131,6 +179,15 @@ public class FileSystemDocumentCache implements DocumentCache {
 			catch (final Exception e) {
 				LOGGER.warn("Error al eliminar de cache el fichero caducado {}", expiredFile.getName()); //$NON-NLS-1$
 			}
+		}
+	}
+
+	@Override
+	public void removeDocument(final String requestRef, final String docId) throws IOException {
+		final File dir = getCacheDir();
+		final File tempFile = new File(dir, requestRef + FILENAME_REF_SEP + docId);
+		if (!Files.deleteIfExists(tempFile.toPath())) {
+			throw new IOException("No se pudo eliminar el documento " + docId + " de la cache"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 

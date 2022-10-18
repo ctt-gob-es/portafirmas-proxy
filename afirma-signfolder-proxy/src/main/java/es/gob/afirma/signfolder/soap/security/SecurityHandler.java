@@ -41,7 +41,6 @@ public final class SecurityHandler implements SOAPHandler<SOAPMessageContext> {
 	public SecurityHandler(final String username, final String password) {
 		this.username = username;
 		this.password = password;
-
 		this.dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");  //$NON-NLS-1$
 	}
 
@@ -49,7 +48,8 @@ public final class SecurityHandler implements SOAPHandler<SOAPMessageContext> {
     public boolean handleMessage(final SOAPMessageContext context) {
 
         try {
-            if ((Boolean) context.get("javax.xml.ws.handler.message.outbound")) { //$NON-NLS-1$
+        	final Boolean outbound = (Boolean) context.get("javax.xml.ws.handler.message.outbound"); //$NON-NLS-1$
+            if (outbound != null && outbound.booleanValue()) {
 
             	final SOAPEnvelope envelope = context.getMessage().getSOAPPart().getEnvelope();
             	SOAPHeader soapHeader = envelope.getHeader();
@@ -59,8 +59,6 @@ public final class SecurityHandler implements SOAPHandler<SOAPMessageContext> {
 
                 final SOAPElement token = soapHeader
                 		.addChildElement(new QName(WSSE_NAMESPACE, "Security")) //$NON-NLS-1$
-//                		.addNamespaceDeclaration("wsse", WSSE_NAMESPACE) //$NON-NLS-1$
-//                		.addNamespaceDeclaration("wsu", WSU_NAMESPACE) //$NON-NLS-1$
                 		.addChildElement(new QName(WSSE_NAMESPACE, "UsernameToken")); //$NON-NLS-1$
 
                 token.addChildElement(new QName(WSSE_NAMESPACE, "Username")) //$NON-NLS-1$

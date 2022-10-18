@@ -9,7 +9,7 @@
     </appender>
 
 <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>RUTA_LOGS/proxy_log.txt</file>
+    <file>C:/Users/carlos.gamuci/Desktop/salida/logs_proxy/proxy_log.txt</file>
     <!-- Rotado diario o por tamanyo -->
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <!-- Nombre del fichero de rotado -->
@@ -26,7 +26,7 @@
 
 
     <root level="debug">
-        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ROLLING"/>
     </root>
 
 </configuration>

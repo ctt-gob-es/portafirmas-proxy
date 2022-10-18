@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import javax.activation.DataHandler;
 import javax.net.ssl.HostnameVerifier;
@@ -51,6 +52,7 @@ import javax.xml.ws.soap.SOAPFaultException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -112,8 +114,6 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String DEFAULT_CHARSET_NAME = "utf-8"; //$NON-NLS-1$
 	private static Charset DEFAULT_CHARSET;
-
-	private static final String SIGNATURE_SERVICE_URL = "TRIPHASE_SERVER_URL"; //$NON-NLS-1$
 
 	private static final String PARAMETER_NAME_OPERATION = "op"; //$NON-NLS-1$
 	private static final String PARAMETER_NAME_DATA = "dat"; //$NON-NLS-1$
@@ -199,9 +199,24 @@ public final class ProxyService extends HttpServlet {
 
 
 	static {
+
+		// Configuramos el manejador de log, redirigiendo los logs de Java (JUL) a SLF4J
+		try {
+			SLF4JBridgeHandler.removeHandlersForRootLogger();
+			SLF4JBridgeHandler.install();
+			java.util.logging.Logger.getLogger("es.gob.afirma").setLevel(Level.INFO); //$NON-NLS-1$
+		}
+		catch (final Exception e) {
+			// No hacemos nada
+			LOGGER.warn("No se ha podido redirigir los logs de Java a SLF4J", e); //$NON-NLS-1$
+		}
+
+		// Habilitamos el modo debug si corresponde
 		try {
 			DEBUG = Boolean.parseBoolean(System.getProperty(SYSTEM_PROPERTY_DEBUG));
 			if (DEBUG) {
+				java.util.logging.Logger.getLogger("es.gob.afirma").setLevel(Level.FINE); //$NON-NLS-1$
+
 				// Desactivamos las comprobaciones de los certificados SSL servidor durante las conexiones de red
 				disabledSslSecurity();
 
@@ -265,19 +280,9 @@ public final class ProxyService extends HttpServlet {
 			}
 		}
 
-		// Si esta configurada la variable SIGNATURE_SERVICE_URL en el sistema,
-		// se utiliza en lugar de propiedad
-		// interna de la aplicacion
-		try {
-			final String systemSignatureServiceUrl = System.getProperty(SIGNATURE_SERVICE_URL);
-			if (systemSignatureServiceUrl != null) {
-				ConfigManager.setTriphaseServiceUrl(systemSignatureServiceUrl);
-				LOGGER.info("Se sustituye la URL del servicio de firma por la configurada en la propiedad del sistema {} con el valor: {}", //$NON-NLS-1$
-						SIGNATURE_SERVICE_URL, systemSignatureServiceUrl);
-			}
-		} catch (final Exception e) {
-			LOGGER.warn("No se ha podido recuperar la URL del servicio de firma configurado en la variable {} del sistema: {}", //$NON-NLS-1$
-					SIGNATURE_SERVICE_URL, e);
+		// Si se activo la cache, realizamos una limpieza preliminar
+		if (this.documentCache != null) {
+			new CacheCleanerThread(this.documentCache, ConfigManager.getCacheExpirationTime()).start();
 		}
 	}
 
@@ -2633,16 +2638,19 @@ public final class ProxyService extends HttpServlet {
 					// Prefirmamos
 					LOGGER.debug("Procedemos a realizar la prefirma del documento {}", docRequest.getId()); //$NON-NLS-1$
 					try {
-						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(),
-								ConfigManager.getForcedExtraParams());
+						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getForcedExtraParams());
 					}
 					catch (final RuntimeConfigNeededException e) {
+						LOGGER.warn("Se interrumpe la operacion porque requiere intervencion del usuario: {}", e.getRequestorText()); //$NON-NLS-1$
 						docRequest.setNeedConfirmation(true);
 						triRequest.addConfirmationRequirement(e.getRequestorText());
 					}
 				}
 			} catch (final Exception e) {
 				LOGGER.warn("Error en la prefirma de la peticion " + triRequest.getRef(), e); //$NON-NLS-1$
+				if (loadedFromCache) {
+					removeFromCache(triRequest);
+				}
 				triRequest.setStatusOk(false);
 				triRequest.setThrowable(e);
 				continue;
@@ -2716,7 +2724,7 @@ public final class ProxyService extends HttpServlet {
 				if (!loaded) {
 					try {
 						loadDocumentsFromService(triRequest, requestNeedContent, triRequests.getCertificate().getEncoded(), service);
-						LOGGER.info("Se han descargado del Portafirmas los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
+						LOGGER.info(" ==== Se han descargado del Portafirmas los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
 					} catch (final Exception e2) {
 						LOGGER.warn("Ocurrio un error al cargar los documentos de la peticion {}: {}", triRequest.getRef(), e2); //$NON-NLS-1$
 						triRequest.setStatusOk(false);
@@ -2732,8 +2740,7 @@ public final class ProxyService extends HttpServlet {
 			try {
 				for (final TriphaseSignDocumentRequest docRequest : triRequest) {
 					LOGGER.debug("Procedemos a realizar la postfirma del documento: {}", docRequest.getId()); //$NON-NLS-1$
-					TriSigner.doPostSign(docRequest, triRequests.getCertificate(),
-							ConfigManager.getTriphaseServiceUrl(), ConfigManager.getForcedExtraParams());
+					TriSigner.doPostSign(docRequest, triRequests.getCertificate(), ConfigManager.getForcedExtraParams());
 				}
 			} catch (final Exception ex) {
 				LOGGER.warn("Ocurrio un error al postfirmar un documento", ex); //$NON-NLS-1$
@@ -2755,8 +2762,10 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Guarda un documento en cach&eacute;.
-	 * @param docRequest Documento de una petici&oacute;n.
+	 * Guarda en cach&eacute; los documentos de una petici&oacute;n concreta y la operaci&oacute;n
+	 * criptogr&aacute;fica que realizar sobre cada uno de ellos, ya que &eacute;stas no se
+	 * proporcionan junto a la petici&oacute;n de firma, sino al recuperar los documentos.
+	 * @param triRequest Petici&oacute;n de firma.
 	 * @throws IOException Cuando no se puede guardar alguno de los documentos.
 	 */
 	private void saveInCache(final TriphaseRequest triRequest) throws IOException {
@@ -2764,9 +2773,28 @@ public final class ProxyService extends HttpServlet {
 		final String requestRef = triRequest.getRef();
 		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
 			final String docId = docRequest.getId();
-			final byte[] content = Base64.decode(docRequest.getContent(), true);
-			this.documentCache.saveDocument(requestRef, docId, content);
+			final String cop = docRequest.getCryptoOperation();
+			final byte[] content = docRequest.getContent();
+			this.documentCache.saveDocument(requestRef, docId, cop, content);
 			countCacheAccess();
+		}
+	}
+
+	/**
+	 * Elimina de cach&eacute; los documentos de una petici&oacute;n de firma.
+	 * @param triRequest Petici&oacute;n de firma.
+	 */
+	private void removeFromCache(final TriphaseRequest triRequest) {
+
+		final String requestRef = triRequest.getRef();
+		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
+			final String docId = docRequest.getId();
+			try {
+				this.documentCache.removeDocument(requestRef, docId);
+			}
+			catch (final Exception e) {
+				LOGGER.warn("No se pudo eliminar un documento de la cache", e); //$NON-NLS-1$
+			}
 		}
 	}
 
@@ -2781,8 +2809,9 @@ public final class ProxyService extends HttpServlet {
 		final String requestRef = triRequest.getRef();
 		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
 			final String docId = docRequest.getId();
-			final byte[] content = this.documentCache.loadDocument(requestRef, docId, delete);
-			docRequest.setContent(Base64.encode(content, true));
+			final CachedDocument document = this.documentCache.loadDocument(requestRef, docId, delete);
+			docRequest.setCryptoOperation(document.getCryptoOperation());
+			docRequest.setContent(document.getContent());
 			countCacheAccess();
 		}
 	}
@@ -2794,12 +2823,9 @@ public final class ProxyService extends HttpServlet {
 	private void countCacheAccess() {
 		synchronized (this.documentCache) {
 			this.numCacheRequestToClean--;
-
-			LOGGER.info("Reducimos el contador de cache: " + this.numCacheRequestToClean);
-
 			if (this.numCacheRequestToClean <= 0) {
 				this.numCacheRequestToClean = this.DEFAULT_CACHE_REQUEST_TO_CLEAN;
-				new CleanerThread(this.documentCache, ConfigManager.getCacheExpirationTime()).start();
+				new CacheCleanerThread(this.documentCache, ConfigManager.getCacheExpirationTime()).start();
 			}
 		}
 	}
@@ -2872,16 +2898,14 @@ public final class ProxyService extends HttpServlet {
 				}
 				final Object content = dataHandler.getContent();
 				if (content instanceof InputStream) {
-					docRequest.setContent(
-							Base64.encode(AOUtil.getDataFromInputStream((InputStream) content), true));
+					docRequest.setContent(AOUtil.getDataFromInputStream((InputStream) content));
 				} else if (content instanceof String) {
-					docRequest.setContent(((String) content).replace('+', '-').replace('/', '_'));
+					docRequest.setContent(Base64.decode((String) content));
 				} else {
 					throw new IOException(
 							"El tipo con el que se devuelve el contenido del documento no esta soportado: " //$NON-NLS-1$
 							+ (content == null ? null : content.getClass()));
 				}
-				break;
 			}
 		}
 	}
@@ -3050,11 +3074,11 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/**
-	 * Hilo para la limpieza de sesiones en disco.
+	 * Hilo para la limpieza de la cach&eacute;.
 	 */
-	class CleanerThread extends Thread {
+	class CacheCleanerThread extends Thread {
 
-		private final Logger LOGGER_THREAD = LoggerFactory.getLogger(CleanerThread.class);
+		private final Logger LOGGER_THREAD = LoggerFactory.getLogger(CacheCleanerThread.class);
 
 		private final DocumentCache cache;
 		private final long expirationTime;
@@ -3064,7 +3088,7 @@ public final class ProxyService extends HttpServlet {
 		 * @param dir Directorio con los ficheros de sesion.
 		 * @param soft Indica si se desea una limpieza cuidadosa {@code true}}
 		 */
-		public CleanerThread(final DocumentCache cache, final long expirationTime) {
+		public CacheCleanerThread(final DocumentCache cache, final long expirationTime) {
 			this.cache = cache;
 			this.expirationTime = expirationTime;
 		}

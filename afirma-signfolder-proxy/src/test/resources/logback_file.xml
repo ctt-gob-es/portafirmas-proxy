@@ -1,0 +1,22 @@
+<configuration>
+  <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>proxy_log.txt</file>
+    <!-- Rotado diario o por tamaño -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- Nombre del fichero de rotado -->
+      <fileNamePattern> proxy_log -%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+       <!-- Tamano maximo de fichero de 50MB, maximo de 20 ficheros totales y un tamano total no superior a 1GB -->
+       <maxFileSize>50MB</maxFileSize>    
+       <maxHistory>20</maxHistory>
+       <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern> %d %-5level [%thread] %logger{0}: %msg%n </pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="ROLLING" />
+  </root>
+
+</configuration>

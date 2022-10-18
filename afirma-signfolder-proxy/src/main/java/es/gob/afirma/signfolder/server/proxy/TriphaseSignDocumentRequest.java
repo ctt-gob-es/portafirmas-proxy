@@ -37,8 +37,8 @@ public final class TriphaseSignDocumentRequest {
 	/** Propiedades de configuracion de la firma codificadas en Base64. */
 	private String params;
 
-	/** Contenido del documento en Base64 URL SAFE. */
-	private String content;
+	/** Contenido del documento. */
+	private byte[] content;
 
 	/** Atributos de configuracion trifasica de la firma. */
 	private TriphaseData partialResult;
@@ -68,20 +68,20 @@ public final class TriphaseSignDocumentRequest {
 	 * @param signatureFormat Formato de firma electr&oacute;nica.
 	 * @param messageDigestAlgorithm Algoritmo de huella digital utilizado en la operaci&oacute;n de firma.
 	 * @param params Propiedades de configuraci&oacute;n utilizadas en la prefirma codificadas en base 64.
-	 * @param contentB64 Contenido del documento en base 64 URL SAFE.
+	 * @param content Contenido del documento.
 	 * @param partialResult Resultado parcial de la firma trifasica. */
 	TriphaseSignDocumentRequest(final String docId,
 								final String cryptoOperation,
 								final String signatureFormat,
 			                    final String messageDigestAlgorithm,
 			                    final String params,
-			                    final String contentB64,
+			                    final byte[] content,
 			                    final TriphaseData partialResult) {
 		this.id = docId;
 		this.cryptoOperation = cryptoOperation == null ? DEFAULT_CRYPTO_OPERATION : cryptoOperation;
 		this.signatureFormat = signatureFormat;
 		this.params = params;
-		this.content = contentB64;
+		this.content = content;
 		this.partialResult = partialResult;
 		this.algorithm = messageDigestAlgorithm != null ? messageDigestAlgorithm : DEFAULT_ALGORITHM;
 	}
@@ -133,16 +133,15 @@ public final class TriphaseSignDocumentRequest {
 		this.params = params;
 	}
 
-	/** Recupera el contenido del documento en Base64 URL SAFE.
-	 * @return Contenido del documento codificado en Base64 URL SAFE o {@code null} si
-	 * no se ha establecido. */
-	public String getContent() {
+	/** Recupera el contenido del documento.
+	 * @return Contenido del documento o {@code null} si no se ha establecido. */
+	public byte[] getContent() {
 		return this.content;
 	}
 
-	/** Establece el contenido del documento en Base64 URL SAFE.
-	 * @param content Contenido del documento codificado en base64 URL SAFE. */
-	public void setContent(final String content) {
+	/** Establece el contenido del documento.
+	 * @param content Contenido del documento. */
+	public void setContent(final byte[] content) {
 		this.content = content;
 	}
 
