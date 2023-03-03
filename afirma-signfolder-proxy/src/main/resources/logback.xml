@@ -15,7 +15,7 @@
       <!-- Nombre del fichero de rotado -->
       <fileNamePattern> proxy_log -%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
        <!-- Tamanyo maximo de fichero de 50MB, maximo de 20 ficheros totales y un tamanyo total no superior a 1GB -->
-       <maxFileSize>50MB</maxFileSize>    
+       <maxFileSize>50MB</maxFileSize>
        <maxHistory>20</maxHistory>
        <totalSizeCap>1GB</totalSizeCap>
     </rollingPolicy>

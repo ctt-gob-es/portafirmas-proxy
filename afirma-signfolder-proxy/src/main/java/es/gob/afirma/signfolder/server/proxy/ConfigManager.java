@@ -42,6 +42,9 @@ public class ConfigManager {
 	/** Propiedad que establece la contrase&ntilde;a para el acceso al servicio de portafirmas. */
 	private static final String PROPERTY_SIGNFOLDER_PASSWORD = "signfolder.ws.password"; //$NON-NLS-1$
 
+	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
+	private static final String PROPERTY_TRIPHASE_SERVICE_URL = "triphase.server.url"; //$NON-NLS-1$
+
 	/** Propiedad que establece si deben compartirse las sesiones. */
 	private static final String PROPERTY_SHARED_ENABLED = "share.sessions.enable"; //$NON-NLS-1$
 
@@ -68,9 +71,6 @@ public class ConfigManager {
 	 * un documento en cache. */
 	private static final String PROPERTY_CACHE_SYSTEM_EXPIRATION_TIME = "cache.system.expirationtime"; //$NON-NLS-1$
 
-	/** Propiedad que indica el n&uacute;mero m&aacute;ximo de p&aacute;ginas para comprobar un posible PDF Shadow Attack */
-	private static final String PROPERTY_MAX_PAGES_TO_CHECK_PSA = "maxPagesToCheckShadowAttack"; //$NON-NLS-1$
-
 	/** N&uacute;mero de accesos que, por defecto, se pueden realizar al directorio de sesiones
 	 * compartidas antes de lanzar el proceso de limpieza. */
 	private static final int DEFAULT_VALUE_REQUESTS_TO_CLEAN = 1000;
@@ -78,8 +78,6 @@ public class ConfigManager {
 	/** N&uacute;mero de milisegundos que por defecto tardan en caducar los ficheros en cache. */
 	private static final int DEFAULT_EXPIRATION_TIME = 1000;
 
-	/** N&uacute;mero de p&aacute;ginas por defecto en las que comprobar el PSA. */
-	private static final int DEFAULT_MAX_PAGES_TO_CHECK_PSA = 10;
 
 	private static Properties config = null;
 
@@ -91,6 +89,8 @@ public class ConfigManager {
 		if (config != null) {
 			return;
 		}
+
+		LOGGER.info("Cargamos el fichero de configuracion del Proxy"); //$NON-NLS-1$
 
 		InputStream is = null;
 		try {
@@ -161,6 +161,11 @@ public class ConfigManager {
 			LOGGER.error("La URL del servicio del Portafirmas no esta bien formada"); //$NON-NLS-1$
 			throw new RuntimeException("La URL del servicio del Portafirmas no esta bien formada"); //$NON-NLS-1$
 		}
+
+		if (getTriphaseServiceUrl() == null) {
+			LOGGER.error("No se ha establecido la URL del servicio de firma trifasica"); //$NON-NLS-1$
+			throw new RuntimeException("No se ha establecido la URL del servicio de firma trifasica"); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -177,6 +182,22 @@ public class ConfigManager {
 		catch (final Exception e) {
 			throw new RuntimeException("La URL del servicio del portafirmas no esta bien formada", e); //$NON-NLS-1$
 		}
+	}
+
+	/**
+	 * Devuelve la URL del servicio de firma trif&aacute;sica.
+	 * @return URL del servicio de firma trif&aacute;sica o {@code null} si no se ha establecido.
+	 */
+	public static String getTriphaseServiceUrl(){
+		return getProperty(PROPERTY_TRIPHASE_SERVICE_URL);
+	}
+
+	/**
+	 * Devuelve la URL del servicio de firma trif&aacute;sica.
+	 * @param triphaseServiceUrl URL del servicio de firma trif&aacute;sica.
+	 */
+	public static void setTriphaseServiceUrl(final String triphaseServiceUrl){
+		config.setProperty(PROPERTY_TRIPHASE_SERVICE_URL, triphaseServiceUrl);
 	}
 
 	/**
@@ -331,7 +352,7 @@ public class ConfigManager {
 
 		long expirationTime = DEFAULT_EXPIRATION_TIME;
 		final String expirationTimeValue = getProperty(PROPERTY_CACHE_SYSTEM_EXPIRATION_TIME);
-		if (expirationTimeValue != null || expirationTimeValue.isEmpty()) {
+		if (expirationTimeValue != null && !expirationTimeValue.isEmpty()) {
 			try {
 				final long configuredTime = Long.parseLong(expirationTimeValue);
 				if (configuredTime > 0) {
@@ -343,18 +364,5 @@ public class ConfigManager {
 			}
 		}
 		return expirationTime;
-	}
-
-	public static int getMaxPagesToCheckPSA() {
-		int numRequests;
-		final String request = getProperty(PROPERTY_MAX_PAGES_TO_CHECK_PSA);
-		try {
-			numRequests = Integer.parseInt(request);
-		} catch (final Exception e) {
-			LOGGER.warn("No se ha indicado un numero valido de paginas sobre las que comprobar si se ha realizado un PDF Shadow Attack" //$NON-NLS-1$
-					+ "({}). Se usara el valor por defecto ({}).", PROPERTY_MAX_PAGES_TO_CHECK_PSA, DEFAULT_MAX_PAGES_TO_CHECK_PSA); //$NON-NLS-1$
-			numRequests = DEFAULT_MAX_PAGES_TO_CHECK_PSA;
-		}
-		return numRequests;
 	}
 }

@@ -1,6 +1,7 @@
 package es.gob.afirma.signfolder.server.proxy;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,6 +26,17 @@ public class VersionService extends HttpServlet {
 	private static String version = null;
 
 	private static String versionCode = null;
+
+	static {
+		// Configuramos el manejador de log, redirigiendo los logs de Java (JUL) a SLF4J
+		try {
+			java.util.logging.Logger.getLogger("es.gob.afirma").setLevel(Level.INFO); //$NON-NLS-1$
+		}
+		catch (final Exception e) {
+			// No hacemos nada
+			LOGGER.warn("No se ha podido redirigir los logs de Java a SLF4J", e); //$NON-NLS-1$
+		}
+	}
 
     /**
      * @see HttpServlet#HttpServlet()

@@ -52,7 +52,6 @@ import javax.xml.ws.soap.SOAPFaultException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -202,8 +201,6 @@ public final class ProxyService extends HttpServlet {
 
 		// Configuramos el manejador de log, redirigiendo los logs de Java (JUL) a SLF4J
 		try {
-			SLF4JBridgeHandler.removeHandlersForRootLogger();
-			SLF4JBridgeHandler.install();
 			java.util.logging.Logger.getLogger("es.gob.afirma").setLevel(Level.INFO); //$NON-NLS-1$
 		}
 		catch (final Exception e) {
@@ -246,7 +243,6 @@ public final class ProxyService extends HttpServlet {
 	/** Construye un Servlet que sirve operaciones de firma trif&aacute;sica. */
 	public ProxyService() {
 
-		LOGGER.info("Cargamos el fichero de configuracion del Proxy"); //$NON-NLS-1$
 		ConfigManager.checkInitialized();
 
 		try {
@@ -2638,7 +2634,7 @@ public final class ProxyService extends HttpServlet {
 					// Prefirmamos
 					LOGGER.debug("Procedemos a realizar la prefirma del documento {}", docRequest.getId()); //$NON-NLS-1$
 					try {
-						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getForcedExtraParams());
+						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(), ConfigManager.getForcedExtraParams());
 					}
 					catch (final RuntimeConfigNeededException e) {
 						LOGGER.warn("Se interrumpe la operacion porque requiere intervencion del usuario: {}", e.getRequestorText()); //$NON-NLS-1$
@@ -2740,7 +2736,7 @@ public final class ProxyService extends HttpServlet {
 			try {
 				for (final TriphaseSignDocumentRequest docRequest : triRequest) {
 					LOGGER.debug("Procedemos a realizar la postfirma del documento: {}", docRequest.getId()); //$NON-NLS-1$
-					TriSigner.doPostSign(docRequest, triRequests.getCertificate(), ConfigManager.getForcedExtraParams());
+					TriSigner.doPostSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(), ConfigManager.getForcedExtraParams());
 				}
 			} catch (final Exception ex) {
 				LOGGER.warn("Ocurrio un error al postfirmar un documento", ex); //$NON-NLS-1$

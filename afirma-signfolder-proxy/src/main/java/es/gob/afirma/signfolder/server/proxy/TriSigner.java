@@ -2,67 +2,124 @@ package es.gob.afirma.signfolder.server.proxy;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import es.gob.afirma.core.AOException;
+import es.gob.afirma.core.RuntimeConfigNeededException;
+import es.gob.afirma.core.RuntimeConfigNeededException.RequestType;
+import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
+import es.gob.afirma.core.misc.http.UrlHttpManagerFactory;
+import es.gob.afirma.core.misc.http.UrlHttpMethod;
 import es.gob.afirma.core.signers.AOSignConstants;
-import es.gob.afirma.core.signers.CounterSignTarget;
+import es.gob.afirma.core.signers.AOTriphaseException;
 import es.gob.afirma.core.signers.TriphaseData;
-import es.gob.afirma.signers.pades.common.PdfExtraParams;
-import es.gob.afirma.triphase.signer.processors.AutoTriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.CAdESASiCSTriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.CAdESTriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.FacturaETriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.PAdESTriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.Pkcs1TriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.TriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.XAdESASiCSTriPhasePreProcessor;
-import es.gob.afirma.triphase.signer.processors.XAdESTriPhasePreProcessor;
+import es.gob.afirma.core.signers.TriphaseData.TriSign;
 
 /**
  * Manejador para el uso est&aacute;tico de las operaciones de prefirma y postfirma.
  */
 public class TriSigner {
 
+	/** Identificador de la operaci&oacute;n de prefirma en servidor. */
+	private static final String OPERATION_PRESIGN = "pre"; //$NON-NLS-1$
+
+	/** Identificador de la operaci&oacute;n de postfirma en servidor. */
+	private static final String OPERATION_POSTSIGN = "post"; //$NON-NLS-1$
+
+	/** Nombre del par&aacute;metro que identifica la operaci&oacute;n trif&aacute;sica en la URL del servidor de firma. */
+	private static final String PARAMETER_NAME_OPERATION = "op"; //$NON-NLS-1$
+
+	/** Nombre del par&aacute;metro que identifica la operaci&oacute;n criptogr&aacute;fica en la URL del servidor de firma. */
+	private static final String PARAMETER_NAME_CRYPTO_OPERATION = "cop"; //$NON-NLS-1$
+
 	private static final String CRYPTO_OPERATION_TYPE_SIGN = "sign"; //$NON-NLS-1$
 	private static final String CRYPTO_OPERATION_TYPE_COSIGN = "cosign"; //$NON-NLS-1$
 	private static final String CRYPTO_OPERATION_TYPE_COUNTERSIGN = "countersign"; //$NON-NLS-1$
 
-	private static final String EXTRAPARAM_COUNTERSIGN_TARGET = "target"; //$NON-NLS-1$
-	private static final String EXTRAPARAM_CHECK_SIGNATURES = "checkSignatures"; //$NON-NLS-1$
+	private static final String HTTP_CGI = "?"; //$NON-NLS-1$
+	private static final String HTTP_EQUALS = "="; //$NON-NLS-1$
+	private static final String HTTP_AND = "&"; //$NON-NLS-1$
+
+	// Parametros que necesitamos para la URL de las llamadas al servidor de firma
+	private static final String PARAMETER_NAME_DOCID = "doc"; //$NON-NLS-1$
+	private static final String PARAMETER_NAME_ALGORITHM = "algo"; //$NON-NLS-1$
+	private static final String PARAMETER_NAME_FORMAT = "format"; //$NON-NLS-1$
+	private static final String PARAMETER_NAME_CERT = "cert"; //$NON-NLS-1$
+	private static final String PARAMETER_NAME_EXTRA_PARAM = "params"; //$NON-NLS-1$
+	private static final String PARAMETER_NAME_SESSION_DATA = "session"; //$NON-NLS-1$
 
 
-	/**
-	 * N&uacute;mero de p&aacute;ginas por defecto de un PDF sobre las que
-	 * comprobar si se ha producido un PDF Shadow Attack.
-	 */
-	private static final int DEFAULT_PAGES_TO_CHECK_PSA = 10;
+	/** Prefijo del mensaje de error del servicio de firma trifasica. */
+	private static final String ERROR_PREFIX = "ERR-"; //$NON-NLS-1$
+	/** Prefijo del mensaje de error cuando para completar la operaci&oacute;n se requiere intervenci&oacute;n del usuario. */
+	private static final String CONFIG_NEEDED_ERROR_PREFIX = ERROR_PREFIX + "21:"; //$NON-NLS-1$
+
+	/** Indicador de finalizaci&oacute;n correcta de proceso. */
+	private static final String SUCCESS = "OK"; //$NON-NLS-1$
+
+	// Codigos asociados a los errores conocidos que requieren confirmacion del usuario
+	private static final String ERROR_CODE_SIGNING_CERTIFIED_PDF = "signingCertifiedPdf"; //$NON-NLS-1$
+	private static final String ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN = "signingPdfWithUnregisteredSigns"; //$NON-NLS-1$
+	private static final String ERROR_CODE_SIGNING_MODIFIED_PDF_FORM = "signingModifiedPdfForm"; //$NON-NLS-1$
+	private static final String ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT = "pdfShadowAttackSuspect"; //$NON-NLS-1$
+	private static final String ERROR_CODE_SIGNING_LTS_SIGNATURE = "signingLts"; //$NON-NLS-1$
+
+	// ExtraParams asociados a los errores que requieren confirmacion del usuario
+	private static final String EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF = "allowSigningCertifiedPdfs"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN = "allowCosigningUnregisteredSignatures"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_MODIFIED_PDF_FORM = "allowModifiedForm"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT = "allowShadowAttack"; //$NON-NLS-1$
+	private static final String EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE = "allowSignLTSignature"; //$NON-NLS-1$
 
 	/** Codificaci&oacute;n de texto por defecto. */
 	private static final String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
+	/** Tiempo de espera por defecto (-1 es para indicar el por defecto de Java. */
+	private static final int DEFAULT_TIMEOUT = -1;
 
 	/** Manejador del log. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(TriSigner.class);
+
+	private static final DocumentBuilderFactory SECURE_DOC_BUILDER_FACTORY;
+
+	static {
+		SECURE_DOC_BUILDER_FACTORY = XmlUtils.getSecureDocumentBuilderFactory();
+	}
 
 	/**
 	 * Prefirma el documento de una petici&oacute;n y muta la propia peticion para almacenar en ella
 	 * el resultado.
 	 * @param docReq Petici&oacute;n de firma de un documento.
 	 * @param signerCert Certificado de firma.
+	 * @param signServiceUrl URL del servicio de firma.
 	 * @param forcedExtraParams Par&aacute;metros de firma que se deben aplicar forzosamente.
 	 * @throws IOException Cuando no se puede obtener el documento para prefirmar.
 	 * @throws AOException Cuando ocurre un error al generar la prefirma.
 	 */
 	public static void doPreSign(final TriphaseSignDocumentRequest docReq,
 			final X509Certificate signerCert,
+			final String signServiceUrl,
 			final String forcedExtraParams) throws IOException, AOException {
 
 		// Configuramos el formato y la operacion criptografica adecuada
@@ -75,22 +132,65 @@ public class TriSigner {
 			 cop = normalizeOperationType(docReq.getCryptoOperation());
 		}
 
-		final byte[] content = docReq.getContent();
+		// Empezamos la prefirma
+		try {
+			// Llamamos a una URL pasando como parametros los datos necesarios para
+			// configurar la operacion:
+			//  - Operacion trifasica (prefirma o postfirma)
+			//  - Operacion criptografica (firma, cofirma o contrafirma)
+			//  - Formato de firma
+			//  - Algoritmo de firma a utilizar
+			//  - Certificado de firma
+			//  - Parametros extra de configuracion
+			//  - Datos o identificador del documento a firmar
+			final StringBuffer urlBuffer = new StringBuffer();
+			urlBuffer.append(signServiceUrl).append(HTTP_CGI).
+			append(PARAMETER_NAME_OPERATION).append(HTTP_EQUALS).append(OPERATION_PRESIGN).append(HTTP_AND).
+			append(PARAMETER_NAME_CRYPTO_OPERATION).append(HTTP_EQUALS).append(cop).append(HTTP_AND).
+			append(PARAMETER_NAME_FORMAT).append(HTTP_EQUALS).append(format).append(HTTP_AND).
+			append(PARAMETER_NAME_ALGORITHM).append(HTTP_EQUALS).append(digestToSignatureAlgorithmName(docReq.getMessageDigestAlgorithm())).append(HTTP_AND).
+			append(PARAMETER_NAME_CERT).append(HTTP_EQUALS).append(Base64.encode(signerCert.getEncoded(), true)).append(HTTP_AND).
+			append(PARAMETER_NAME_DOCID).append(HTTP_EQUALS).append(Base64.encode(docReq.getContent(), true));
 
-		final String algorithm = digestToSignatureAlgorithmName(docReq.getMessageDigestAlgorithm());
+			// Forzamos que se incluyan una serie de parametros en la configuracion de firma. Si ya
+			// se incluia alguno de estos con otro valor acabara siendo pisado ya que en un properties
+			// tiene preferencia el ultimo valor leido
+			final Properties extraParams = buildExtraParams(docReq.getParams());
+			printAuditLog(docReq.getId(), extraParams);
+			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
+			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
+			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
+			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
-		// Forzamos que se incluyan una serie de parametros en la configuracion de firma. Si ya
-		// se incluia alguno de estos con otro valor acabara siendo pisado ya que en un properties
-		// tiene preferencia el ultimo valor leido
-		final Properties extraParams = buildExtraParams(docReq.getParams());
-		addFormatExtraParam(extraParams, docReq.getSignatureFormat());
-		addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
+			// Agregamos la cabecera Expect: 100-Continue para que el servidor no se queje de peticiones grandes
+			final Properties headers = new Properties();
+			headers.setProperty("Expect", "100-Continue"); //$NON-NLS-1$ //$NON-NLS-2$
 
-		final TriPhasePreProcessor preprocessor = getPreprocessor(format, extraParams);
+			final byte[] triphaseResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), DEFAULT_TIMEOUT, UrlHttpMethod.POST, headers);
 
-		final TriphaseData triphaseData = presignService(content, signerCert, preprocessor, cop, algorithm, extraParams);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Respuesta de prefirma del servicio de firma:\n{}", new String(triphaseResult)); //$NON-NLS-1$
+			}
 
-		docReq.setPartialResult(triphaseData);
+			// Comprobamos que no se trate de un error
+			if (triphaseResult.length > 8) {
+				final String headMsg = new String(Arrays.copyOf(triphaseResult, 8), StandardCharsets.UTF_8);
+				if (headMsg.startsWith(ERROR_PREFIX)) {
+					final String msg = new String(triphaseResult, StandardCharsets.UTF_8);
+					throw buildInternalException(msg, extraParams);
+				}
+			}
+
+			final TriphaseData triphaseData = loadTriphaseResponse(triphaseResult);
+			docReq.setPartialResult(triphaseData);
+			urlBuffer.setLength(0);
+		}
+		catch (final CertificateEncodingException e) {
+			throw new AOException("Error decodificando el certificado del firmante", e); //$NON-NLS-1$
+		}
+		catch (final IOException e) {
+			throw new AOException("Error en la llamada de prefirma al servidor", e); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -196,12 +296,14 @@ public class TriSigner {
 	 * Postfirma el documento de una petici&oacute;n.
 	 * @param docReq Petici&oacute;n de firma de un documento.
 	 * @param signerCert Certificado de firma.
+	 * @param signServiceUrl URL del servicio de firma.
 	 * @param forcedExtraParams Par&aacute;metros de firma que se deben aplicar forzosamente.
 	 * @throws IOException Cuando no se puede obtener el documento para postfirmar.
 	 * @throws AOException Cuando ocurre un error al generar la postfirma.
 	 */
 	public static void doPostSign(final TriphaseSignDocumentRequest docReq,
 			final X509Certificate signerCert,
+			final String signServiceUrl,
 			final String forcedExtraParams) throws IOException, AOException {
 
 		// Configuramos el formato y la operacion criptografica adecuada
@@ -214,26 +316,64 @@ public class TriSigner {
 			 cop = normalizeOperationType(docReq.getCryptoOperation());
 		}
 
-		final byte[] content = docReq.getContent();
-		final String algorithm = digestToSignatureAlgorithmName(docReq.getMessageDigestAlgorithm());
-
-		// Forzamos que se incluyan una serie de parametros en la configuracion de firma. Si ya
-		// se incluia alguno de estos con otro valor acabara siendo pisado ya que en un properties
-		// tiene preferencia el ultimo valor leido
-		final Properties extraParams = buildExtraParams(docReq.getParams());
-		addFormatExtraParam(extraParams, docReq.getSignatureFormat());
-		addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
-
-		final TriPhasePreProcessor preprocessor = getPreprocessor(format, extraParams);
-
-		byte[] result;
+		final byte[] triSignFinalResult;
 		try {
-			result = postsignService(content, signerCert, preprocessor, cop, algorithm, extraParams, docReq.getPartialResult());
-		} catch (final NoSuchAlgorithmException e) {
-			throw new AOException("Un algoritmo configurado no es valido", e); //$NON-NLS-1$
+			final StringBuffer urlBuffer = new StringBuffer();
+			urlBuffer.append(signServiceUrl).append(HTTP_CGI).
+			append(PARAMETER_NAME_OPERATION).append(HTTP_EQUALS).append(OPERATION_POSTSIGN).append(HTTP_AND).
+			append(PARAMETER_NAME_CRYPTO_OPERATION).append(HTTP_EQUALS).append(cop).append(HTTP_AND).
+			append(PARAMETER_NAME_FORMAT).append(HTTP_EQUALS).append(format).append(HTTP_AND).
+			append(PARAMETER_NAME_ALGORITHM).append(HTTP_EQUALS).append(digestToSignatureAlgorithmName(docReq.getMessageDigestAlgorithm())).append(HTTP_AND).
+			append(PARAMETER_NAME_CERT).append(HTTP_EQUALS).append(Base64.encode(signerCert.getEncoded(), true));
+
+			// Forzamos que se incluyan una serie de parametros en la configuracion de firma. Si ya
+			// se incluia alguno de estos con otro valor acabara siendo pisado ya que en un properties
+			// tiene preferencia el ultimo valor leido
+			final Properties extraParams = buildExtraParams(docReq.getParams());
+			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
+			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
+			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
+			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
+
+			// Datos de sesion en forma de properies codificado en Base64 URL SAFE
+			if (docReq.getPartialResult() != null) {
+				final String sessionData = docReq.getPartialResult().toString();
+				urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_SESSION_DATA).append(HTTP_EQUALS)
+				.append(Base64.encode(sessionData.getBytes(DEFAULT_ENCODING), true));
+			}
+
+			final byte[] content = docReq.getContent();
+			if (content != null) {
+				urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_DOCID).append(HTTP_EQUALS).append(Base64.encode(content, true));
+			}
+
+			// Agregamos la cabecera Expect: 100-Continue para que el servidor no se queje de peticiones grandes
+			final Properties headers = new Properties();
+			headers.setProperty("Expect", "100-Continue"); //$NON-NLS-1$ //$NON-NLS-2$
+
+			triSignFinalResult = UrlHttpManagerFactory.getInstalledManager().readUrl(urlBuffer.toString(), DEFAULT_TIMEOUT, UrlHttpMethod.POST, headers);
+			urlBuffer.setLength(0);
+		}
+		catch (final CertificateEncodingException e) {
+			throw new AOException("Error decodificando el certificado del firmante", e); //$NON-NLS-1$
+		}
+		catch (final IOException e) {
+			throw new AOException("Error en la llamada de postfirma al servidor", e); //$NON-NLS-1$
 		}
 
-		docReq.setResult(result);
+		// Analizamos la respuesta del servidor
+		final String stringTrimmedResult = new String(triSignFinalResult).trim();
+		if (!stringTrimmedResult.startsWith(SUCCESS)) {
+			throw new AOException("La firma trifasica no ha finalizado correctamente"); //$NON-NLS-1$
+		}
+
+		// Los datos no se devuelven, se quedan en el servidor
+		try {
+			docReq.setResult(Base64.decode(stringTrimmedResult.substring((SUCCESS + " NEWID=").length()), true)); //$NON-NLS-1$
+		}
+		catch (final IOException e) {
+			throw new AOException("El resultado de NEWID del servidor no estaba en Base64", e); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -282,180 +422,198 @@ public class TriSigner {
 		return normalizedOp;
 	}
 
-	private static TriphaseData presignService(final byte[] docBytes, final X509Certificate signerCert, final TriPhasePreProcessor prep,
-			final String subOperation, final String algorithm, final Properties extraParams)
-					throws IOException, AOException {
 
-		// Comprobamos si se ha pedido validar las firmas antes de agregarles una nueva
-        final boolean checkSignatures = Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_CHECK_SIGNATURES));
+	/** Obtiene una sesi&oacute;n de firma trif&aacute;sica a partir de un XML que lo describe.
+	 * Un ejemplo de XML podr&iacute;a ser el siguiente:
+	 * <pre>
+	 * &lt;xml&gt;
+	 *  &lt;firmas&gt;
+	 *   &lt;firma Id=\"001\"&gt;
+	 *    &lt;param n="NEED_PRE"&gt;true&lt;/param&gt;
+	 *    &lt;param n="PRE"&gt;MYICXDAYBgkqhkiG9[...]w0BA=&lt;/param&gt;
+	 *    &lt;param n="NEED_DATA"&gt;true&lt;/param&gt;
+	 *    &lt;param n="PK1"&gt;EMijB9pJ0lj27Xqov[...]RnCM=&lt;/param&gt;
+	 *   &lt;/firma&gt;
+	 *  &lt;/firmas&gt;
+	 * &lt;/xml&gt;
+	 * </pre>
+	 * @param triphaseResponse Texto XML con la informaci&oacute;n del mensaje.
+	 * @return Listado con el resultado de datos de la prefirma de cada uno de los documentos.
+	 * @throws IOException Cuando hay problemas en el tratamiento de datos. */
+	private static TriphaseData loadTriphaseResponse(final byte[] triphaseResponse) throws IOException {
+		if (triphaseResponse == null) {
+			throw new IllegalArgumentException("El XML de entrada no puede ser nulo"); //$NON-NLS-1$
+		}
 
-        final X509Certificate[] certChain = new X509Certificate[] { signerCert };
+		Document doc;
+		try (InputStream is = new ByteArrayInputStream(Base64.decode(triphaseResponse, 0, triphaseResponse.length, true))) {
+			try {
+				doc = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder().parse(is);
+			}
+			catch (final Exception e) {
+				throw new IOException("Error al cargar la respuesta XML", e); //$NON-NLS-1$
+			}
+		}
 
-        TriphaseData preRes;
-        if (CRYPTO_OPERATION_TYPE_SIGN.equalsIgnoreCase(subOperation)) {
-        	preRes = prep.preProcessPreSign(
-        			docBytes,
-        			algorithm,
-        			certChain,
-        			extraParams,
-        			checkSignatures);
-        }
-        else if (CRYPTO_OPERATION_TYPE_COSIGN.equalsIgnoreCase(subOperation)) {
-        	preRes = prep.preProcessPreCoSign(
-        			docBytes,
-        			algorithm,
-        			certChain,
-        			extraParams,
-        			checkSignatures);
-        }
-        else if (CRYPTO_OPERATION_TYPE_COUNTERSIGN.equalsIgnoreCase(subOperation)) {
+		final Element rootElement = doc.getDocumentElement();
+		final NodeList childNodes = rootElement.getChildNodes();
 
-        	CounterSignTarget target = CounterSignTarget.LEAFS;
-        	if (extraParams.containsKey(EXTRAPARAM_COUNTERSIGN_TARGET)) {
-        		final String targetValue = extraParams.getProperty(EXTRAPARAM_COUNTERSIGN_TARGET).trim();
-        		if (CounterSignTarget.TREE.toString().equalsIgnoreCase(targetValue)) {
-        			target = CounterSignTarget.TREE;
-        		}
-        	}
-        	preRes = prep.preProcessPreCounterSign(
-        			docBytes,
-        			algorithm,
-        			certChain,
-        			extraParams,
-        			target,
-        			checkSignatures);
-        }
-        else {
-        	throw new AOException("No se reconoce el codigo de sub-operacion: " + subOperation); //$NON-NLS-1$
-        }
+		final int idx = nextNodeElementIndex(childNodes, 0);
+		if (idx == -1 || !"firmas".equalsIgnoreCase(childNodes.item(idx).getNodeName())) { //$NON-NLS-1$
+			throw new IllegalArgumentException("No se encontro el nodo 'firmas' en el XML proporcionado"); //$NON-NLS-1$
+		}
 
-		return preRes;
+		return parseSignsNode(childNodes.item(idx));
 	}
 
-	private static byte[] postsignService(final byte[] docBytes, final X509Certificate signerCert, final TriPhasePreProcessor prep,
-			final String subOperation, final String algorithm, final Properties extraParams, final TriphaseData triphaseData)
-					throws NoSuchAlgorithmException, AOException, IOException {
+	/** Analiza el nodo con el listado de firmas.
+	 * @param signsNode Nodo con el listado de firmas.
+	 * @return Listado con la informaci&oacute;n de cada operaci&oacute;n de firma. */
+	private static TriphaseData parseSignsNode(final Node signsNode) {
 
-        final X509Certificate[] certChain = new X509Certificate[] { signerCert };
+		final NodeList childNodes = signsNode.getChildNodes();
 
-        final byte[] signedDoc;
-        if (CRYPTO_OPERATION_TYPE_SIGN.equals(subOperation)) {
-        	signedDoc = prep.preProcessPostSign(
-        			docBytes,
-        			algorithm,
-        			certChain,
-        			extraParams,
-        			triphaseData
-        			);
-        }
-        else if (CRYPTO_OPERATION_TYPE_COSIGN.equals(subOperation)) {
-        	signedDoc = prep.preProcessPostCoSign(
-        			docBytes,
-        			algorithm,
-        			certChain,
-        			extraParams,
-        			triphaseData
-        			);
-        }
-        else if (CRYPTO_OPERATION_TYPE_COUNTERSIGN.equals(subOperation)) {
+		final List<TriSign> signs = new ArrayList<>();
+		int idx = nextNodeElementIndex(childNodes, 0);
+		while (idx != -1) {
+			final Node currentNode = childNodes.item(idx);
 
-        	CounterSignTarget target = CounterSignTarget.LEAFS;
-        	if (extraParams.containsKey(EXTRAPARAM_COUNTERSIGN_TARGET)) {
-        		final String targetValue = extraParams.getProperty(EXTRAPARAM_COUNTERSIGN_TARGET).trim();
-        		if (CounterSignTarget.TREE.toString().equalsIgnoreCase(targetValue)) {
-        			target = CounterSignTarget.TREE;
-        		}
-        	}
+			String id = null;
 
-        	signedDoc = prep.preProcessPostCounterSign(
-        			docBytes,
-        			algorithm,
-        			certChain,
-        			extraParams,
-        			triphaseData,
-        			target
-        			);
-        }
-        else {
-        	throw new AOException("No se reconoce el codigo de sub-operacion: " + subOperation); //$NON-NLS-1$
-        }
-
-		return signedDoc;
-	}
-
-	private static TriPhasePreProcessor getPreprocessor(final String format, final Properties extraParams)
-			throws IllegalArgumentException {
-
-		// Instanciamos el preprocesador adecuado
-		final TriPhasePreProcessor prep;
-		if (AOSignConstants.SIGN_FORMAT_PADES.equalsIgnoreCase(format) ||
-			AOSignConstants.SIGN_FORMAT_PADES_TRI.equalsIgnoreCase(format)) {
-					prep = new PAdESTriPhasePreProcessor();
-					configurePdfShadowAttackParameters(extraParams);
-		}
-		else if (AOSignConstants.SIGN_FORMAT_CADES.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_CADES_TRI.equalsIgnoreCase(format)) {
-					prep = new CAdESTriPhasePreProcessor();
-		}
-		else if (AOSignConstants.SIGN_FORMAT_XADES.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_XADES_TRI.equalsIgnoreCase(format)) {
-					prep = new XAdESTriPhasePreProcessor();
-		}
-		else if (AOSignConstants.SIGN_FORMAT_CADES_ASIC_S.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_CADES_ASIC_S_TRI.equalsIgnoreCase(format)) {
-					prep = new CAdESASiCSTriPhasePreProcessor();
-		}
-		else if (AOSignConstants.SIGN_FORMAT_XADES_ASIC_S.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_XADES_ASIC_S_TRI.equalsIgnoreCase(format)) {
-					prep = new XAdESASiCSTriPhasePreProcessor();
-		}
-		else if (AOSignConstants.SIGN_FORMAT_FACTURAE.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_FACTURAE_TRI.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_FACTURAE_ALT1.equalsIgnoreCase(format)) {
-					prep = new FacturaETriPhasePreProcessor();
-		}
-		else if (AOSignConstants.SIGN_FORMAT_PKCS1.equalsIgnoreCase(format) ||
-				 AOSignConstants.SIGN_FORMAT_PKCS1_TRI.equalsIgnoreCase(format)) {
-					prep = new Pkcs1TriPhasePreProcessor();
-		}
-		else if (AOSignConstants.SIGN_FORMAT_AUTO.equalsIgnoreCase(format)) {
-			prep = new AutoTriPhasePreProcessor();
-		}
-		else {
-			LOGGER.error("Formato de firma no soportado: " + format); //$NON-NLS-1$
-			throw new IllegalArgumentException("Formato de firma no soportado: " + format); //$NON-NLS-1$
-		}
-
-		return prep;
-	}
-
-	private static void configurePdfShadowAttackParameters(final Properties extraParams) {
-		if (!Boolean.parseBoolean(extraParams.getProperty(PdfExtraParams.ALLOW_SHADOW_ATTACK))) {
-			final int maxPagestoCheck = ConfigManager.getMaxPagesToCheckPSA();
-			int pagesToCheck = DEFAULT_PAGES_TO_CHECK_PSA;
-			if (extraParams.containsKey(PdfExtraParams.PAGES_TO_CHECK_PSA)) {
-				final String pagesToCheckProp = extraParams.getProperty(PdfExtraParams.PAGES_TO_CHECK_PSA);
-				if (PdfExtraParams.PAGES_TO_CHECK_PSA_VALUE_ALL.equalsIgnoreCase(pagesToCheckProp)) {
-					pagesToCheck = Integer.MAX_VALUE;
-				}
-				else {
-					try {
-						pagesToCheck = Integer.parseInt(pagesToCheckProp);
-					}
-					catch (final Exception e) {
-						pagesToCheck = DEFAULT_PAGES_TO_CHECK_PSA;
-					}
+			final NamedNodeMap nnm = currentNode.getAttributes();
+			if (nnm != null) {
+				final Node tmpNode = nnm.getNamedItem("Id"); //$NON-NLS-1$
+				if (tmpNode != null) {
+					id = tmpNode.getNodeValue();
 				}
 			}
-			// Comprobaremos el menor numero de paginas posible que sera el indicado por la aplicacion
-			// (el por defecto si no se paso un valor) o el maximo establecido por el servicio
-			pagesToCheck = Math.min(pagesToCheck, maxPagestoCheck);
-			if (pagesToCheck <= 0) {
-				extraParams.setProperty(PdfExtraParams.ALLOW_SHADOW_ATTACK, Boolean.TRUE.toString());
+			signs.add(
+				new TriSign(
+					parseParamsListNode(currentNode),
+					id
+				)
+			);
+			idx = nextNodeElementIndex(childNodes, idx + 1);
+		}
+
+		return new TriphaseData(signs);
+	}
+
+	/** Obtiene una lista de par&aacute;metros del XML.
+	 * @param paramsNode Nodo con la lista de par&aacute;metros.
+	 * @return Mapa con los par&aacute;metro encontrados y sus valores. */
+	private static Map<String, String> parseParamsListNode(final Node paramsNode) {
+
+		final NodeList childNodes = paramsNode.getChildNodes();
+
+		final Map<String, String> params = new HashMap<>();
+		int idx = nextNodeElementIndex(childNodes, 0);
+		while (idx != -1) {
+			final Node paramNode = childNodes.item(idx);
+			final String key = paramNode.getAttributes().getNamedItem("n").getNodeValue(); //$NON-NLS-1$
+			final String value = paramNode.getTextContent().trim();
+			params.put(key, value);
+
+			idx = nextNodeElementIndex(childNodes, idx + 1);
+		}
+
+		return params;
+	}
+
+	/** Recupera el &iacute;ndice del siguiente nodo de la lista de tipo <code>Element</code>.
+	 * Empieza a comprobar los nodos a partir del &iacute;ndice marcado. Si no encuentra un
+	 * nodo de tipo <i>elemento</i> devuelve -1.
+	 * @param nodes Listado de nodos.
+	 * @param currentIndex &Iacute;ndice del listado a partir del cual se empieza la comprobaci&oacute;n.
+	 * @return &Iacute;ndice del siguiente node de tipo Element o -1 si no se encontr&oacute;. */
+	private static int nextNodeElementIndex(final NodeList nodes, final int currentIndex) {
+		Node node;
+		int i = currentIndex;
+		while (i < nodes.getLength()) {
+			node = nodes.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				return i;
+			}
+			i++;
+		}
+		return -1;
+	}
+
+	/** Construye una excepci&oacute;n a partir del mensaje interno de error
+	 * notificado por el servidor trif&aacute;sico.
+	 * @param msg Mensaje de error devuelto por el servidor trif&aacute;sico.
+	 * @param extraParams Configuraci&oacute;n aplicada en la operaci&oacute;n.
+	 * @return Excepci&oacute;n construida.
+	 */
+	private static AOException buildInternalException(final String msg, final Properties extraParams) {
+
+		AOException exception = null;
+		final int separatorPos = msg.indexOf(":"); //$NON-NLS-1$
+		if (msg.startsWith(CONFIG_NEEDED_ERROR_PREFIX)) {
+			final int separatorPos2 = msg.indexOf(":", separatorPos + 1); //$NON-NLS-1$
+			final String errorCode = msg.substring(separatorPos + 1, separatorPos2);
+			final String errorMsg = msg.substring(separatorPos2 + 1);
+
+			// Incrustamos aqui la logica para la identificacion de cada uno de los
+			// errores conocidos asociados a que se necesita mas informacion del usuario
+			switch (errorCode) {
+			case ERROR_CODE_SIGNING_CERTIFIED_PDF:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_CERTIFIED_PDF, EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF);
+				break;
+			case ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN, EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN);
+				break;
+			case ERROR_CODE_SIGNING_MODIFIED_PDF_FORM:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_MODIFIED_PDF_FORM, EXTRAPARAM_ALLOW_MODIFIED_PDF_FORM);
+				break;
+			case ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT, EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT);
+				break;
+			case ERROR_CODE_SIGNING_LTS_SIGNATURE:
+				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_LTS_SIGNATURE, EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE);
+				break;
+			default:
+				exception = new AOException("La firma requiere una interaccion del usuario no soportada: " + msg); //$NON-NLS-1$
+				break;
+			}
+		}
+
+		if (exception == null) {
+			final int internalExceptionPos = msg.indexOf(":", separatorPos + 1); //$NON-NLS-1$
+			if (internalExceptionPos > 0) {
+				final String intMessage = msg.substring(internalExceptionPos + 1).trim();
+				exception = AOTriphaseException.parseException(intMessage);
 			}
 			else {
-				extraParams.setProperty(PdfExtraParams.PAGES_TO_CHECK_PSA, Integer.toString(pagesToCheck));
+				exception = new AOException(msg);
 			}
+		}
+
+		return exception;
+	}
+
+	/**
+	 * Imprime logs de auditor&iacute;a referentes a las autorizaciones que ha
+	 * concedido el usuario para firmar documentos que pudiesen generar firmas
+	 * no v&aacute;lidas.
+	 * @param docId Identificador del documento.
+	 * @param extraParams Configuraci&oacute;n de la operaci&oacute;n.
+	 */
+	private static void printAuditLog(final String docId, final Properties extraParams) {
+		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_MODIFIED_PDF_FORM))) {
+			LOGGER.info("El usuario ha aceptado que se firme el documento aunque se haya modificado un formulario despues de una firma anterior. Id documento: " + docId); //$NON-NLS-1$
+		}
+		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT))) {
+			LOGGER.info("El usuario ha aceptado que se firme el documento aunque fuese sospechoso de haber sufrido PDF Shadow Attack. Id documento: " + docId); //$NON-NLS-1$
+		}
+		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF))) {
+			LOGGER.info("El usuario ha aceptado que se firme el documento aunque sea un PDF certificado que pudiese quedar invalidado. Id documento: " + docId); //$NON-NLS-1$
+		}
+		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE))) {
+			LOGGER.info("El usuario ha aceptado que se firme el documento aunque fuese una firma de archivo longevo que pudiese quedar invalidada. Id documento: " + docId); //$NON-NLS-1$
+		}
+		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN))) {
+			LOGGER.info("El usuario ha aceptado que se firme el documento aunque fuese un documento PDF con firmas no registradas que pudiesen quedar invalidadas. Id documento: " + docId); //$NON-NLS-1$
 		}
 	}
 }
