@@ -65,6 +65,7 @@ public final class SessionCollector {
 	public static HttpSession createSession(final HttpServletRequest request) {
 		LOGGER.debug("Creamos sesion"); //$NON-NLS-1$
     	final HttpSession session = request.getSession();
+    	LOGGER.debug("Sesion: " + session.getId()); //$NON-NLS-1$
     	session.setMaxInactiveInterval(MAX_INACTIVE_INTERVAL);
     	return session;
 	}
@@ -76,8 +77,8 @@ public final class SessionCollector {
 	 * @throws IOException Cuando no se puede compartir la sesi&oacute;n.
 	 */
 	public static String createSharedSession(final HttpSession session) throws IOException {
-		LOGGER.debug("Creamos sesion compartida"); //$NON-NLS-1$
 		final String ssid = dao.createSharedSession();
+		LOGGER.debug("Creamos sesion compartida: " + ssid); //$NON-NLS-1$
 		session.setAttribute(SessionParams.SHARED_SESSION_ID, ssid);
 		dao.writeSession(session, ssid);
 		return ssid;
@@ -151,7 +152,7 @@ public final class SessionCollector {
     		return;
     	}
 
-    	LOGGER.debug("Eliminamos la sesion"); //$NON-NLS-1$
+    	LOGGER.debug("Eliminamos la sesion: " + session.getId()); //$NON-NLS-1$
 
     	// Obtenemos el identificador de sesion compartida (si lo hay)
     	final String ssid = (String) session.getAttribute(SessionParams.SHARED_SESSION_ID);

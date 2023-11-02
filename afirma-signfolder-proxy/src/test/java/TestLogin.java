@@ -4,15 +4,16 @@ import java.security.KeyStore.PrivateKeyEntry;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import es.gob.afirma.core.misc.Base64;
+import es.gob.afirma.core.misc.http.SslSecurityManager;
 import es.gob.afirma.core.misc.http.UrlHttpManager;
 import es.gob.afirma.core.misc.http.UrlHttpManagerFactory;
 import es.gob.afirma.core.misc.http.UrlHttpMethod;
 import es.gob.afirma.core.signers.AOPkcs1Signer;
-import junit.framework.Assert;
 
 /**
  * Pruebas de inicio de sesi&oacute;n.
@@ -27,7 +28,7 @@ public class TestLogin {
 	private static final char[] CERT_PASS2 = "1111".toCharArray(); //$NON-NLS-1$
 	private static final String CERT_ALIAS2 = "juan ejemplo español"; //$NON-NLS-1$
 
-	private static final String URL_BASE = "http://localhost:8080/afirma-signfolder-proxy/pf?"; //$NON-NLS-1$
+	private static final String URL_BASE = "https://localhost:8443/afirma-signfolder-proxy/pf?"; //$NON-NLS-1$
 
 	/**
 	 * Abre sesi&oacute;n y comprueba que est&aacute; establecida realizando una operaci&oacute;n.
@@ -36,6 +37,9 @@ public class TestLogin {
 	@Test
 	@Ignore
 	public void testLoginOk() throws Exception {
+
+
+		SslSecurityManager.disableSslChecks();
 
 		final UrlHttpManager urlManager = UrlHttpManagerFactory.getInstalledManager();
 

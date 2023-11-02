@@ -188,8 +188,6 @@ public final class ProxyService extends HttpServlet {
 
 	private DocumentCache documentCache = null;
 
-	private final DocumentBuilder documentBuilder;
-
 	private final MobileService_Service mobileService;
 
 
@@ -246,16 +244,10 @@ public final class ProxyService extends HttpServlet {
 		ConfigManager.checkInitialized();
 
 		try {
-			this.documentBuilder = SECURE_BUILDER_FACTORY.newDocumentBuilder();
-
-		} catch (final Exception e) {
-			throw new IllegalStateException("Error interno en la configuracion del parser XML", e); //$NON-NLS-1$
-		}
-
-		try {
 			this.mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		} catch (final Exception e) {
-			throw new IllegalStateException("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$
+			LOGGER.error("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$
+			throw new IllegalStateException("Error en la configuracion de la conexion con el Portafirmas web"); //$NON-NLS-1$
 		}
 
 		// Activamos la cache si se configuro
@@ -353,9 +345,7 @@ public final class ProxyService extends HttpServlet {
 			LOGGER.debug("Cookies de la peticion: " + (cookies != null ? cookies.length : 0)); //$NON-NLS-1$
 			if (cookies != null) {
 				for (final Cookie tempCookie : cookies) {
-					LOGGER.debug("Cookie name: " + tempCookie.getName()); //$NON-NLS-1$
-					LOGGER.debug("Cookie value: " + tempCookie.getValue()); //$NON-NLS-1$
-					LOGGER.debug("--------------"); //$NON-NLS-1$
+					LOGGER.debug(" - " + tempCookie.getName() + "=" + tempCookie.getValue()); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 		}
@@ -399,11 +389,11 @@ public final class ProxyService extends HttpServlet {
 			return;
 		}
 
-		try {
-			xml = GzipCompressorImpl.gunzip(xml);
-		} catch (final IOException e) {
-			LOGGER.debug("Los datos de entrada no estaban comprimidos: " + e); //$NON-NLS-1$
-		}
+//		try {
+//			xml = GzipCompressorImpl.gunzip(xml);
+//		} catch (final IOException e) {
+//			LOGGER.debug("Los datos de entrada no estaban comprimidos: " + e); //$NON-NLS-1$
+//		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("XML de la peticion:\n{}", new String(xml, DEFAULT_CHARSET)); //$NON-NLS-1$
@@ -425,6 +415,10 @@ public final class ProxyService extends HttpServlet {
 			// la operacion solicitada y no lo esta, se establecera un error de
 			// autenticacion
 			final HttpSession session = SessionCollector.getSession(request, ssid);
+			if (session == null) {
+				LOGGER.debug("No se encontro sesion asociada a la peticion y ni la sesion compartida: " + ssid); //$NON-NLS-1$
+			}
+
 			if (isLoginRequieredOperation(operation) && !isValidatedSession(session)) {
 				LOGGER.warn("Se ha solicitado la siguiente operacion del proxy sin estar autenticado: " + operation); //$NON-NLS-1$
 				ret = ErrorManager.genError(ErrorManager.ERROR_AUTHENTICATING_REQUEST);
@@ -467,6 +461,19 @@ public final class ProxyService extends HttpServlet {
 			responser.print((String) ret);
 		}
 		LOGGER.debug("Fin peticion ProxyService"); //$NON-NLS-1$
+	}
+
+
+	public static Document parse(final byte[] data) throws SAXException, IOException {
+		DocumentBuilder documentBuilder;
+		try {
+			synchronized (SECURE_BUILDER_FACTORY) {
+				documentBuilder = SECURE_BUILDER_FACTORY.newDocumentBuilder();
+			}
+		} catch (final Exception e) {
+			throw new IllegalStateException("Error interno en la configuracion del parser XML", e); //$NON-NLS-1$
+		}
+		return documentBuilder.parse(new ByteArrayInputStream(data));
 	}
 
 	/**
@@ -673,10 +680,10 @@ public final class ProxyService extends HttpServlet {
 	 *             Cuando ocurre alg&uacute;n problema de comunicaci&oacute;n
 	 *             con el servidor.
 	 */
-	private String processRequestLogin(final HttpServletRequest request, final HttpSession session, final byte[] xml)
+	private static String processRequestLogin(final HttpServletRequest request, final HttpSession session, final byte[] xml)
 			throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		try {
 			LoginRequestParser.parse(doc);
 		} catch (final Exception e) {
@@ -737,7 +744,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processValidateLogin(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final ValidateLoginRequest loginRequest = ValidateLoginRequestParser.parse(doc);
 
 		final ValidateLoginResult validateLoginResult = validateLoginData(session, loginRequest);
@@ -863,7 +870,7 @@ public final class ProxyService extends HttpServlet {
 	private String processRequestClaveLogin(final HttpServletRequest request, final HttpSession session,
 			final byte[] xml) throws SAXException, IOException, MobileException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		try {
 			LoginClaveRequestParser.parse(doc);
 		} catch (final Exception e) {
@@ -968,7 +975,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processLogout(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		try {
 			LogoutRequestParser.parse(doc);
 		} catch (final Exception e) {
@@ -1024,7 +1031,7 @@ public final class ProxyService extends HttpServlet {
 	private String processNotificationRegistry(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 		final NotificationRegistry registry = NotificationRegistryParser.parse(xmlDoc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1083,7 +1090,7 @@ public final class ProxyService extends HttpServlet {
 			throws SAXException, IOException, CertificateException {
 
 		// Cargamos los datos trifasicos
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc,
 				Base64.decode((String) session.getAttribute(SessionParams.CERT)));
 
@@ -1115,7 +1122,7 @@ public final class ProxyService extends HttpServlet {
 	private String processPostSigns(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, CertificateException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		final byte[] cer = Base64.decode((String) session.getAttribute(SessionParams.CERT));
 		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc, cer);
@@ -1174,7 +1181,7 @@ public final class ProxyService extends HttpServlet {
 	private String processRequestsList(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final ListRequest listRequest = ListRequestParser.parse(doc);
 
 		// El DNI a recuperar debe ser el DNI del propietario de la peticion.
@@ -1283,7 +1290,7 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	private String processRejects(final HttpSession session, final byte[] xml) throws SAXException, IOException {
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final RejectRequest request = RejectsRequestParser.parse(doc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1332,7 +1339,7 @@ public final class ProxyService extends HttpServlet {
 	private String processRequestDetail(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
 		// El DNI debe ser el DNI del propietario de la peticion.
@@ -1435,7 +1442,7 @@ public final class ProxyService extends HttpServlet {
 
 	private InputStream processDocumentPreview(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final PreviewRequest request = PreviewRequestParser.parse(doc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1446,7 +1453,7 @@ public final class ProxyService extends HttpServlet {
 
 	private InputStream processSignPreview(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final PreviewRequest request = PreviewRequestParser.parse(doc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1457,7 +1464,7 @@ public final class ProxyService extends HttpServlet {
 
 	private InputStream processSignReportPreview(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final PreviewRequest request = PreviewRequestParser.parse(doc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1569,7 +1576,7 @@ public final class ProxyService extends HttpServlet {
 	private String processConfigueApp(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 		final ConfigurationRequest request = ConfigurationRequestParser.parse(doc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1613,7 +1620,7 @@ public final class ProxyService extends HttpServlet {
 
 	private String processApproveRequest(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 		final ApproveRequestList appRequests = ApproveRequestParser.parse(xmlDoc);
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
@@ -1672,7 +1679,7 @@ public final class ProxyService extends HttpServlet {
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 		final TriphaseRequestBean triRequests = SignRequestsParser.parse(xmlDoc, null);
 
 		final MobileStringList requestList = new MobileStringList();
@@ -1744,7 +1751,7 @@ public final class ProxyService extends HttpServlet {
 	private String processFireSign(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, CertificateException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		// Comprobamos que el XML de peticion esta bien formado
 		FireSignRequestParser.parse(xmlDoc);
@@ -1776,7 +1783,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processGetUserConfig(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		// Comprobamos que el XML de peticion esta bien formado.
 		GetUserConfiguration.parse(xmlDoc);
@@ -1797,8 +1804,7 @@ public final class ProxyService extends HttpServlet {
 	private String processFindUser(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new
-				ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		// Extraemos la informacion del XML de peticion
 		final FindUserRequest request = GetUserRequestParser.parse(xmlDoc);
@@ -1848,7 +1854,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processVerifyPetitions(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		// Comprobamos que el XML de peticion esta bien formado.
 		final List<String> petitionsIds = VerifyPetitionParser.parse(xmlDoc);
@@ -1900,7 +1906,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processListAuthorizations(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		// Parseamos la peticion
 		GenericRequestParser.parse(doc);
@@ -1970,7 +1976,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processSaveAuthorization(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		// Parseamos la peticion
 		final Authorization authorization = SaveAuthorizationRequestParser.parse(doc);
@@ -2070,7 +2076,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processRevocateAuthorization(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		// Parseamos la peticion
 		final String authId = ChangeAuthorizationRequestParser.parse(doc);
@@ -2123,7 +2129,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processAcceptAuthorization(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		// Parseamos la peticion
 		final String authId = ChangeAuthorizationRequestParser.parse(doc);
@@ -2148,7 +2154,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processListValidators(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		GenericRequestParser.parse(doc);
 
@@ -2206,7 +2212,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processSaveValidator(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		// Parseamos la peticion
 		final Validator validator = SaveValidatorRequestParser.parse(doc);
@@ -2271,7 +2277,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processRevocateValidator(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
-		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document doc = parse(xml);
 
 		// Parseamos la peticion
 		final String validatorId = RemoveValidatorRequestParser.parse(doc);
@@ -2934,9 +2940,6 @@ public final class ProxyService extends HttpServlet {
 		}
 		final MobileService servicePort = this.mobileService.getMobileServicePort();
 
-		// Agrega cabeceras HTTP
-		final Map<String, List<String>> requestHeaders = new HashMap<>();
-		requestHeaders.put("Expect", Arrays.asList("100-Continue")); //$NON-NLS-1$ //$NON-NLS-2$
 
 		final BindingProvider bindingProvider = (BindingProvider) servicePort;
 
@@ -2945,6 +2948,21 @@ public final class ProxyService extends HttpServlet {
 			final Binding binding = bindingProvider.getBinding();
 			binding.setHandlerChain(Arrays.asList(handler));
 		}
+
+		// Definimos las cabeceras de la peticion
+		final Map<String, List<String>> requestHeaders;
+
+
+		final Object headers = bindingProvider.getRequestContext().get(MessageContext.HTTP_REQUEST_HEADERS);
+		if (headers != null && headers instanceof Map<?, ?>) {
+			requestHeaders = (Map<String, List<String>>) headers;
+		}
+		else {
+			requestHeaders = new HashMap<>();
+		}
+
+		// Agrega cabeceras HTTP
+		requestHeaders.put("Expect", Arrays.asList("100-Continue")); //$NON-NLS-1$ //$NON-NLS-2$
 
 	    bindingProvider.getRequestContext().put(MessageContext.HTTP_REQUEST_HEADERS, requestHeaders);
 
@@ -2971,7 +2989,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processGetPushStatus(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		// Comprobamos que el XML de peticion esta bien formado.
 		GetPushStatusParser.parse(xmlDoc);
@@ -3006,7 +3024,7 @@ public final class ProxyService extends HttpServlet {
 	 */
 	private String processUpdatePushStatus(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
-		final Document xmlDoc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
+		final Document xmlDoc = parse(xml);
 
 		// Comprobamos que el XML de peticion esta bien formado y obtenemos la cadena
 		// que determina si las notificaciones deben habilitarse o deshabilitarse
