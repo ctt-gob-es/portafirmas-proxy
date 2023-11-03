@@ -166,6 +166,8 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String VALID_ACTION_INSERT = "insertar"; //$NON-NLS-1$
 
+	private static final String ROLE_ID_VALIDATOR = "VALIDADOR"; //$NON-NLS-1$
+
 	static final Logger LOGGER = LoggerFactory.getLogger(ProxyService.class);
 
 	private static boolean DEBUG;
@@ -921,7 +923,7 @@ public final class ProxyService extends HttpServlet {
 	 *             Cuando ocurre alg&uacute;n problema de comunicaci&oacute;n
 	 *             con el servidor.
 	 */
-	private String processLogout(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+	private static String processLogout(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		try {
@@ -1127,13 +1129,37 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final ListRequest listRequest = ListRequestParser.parse(doc);
 
-		// El DNI a recuperar debe ser el DNI del propietario de la peticion.
-		final String dni = listRequest.getOwnerId() != null
+		// El DNI a recuperar debe ser el DNI del propietario de la peticion
+		// o el de uno de sus usuarios validadores
+		final String dni =  listRequest.getOwnerId() != null && checkValidator(session, listRequest.getOwnerId())
 				? listRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
 		final PartialSignRequestsList signRequests = getRequestsList(dni, listRequest);
 
 		return XmlResponsesFactory.createRequestsListResponse(signRequests);
+	}
+
+	/**
+	 * Comprueba si el usuario actual es un validador del usuario indicado
+	 * @param session Sesi&oacute;n del usuario.
+	 * @param validatorDni
+	 * @return {@code true} si el DNI se correponde con el de un usuario del que somos
+	 * validador, {@code false} en caso contrario.
+	 */
+	private static boolean checkValidator(final HttpSession session, final String dni) {
+
+		boolean valid = false;
+		if (session != null) {
+			final List<String> usersDni = (List<String>) session.getAttribute(SessionParams.VALIDATOR_OF);
+			if (usersDni != null) {
+				for (final String userDni : usersDni) {
+					if (userDni.equals(dni)) {
+						valid = true;
+					}
+				}
+			}
+		}
+		return valid;
 	}
 
 	/**
@@ -1285,8 +1311,10 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
-		// El DNI debe ser el DNI del propietario de la peticion.
-		final String dni = detRequest.getOwnerId() != null ? detRequest.getOwnerId()
+		// El DNI debe ser el DNI del propietario de la peticion o de uno de
+		// los usuarios validadores
+		final String dni = detRequest.getOwnerId() != null && checkValidator(session, detRequest.getOwnerId())
+				? detRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
 		final Detail requestDetails = getRequestDetail(dni, detRequest);
 
@@ -1733,6 +1761,10 @@ public final class ProxyService extends HttpServlet {
 
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 		final GetUserConfigResult response = getUserConfiguration(dni);
+
+		// Guardamos en la sesion los usuarios de los que se es validador
+		saveValidatorInSession(response.getUserRoles(), session);
+
 		return XmlResponsesFactory.createGetUserConfigurationResponse(response);
 	}
 
@@ -2144,6 +2176,36 @@ public final class ProxyService extends HttpServlet {
 			return new ListValidators(FireSignResult.ERROR_TYPE_COMMUNICATION);
 		}
 		return response;
+	}
+
+	/**
+	 * Guarda los validadores declarados para el usuario en su sesi&oacute;n para despu&eacute;s poder
+	 * comprobarlos.
+	 * @param roles Listado de roles.
+	 * @param session Sesi&oacute;n del usuario.
+	 */
+	private static void saveValidatorInSession(final List<Role> roles, final HttpSession session) {
+
+		final List<String> validatorDniList = new ArrayList<>();
+
+		// Obtenemos los DNI de los usuarios de los que somos validador
+		if (roles != null) {
+			for (final Role role : roles) {
+				// Si el rol es de validador, guardamos el DNI
+				if (ROLE_ID_VALIDATOR.equals(role.getId())) {
+					final String dni = role.getUserId();
+					if (dni != null) {
+						validatorDniList.add(dni);
+					}
+				}
+			}
+		}
+
+		// Si se declaro algun validador, se agrega a la sesion
+		if (!validatorDniList.isEmpty()) {
+			session.setAttribute(SessionParams.VALIDATOR_OF, validatorDniList);
+			SessionCollector.updateSession(session);
+		}
 	}
 
 	/**

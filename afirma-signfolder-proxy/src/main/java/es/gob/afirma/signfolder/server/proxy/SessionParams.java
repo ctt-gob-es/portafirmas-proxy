@@ -40,6 +40,12 @@ public class SessionParams {
 	public static final String CERT = "cert"; //$NON-NLS-1$
 	public static final String DNI = "dni"; //$NON-NLS-1$
 
+	/**
+	 * Identificador del objeto con el listado de DNI de usuarios de los cuales
+	 * el usuario actual es validador.
+	 */
+	public static final String VALIDATOR_OF = "validators"; //$NON-NLS-1$
 
+	/** Indicador de que se ha validado la sesi&oacute;n. */
 	public static final String VALID_SESSION = "validsession"; //$NON-NLS-1$
 }
