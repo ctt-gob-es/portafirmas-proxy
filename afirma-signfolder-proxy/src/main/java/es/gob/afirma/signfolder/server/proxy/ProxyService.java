@@ -190,7 +190,9 @@ public final class ProxyService extends HttpServlet {
 
 	private DocumentCache documentCache = null;
 
-	private final MobileService_Service mobileService;
+	private MobileService_Service mobileService;
+
+	private boolean initialized = false;
 
 
 	/** N&uacute;mero de peticiones a la cach&eacute; que quedan hasta la siguiente limpieza. */
@@ -241,7 +243,7 @@ public final class ProxyService extends HttpServlet {
 	}
 
 	/** Construye un Servlet que sirve operaciones de firma trif&aacute;sica. */
-	public ProxyService() {
+	private void initialize() {
 
 		ConfigManager.checkInitialized();
 
@@ -274,6 +276,8 @@ public final class ProxyService extends HttpServlet {
 		if (this.documentCache != null) {
 			new CacheCleanerThread(this.documentCache, ConfigManager.getCacheExpirationTime()).start();
 		}
+
+		this.initialized = true;
 	}
 
 	private static void disabledSslSecurity() {
@@ -340,6 +344,22 @@ public final class ProxyService extends HttpServlet {
 	 */
 	@Override
 	protected void service(final HttpServletRequest request, final HttpServletResponse response) {
+
+		// Inicializamos el servicio si no lo estuviese
+		if (!this.initialized) {
+			try {
+				initialize();
+			}
+			catch (final Exception e) {
+				LOGGER.error("No se ha podido inicializar el servicio", e); //$NON-NLS-1$
+				try {
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				} catch (final IOException e1) {
+					LOGGER.error("No se pudo enviar un error al cliente", e); //$NON-NLS-1$
+				}
+				return;
+			}
+		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Peticion al proxy Portafirmas"); //$NON-NLS-1$
