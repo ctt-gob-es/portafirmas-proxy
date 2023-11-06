@@ -923,7 +923,7 @@ public final class ProxyService extends HttpServlet {
 	 *             Cuando ocurre alg&uacute;n problema de comunicaci&oacute;n
 	 *             con el servidor.
 	 */
-	private static String processLogout(final HttpSession session, final byte[] xml) throws SAXException, IOException {
+	private String processLogout(final HttpSession session, final byte[] xml) throws SAXException, IOException {
 
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
 		try {
