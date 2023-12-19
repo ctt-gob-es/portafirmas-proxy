@@ -1207,7 +1207,8 @@ public final class ProxyService extends HttpServlet {
 		final ListRequest listRequest = ListRequestParser.parse(doc);
 
 		// El DNI a recuperar debe ser el DNI del propietario de la peticion
-		// o el de uno de sus usuarios validadores
+		// o el de uno de sus usuarios validadores. Si en la llamada se indica
+		// un DNI, se comprueba que sea un validador o se usara el de la sesion
 		final String dni =  listRequest.getOwnerId() != null && checkValidator(session, listRequest.getOwnerId())
 				? listRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
@@ -1388,8 +1389,9 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = parse(xml);
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
-		// El DNI debe ser el DNI del propietario de la peticion o de uno de
-		// los usuarios validadores
+		// El DNI a recuperar debe ser el DNI del propietario de la peticion
+		// o el de uno de sus usuarios validadores. Si en la llamada se indica
+		// un DNI, se comprueba que sea un validador o se usara el de la sesion
 		final String dni = detRequest.getOwnerId() != null && checkValidator(session, detRequest.getOwnerId())
 				? detRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);
@@ -2689,7 +2691,6 @@ public final class ProxyService extends HttpServlet {
 				try {
 					loadDocumentsFromCache(triRequest, false);
 					loadedFromCache = true;
-					LOGGER.info(" ==== Se han cargado de cache los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 				catch (final Exception e) {
 					LOGGER.debug("No se encontraron en cache todos los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
@@ -2699,7 +2700,6 @@ public final class ProxyService extends HttpServlet {
 			if (!loadedFromCache) {
 				try {
 					loadDocumentsFromService(triRequest, null, triRequests.getCertificate().getEncoded(), service);
-					LOGGER.info(" ==== Se han descargado del Portafirmas los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 				catch (final Exception e2) {
 					LOGGER.warn("Error al cargar los documentos de la peticion " + triRequest.getRef(), e2); //$NON-NLS-1$
@@ -2744,7 +2744,6 @@ public final class ProxyService extends HttpServlet {
 			if (this.documentCache != null && !loadedFromCache) {
 				try {
 					saveInCache(triRequest);
-					LOGGER.info(" ==== Se guardaron en cache los documentos de la peticion {}", triRequest.getRef()); //$NON-NLS-1$
 				}
 				catch (final Exception e) {
 					LOGGER.warn("No se pudieron cachear los documentos de la peticion {}: {}", triRequest.getRef(), e); //$NON-NLS-1$
@@ -2799,7 +2798,6 @@ public final class ProxyService extends HttpServlet {
 					try {
 						loadDocumentsFromCache(triRequest, true);
 						loaded = true;
-						LOGGER.info(" ==== Se han cargado de cache los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
 					} catch (final Exception e) {
 						// No hacemos nada
 					}
@@ -2808,7 +2806,6 @@ public final class ProxyService extends HttpServlet {
 				if (!loaded) {
 					try {
 						loadDocumentsFromService(triRequest, requestNeedContent, triRequests.getCertificate().getEncoded(), service);
-						LOGGER.info(" ==== Se han descargado del Portafirmas los documentos de la peticion: {}", triRequest.getRef()); //$NON-NLS-1$
 					} catch (final Exception e2) {
 						LOGGER.warn("Ocurrio un error al cargar los documentos de la peticion {}: {}", triRequest.getRef(), e2); //$NON-NLS-1$
 						triRequest.setStatusOk(false);
