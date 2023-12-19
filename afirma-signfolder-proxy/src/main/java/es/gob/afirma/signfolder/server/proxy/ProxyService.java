@@ -1126,14 +1126,17 @@ public final class ProxyService extends HttpServlet {
 	private String processRequestsList(final HttpSession session, final byte[] xml)
 			throws SAXException, IOException, MobileException {
 
+		// Tomamos el identificador del usuario para hacer las validaciones oportunas
+		final String userId = (String) session.getAttribute(SessionParams.DNI);
+
 		final Document doc = this.documentBuilder.parse(new ByteArrayInputStream(xml));
-		final ListRequest listRequest = ListRequestParser.parse(doc);
+		final ListRequest listRequest = ListRequestParser.parse(doc, userId);
 
 		// El DNI a recuperar debe ser el DNI del propietario de la peticion
 		// o el de uno de sus usuarios validadores
 		final String dni = listRequest.getOwnerId() != null && checkValidator(session, listRequest.getOwnerId())
 				? listRequest.getOwnerId()
-				: (String) session.getAttribute(SessionParams.DNI);
+				: userId;
 		final PartialSignRequestsList signRequests = getRequestsList(dni, listRequest);
 
 		return XmlResponsesFactory.createRequestsListResponse(signRequests);
