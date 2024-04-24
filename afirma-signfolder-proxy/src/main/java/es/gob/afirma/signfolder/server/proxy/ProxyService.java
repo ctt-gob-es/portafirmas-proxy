@@ -214,12 +214,14 @@ public final class ProxyService extends HttpServlet {
 			this.documentBuilder = SECURE_BUILDER_FACTORY.newDocumentBuilder();
 
 		} catch (final Exception e) {
+			LOGGER.error("Error interno en la configuracion del parser XML", e); //$NON-NLS-1$
 			throw new IllegalStateException("Error interno en la configuracion del parser XML", e); //$NON-NLS-1$
 		}
 
 		try {
 			this.mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		} catch (final Exception e) {
+			LOGGER.error("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$
 			throw new IllegalStateException("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$
 		}
 
