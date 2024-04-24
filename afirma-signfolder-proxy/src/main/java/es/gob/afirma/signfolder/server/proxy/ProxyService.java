@@ -112,7 +112,7 @@ public final class ProxyService extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private static final String DEFAULT_CHARSET_NAME = "utf-8"; //$NON-NLS-1$
-	private static Charset DEFAULT_CHARSET;
+	static Charset DEFAULT_CHARSET;
 
 	private static final String PARAMETER_NAME_OPERATION = "op"; //$NON-NLS-1$
 	private static final String PARAMETER_NAME_DATA = "dat"; //$NON-NLS-1$
@@ -178,7 +178,6 @@ public final class ProxyService extends HttpServlet {
 
 	/** N&uacute;mero de peticiones a la cach&eacute; que se deben realizar entre una limpieza y otra. */
 	private final int DEFAULT_CACHE_REQUEST_TO_CLEAN = 1000;
-
 	static final Logger LOGGER = LoggerFactory.getLogger(ProxyService.class);
 
 	private static boolean DEBUG;
@@ -250,8 +249,7 @@ public final class ProxyService extends HttpServlet {
 		try {
 			this.mobileService = new MobileService_Service(ConfigManager.getSignfolderUrl());
 		} catch (final Exception e) {
-			LOGGER.error("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$
-			throw new IllegalStateException("Error en la configuracion de la conexion con el Portafirmas web"); //$NON-NLS-1$
+			throw new IllegalStateException("Error en la configuracion de la conexion con el Portafirmas web", e); //$NON-NLS-1$		}
 		}
 
 		// Activamos la cache si se configuro
@@ -1204,21 +1202,23 @@ public final class ProxyService extends HttpServlet {
 			throws SAXException, IOException, MobileException {
 
 		final Document doc = parse(xml);
-		final ListRequest listRequest = ListRequestParser.parse(doc);
+		// Tomamos el identificador del usuario para hacer las validaciones oportunas
+		final String userId = (String) session.getAttribute(SessionParams.DNI);
+		final ListRequest listRequest = ListRequestParser.parse(doc, userId);
 
 		// El DNI a recuperar debe ser el DNI del propietario de la peticion
 		// o el de uno de sus usuarios validadores. Si en la llamada se indica
 		// un DNI, se comprueba que sea un validador o se usara el de la sesion
 		final String dni =  listRequest.getOwnerId() != null && checkValidator(session, listRequest.getOwnerId())
 				? listRequest.getOwnerId()
-				: (String) session.getAttribute(SessionParams.DNI);
+				: userId;
 		final PartialSignRequestsList signRequests = getRequestsList(dni, listRequest);
 
 		return XmlResponsesFactory.createRequestsListResponse(signRequests);
 	}
 
 	/**
-	 * Comprueba si el usuario actual es un validador del usuario indicado
+	 * Comprueba si el usuario actual es un validador del usuario indicado.
 	 * @param session Sesi&oacute;n del usuario.
 	 * @param validatorDni
 	 * @return {@code true} si el DNI se correponde con el de un usuario del que somos
@@ -1389,9 +1389,8 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = parse(xml);
 		final DetailRequest detRequest = DetailRequestParser.parse(doc);
 
-		// El DNI a recuperar debe ser el DNI del propietario de la peticion
-		// o el de uno de sus usuarios validadores. Si en la llamada se indica
-		// un DNI, se comprueba que sea un validador o se usara el de la sesion
+		// El DNI debe ser el DNI del propietario de la peticion o de uno de
+		// los usuarios validadores
 		final String dni = detRequest.getOwnerId() != null && checkValidator(session, detRequest.getOwnerId())
 				? detRequest.getOwnerId()
 				: (String) session.getAttribute(SessionParams.DNI);

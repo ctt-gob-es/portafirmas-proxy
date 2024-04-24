@@ -29,7 +29,8 @@ public class ListRequestParser {
 	private final static String STATE_ATTRIBUTE = "state"; //$NON-NLS-1$
 	private final static String PAGE_ATTRIBUTE = "pg"; //$NON-NLS-1$
 	private final static String PAGE_SIZE_ATTRIBUTE = "sz"; //$NON-NLS-1$
-	private final static String OWNER_ID_ATTRIBUTE = "dniValidadorFilter"; //$NON-NLS-1$
+	private final static String VALIDATOR_FILTER_KEY = "dniValidadorFilter"; //$NON-NLS-1$
+	private static final String USER_FILTER_KEY = "userId"; //$NON-NLS-1$
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ListRequestParser.class);
 
@@ -42,7 +43,7 @@ public class ListRequestParser {
 	 * @param doc Documento XML.
 	 * @return Objeto con los datos del XML.
 	 * @throws IllegalArgumentException Cuando el XML no tiene el formato esperado.	 */
-	static ListRequest parse(final Document doc) {
+	static ListRequest parse(final Document doc, final String userId) {
 		if (doc == null) {
 			throw new IllegalArgumentException("El documento proporcionado no puede ser nulo");  //$NON-NLS-1$
 		}
@@ -94,12 +95,27 @@ public class ListRequestParser {
 			nodeIndex = XmlUtils.nextNodeElementIndex(requestNodes, ++nodeIndex);
 		}
 
-		// Configuramos el DNI del usuario propietario de la peticion.
+		// Configuramos el DNI del usuario propietario de la peticion y, respondiendo a un cambio
+		// de comportamiento en el servicio, modificamos el valor del filtro para indicar el DNI
+		// del validador.
 		if (filters != null) {
-			ownerId = filters.get(OWNER_ID_ATTRIBUTE);
+
+			// Tomamos del filtro de validador el nombre del propietario de la peticion
+			ownerId = filters.get(VALIDATOR_FILTER_KEY);
+
+			// Si el DNI es cadena vacia, lo dejamos como nulo
 			if (ownerId != null && ownerId.isEmpty()) {
 				ownerId = null;
 			}
+
+			// Si había un filtro de validador, lo actualizamos con el DNI
+			// del usuario actual, que es el verdadero validador
+			if (ownerId != null) {
+				filters.put(VALIDATOR_FILTER_KEY, userId);
+			}
+
+			// Eliminamos el filtro userId
+			filters.remove(USER_FILTER_KEY);
 		}
 
 		return new ListRequest(state, formats, filters, numPage, pageSize, ownerId);
