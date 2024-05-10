@@ -169,8 +169,7 @@ public final class ProxyService extends HttpServlet {
 	private static final String SIGNFOLDER_VALUE_TRUE = "S"; //$NON-NLS-1$
 	private static final String SIGNFOLDER_VALUE_FALSE = "N"; //$NON-NLS-1$
 
-	private static final String AUTH_ACTION_REVOCATION = "revocar"; //$NON-NLS-1$
-	private static final String AUTH_ACTION_ACCEPT = "aceptar"; //$NON-NLS-1$
+	private static final String AUTH_OPERATION_REJECT = "REJECT"; //$NON-NLS-1$
 
 	private static final String VALID_ACTION_INSERT = "insertar"; //$NON-NLS-1$
 
@@ -2132,13 +2131,23 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = parse(xml);
 
 		// Parseamos la peticion
-		final String authId = ChangeAuthorizationRequestParser.parse(doc);
+		final AuthorizationStatusChange statusChange = ChangeAuthorizationRequestParser.parse(doc);
 
 		// Recuperamos el DNI del validador
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 
+		// Idenficamos la operacion de cambio de estado que debemos aplicar. Desde este metodo solo permitimos
+		// el rechazo y la revocacion (este ultimo es el valor por defecto)
+		String operation = statusChange.getOperation();
+		if (operation != null && AUTH_OPERATION_REJECT.equalsIgnoreCase(operation)) {
+			operation = AuthorizationStatusChange.AUTH_ACTION_REJECT;
+		}
+		else {
+			operation = AuthorizationStatusChange.AUTH_ACTION_REVOKE;
+		}
+
 		// Realizamos el cambio de estado de la autorizacion
-		final GenericResult result = changeAuthorizationState(dni, authId, AUTH_ACTION_REVOCATION);
+		final GenericResult result = changeAuthorizationState(dni, statusChange.getAuthId(), operation);
 
 		// Construimos la respuesta para la aplicacion movil
 		return XmlResponsesFactory.createGenericResponse(result);
@@ -2185,13 +2194,13 @@ public final class ProxyService extends HttpServlet {
 		final Document doc = parse(xml);
 
 		// Parseamos la peticion
-		final String authId = ChangeAuthorizationRequestParser.parse(doc);
+		final AuthorizationStatusChange statusChange = ChangeAuthorizationRequestParser.parse(doc);
 
 		// Recuperamos el DNI del validador
 		final String dni = (String) session.getAttribute(SessionParams.DNI);
 
 		// Realizamos el cambio de estado de la autorizacion
-		final GenericResult result = changeAuthorizationState(dni, authId, AUTH_ACTION_ACCEPT);
+		final GenericResult result = changeAuthorizationState(dni, statusChange.getAuthId(), AuthorizationStatusChange.AUTH_ACTION_ACCEPT);
 
 		// Construimos la respuesta para la aplicacion movil
 		return XmlResponsesFactory.createGenericResponse(result);
