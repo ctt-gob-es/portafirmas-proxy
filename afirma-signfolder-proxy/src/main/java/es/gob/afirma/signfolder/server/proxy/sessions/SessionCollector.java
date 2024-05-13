@@ -34,12 +34,11 @@ public final class SessionCollector {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SessionCollector.class);
 
-	/** Peri&oacute;do m&aacute;ximo de inactividad. */
-	private static final int MAX_INACTIVE_INTERVAL = 8 * 60 * 60; // 8 Horas
+	private static final SessionDAO DAO;
 
-	private static final SessionDAO dao;
+	private static final boolean SHARE_SESSION;
 
-	private static final boolean shareSession;
+	private static final int INACTIVITY_TIME_IN_SECONDS;
 
     static {
 
@@ -51,9 +50,13 @@ public final class SessionCollector {
     		throw e;
 		}
 
-    	dao = SessionDAO.getInstance();
+    	// Configuramos el tiempo maximo de inactividad de sesion (transformamos minutos a segundos)
+    	final int inactivityTimeInMins = ConfigManager.getSessionTimeoutInactivity();
+    	INACTIVITY_TIME_IN_SECONDS = inactivityTimeInMins * 60;
 
-    	shareSession = ConfigManager.isShareSessionEnabled();
+    	DAO = SessionDAO.getInstance();
+
+    	SHARE_SESSION = ConfigManager.isShareSessionEnabled();
     }
 
     /**
@@ -66,7 +69,7 @@ public final class SessionCollector {
 		LOGGER.debug("Creamos sesion"); //$NON-NLS-1$
     	final HttpSession session = request.getSession();
     	LOGGER.debug("Sesion: " + session.getId()); //$NON-NLS-1$
-    	session.setMaxInactiveInterval(MAX_INACTIVE_INTERVAL);
+    	session.setMaxInactiveInterval(INACTIVITY_TIME_IN_SECONDS);
     	return session;
 	}
 
@@ -77,10 +80,10 @@ public final class SessionCollector {
 	 * @throws IOException Cuando no se puede compartir la sesi&oacute;n.
 	 */
 	public static String createSharedSession(final HttpSession session) throws IOException {
-		final String ssid = dao.createSharedSession();
+		final String ssid = DAO.createSharedSession();
 		LOGGER.debug("Creamos sesion compartida: " + ssid); //$NON-NLS-1$
 		session.setAttribute(SessionParams.SHARED_SESSION_ID, ssid);
-		dao.writeSession(session, ssid);
+		DAO.writeSession(session, ssid);
 		return ssid;
 	}
 
@@ -89,12 +92,12 @@ public final class SessionCollector {
 	 * @param session Datos de la sesi&oacute;n.
 	 */
 	public static void updateSession(final HttpSession session) {
-		if (shareSession) {
+		if (SHARE_SESSION) {
 			final String ssid = (String) session.getAttribute(SessionParams.SHARED_SESSION_ID);
 			LOGGER.debug("Actualizamos la sesion compartida: " + ssid); //$NON-NLS-1$
 			if (ssid != null) {
 				try {
-					dao.writeSession(session, ssid);
+					DAO.writeSession(session, ssid);
 				} catch (final IOException e) {
 					LOGGER.warn("Error al actualizar la sesion compartida " + ssid, e); //$NON-NLS-1$
 				}
@@ -115,11 +118,11 @@ public final class SessionCollector {
 
 		HttpSession session = request.getSession(false);
 
-		if (ssid != null && shareSession) {
+		if (ssid != null && SHARE_SESSION) {
 			LOGGER.debug("Cargamos la sesion compartida: " + ssid); //$NON-NLS-1$
 			SessionInfo sessionInfo;
 			try {
-				sessionInfo = dao.recoverSessionInfo(ssid);
+				sessionInfo = DAO.recoverSessionInfo(ssid);
 			}
 			catch (final Exception e) {
 				// Si no se puede cargar, usamos la de memoria exista o no
@@ -135,7 +138,7 @@ public final class SessionCollector {
 					LOGGER.warn("La sesion de la peticion " + ssid + " ha caducado"); //$NON-NLS-1$ //$NON-NLS-2$
 					return null;
 				}
-				session.setMaxInactiveInterval(MAX_INACTIVE_INTERVAL);
+				session.setMaxInactiveInterval(INACTIVITY_TIME_IN_SECONDS);
 			}
 			sessionInfo.save(session);
 		}
@@ -163,7 +166,7 @@ public final class SessionCollector {
     	// Eliminamos la sesion compartida
     	if (ssid != null) {
     		LOGGER.debug("Eliminamos la sesion compartida: " + ssid); //$NON-NLS-1$
-    		dao.removeSession(ssid);
+    		DAO.removeSession(ssid);
     	}
     }
 }

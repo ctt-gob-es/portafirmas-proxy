@@ -45,6 +45,9 @@ public class ConfigManager {
 	/** Propiedad que establece la URL del servicio de firma trif&aacute;sica. */
 	private static final String PROPERTY_TRIPHASE_SERVICE_URL = "triphase.server.url"; //$NON-NLS-1$
 
+	/** Propiedad que establece el tiempo m&aacute;ximo de inactividad permitido por la sesi&oacute;n en minutos. */
+	private static final String PROPERTY_SESSION_TIMEOUT_INACTIVITY = "session.timeout.inativity"; //$NON-NLS-1$
+
 	/** Propiedad que establece si deben compartirse las sesiones. */
 	private static final String PROPERTY_SHARED_ENABLED = "share.sessions.enable"; //$NON-NLS-1$
 
@@ -76,7 +79,10 @@ public class ConfigManager {
 	private static final int DEFAULT_VALUE_REQUESTS_TO_CLEAN = 1000;
 
 	/** N&uacute;mero de milisegundos que por defecto tardan en caducar los ficheros en cache. */
-	private static final int DEFAULT_EXPIRATION_TIME = 1000;
+	private static final int DEFAULT_EXPIRATION_TIME = 60000;
+
+	/** Minutos de inactividad que por defecto admite una sesi&oacute;n antes de caducar. */
+	private static final int DEFAULT_SESSION_INACTIVITY_MINS = 30;
 
 
 	private static Properties config = null;
@@ -199,6 +205,25 @@ public class ConfigManager {
 	public static void setTriphaseServiceUrl(final String triphaseServiceUrl){
 		config.setProperty(PROPERTY_TRIPHASE_SERVICE_URL, triphaseServiceUrl);
 	}
+
+	/**
+	 * Devuelve el n&uacute;mero de minutos de inactividad que permite la sesion como m&aacute;ximo.
+	 * @return Minutos.
+	 */
+	public static int getSessionTimeoutInactivity(){
+		final String value = getProperty(PROPERTY_SESSION_TIMEOUT_INACTIVITY);
+		int mins;
+		try {
+			mins = Integer.parseInt(value);
+		}
+		catch (final Exception e) {
+			LOGGER.warn("No se indico un numero de minutos de inactividad de sesion valido. Se usara el valor por defecto {}: {}", //$NON-NLS-1$
+					Integer.toString(DEFAULT_SESSION_INACTIVITY_MINS), e);
+			mins = DEFAULT_SESSION_INACTIVITY_MINS;
+		}
+		return mins;
+	}
+
 
 	/**
 	 * Devuelve la cadena de configuraci&oacute;n con los ExtraParams que deben

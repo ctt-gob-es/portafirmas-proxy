@@ -6,6 +6,8 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpSession;
 
+import es.gob.afirma.signfolder.server.proxy.ConfigManager;
+
 /**
  * Clase que almacena informaci&oacute;n de una transacci&oacute;n y puede volcarla
  * en una sesi&oacute;n HTTP.
@@ -15,7 +17,14 @@ public class SessionInfo extends HashMap<String, Object> {
 	/** Serial number. */
 	private static final long serialVersionUID = 4145239095069112792L;
 
-	private long expirationDate = 86400000; // Milisegundos de 1 dia
+	private long expirationDate;
+
+	public SessionInfo() {
+		// La fecha de expiracion por defecto es la actual mas el tiempo maximo de configurado.
+		// El tiempo se configura en minutos, por lo que se pasa a milisegundos.
+		this.expirationDate = System.currentTimeMillis() +
+				ConfigManager.getSessionTimeoutInactivity() * 60000;
+	}
 
 	/**
 	 * Carga la informaci&oacute;n de la transacci&oacute;n desde la sesi&oacute;n
