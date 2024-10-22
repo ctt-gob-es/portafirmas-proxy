@@ -171,6 +171,8 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String AUTH_OPERATION_REJECT = "REJECT"; //$NON-NLS-1$
 
+	private static final String AUTH_OPERATION_CANCEL = "CANCEL"; //$NON-NLS-1$
+
 	private static final String VALID_ACTION_INSERT = "insertar"; //$NON-NLS-1$
 
 	private static final String ROLE_ID_VALIDATOR = "VALIDADOR"; //$NON-NLS-1$
@@ -2141,8 +2143,9 @@ public final class ProxyService extends HttpServlet {
 		String operation = statusChange.getOperation();
 		if (operation != null && AUTH_OPERATION_REJECT.equalsIgnoreCase(operation)) {
 			operation = AuthorizationStatusChange.AUTH_ACTION_REJECT;
-		}
-		else {
+		} else if (operation != null && AUTH_OPERATION_CANCEL.equalsIgnoreCase(operation)) {
+			operation = AuthorizationStatusChange.AUTH_ACTION_CANCEL;
+		} else {
 			operation = AuthorizationStatusChange.AUTH_ACTION_REVOKE;
 		}
 

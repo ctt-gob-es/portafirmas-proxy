@@ -20,6 +20,10 @@ public class Authorization {
 	private static final String FORMATED_STATE_ACCEPTED = "accepted"; //$NON-NLS-1$
 	private static final String REMOTE_STATE_REVOKED = "revoked"; //$NON-NLS-1$
 	private static final String FORMATED_STATE_REVOKED = "revoked"; //$NON-NLS-1$
+	private static final String REMOTE_STATE_REJECTED = "rejected"; //$NON-NLS-1$
+	private static final String FORMATED_STATE_REJECTED = "rejected"; //$NON-NLS-1$
+	private static final String REMOTE_STATE_CANCELLED = "cancelled"; //$NON-NLS-1$
+	private static final String FORMATED_STATE_CANCELLED = "cancelled"; //$NON-NLS-1$
 
 	/** Identificador de la autorizaci&oacute;n. */
 	private String id;
@@ -222,6 +226,10 @@ public class Authorization {
 			return FORMATED_STATE_ACCEPTED;
 		case REMOTE_STATE_REVOKED:
 			return FORMATED_STATE_REVOKED;
+		case REMOTE_STATE_REJECTED:
+			return FORMATED_STATE_REJECTED;
+		case REMOTE_STATE_CANCELLED:
+			return FORMATED_STATE_CANCELLED;
 		default:
 			return FORMATED_STATE_REVOKED;
 		}

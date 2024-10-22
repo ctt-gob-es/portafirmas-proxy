@@ -8,6 +8,7 @@ public class AuthorizationStatusChange {
 	static final String AUTH_ACTION_ACCEPT = "aceptar"; //$NON-NLS-1$
 	static final String AUTH_ACTION_REJECT = "rechazar"; //$NON-NLS-1$
 	static final String AUTH_ACTION_REVOKE = "revocar"; //$NON-NLS-1$
+	static final String AUTH_ACTION_CANCEL = "cancelar"; //$NON-NLS-1$
 
 	/** Identificador de la autorizaci&oacute;n. */
 	private final String authId;

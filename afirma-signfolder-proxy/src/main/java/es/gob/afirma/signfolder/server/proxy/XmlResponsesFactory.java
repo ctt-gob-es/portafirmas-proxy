@@ -93,8 +93,10 @@ final class XmlResponsesFactory {
 			String exceptionb64 = null;
 			final Throwable t = triphaseRequest.getThrowable();
 			if (t != null) {
-				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-					t.printStackTrace(new PrintWriter(baos));
+				try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						PrintWriter writer = new PrintWriter(baos)) {
+					t.printStackTrace(writer);
+					writer.flush();
 					exceptionb64 = Base64.encode(baos.toByteArray());
 				} catch (final IOException e) {
 					// No hacemos nada
