@@ -26,14 +26,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import es.gob.afirma.core.AOException;
-import es.gob.afirma.core.RuntimeConfigNeededException;
-import es.gob.afirma.core.RuntimeConfigNeededException.RequestType;
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.core.misc.http.UrlHttpManagerFactory;
 import es.gob.afirma.core.misc.http.UrlHttpMethod;
 import es.gob.afirma.core.signers.AOSignConstants;
-import es.gob.afirma.core.signers.AOTriphaseException;
 import es.gob.afirma.core.signers.TriphaseData;
 import es.gob.afirma.core.signers.TriphaseData.TriSign;
 
@@ -86,13 +83,6 @@ public class TriSigner {
 	private static final String ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT = "pdfShadowAttackSuspect"; //$NON-NLS-1$
 	private static final String ERROR_CODE_SIGNING_LTS_SIGNATURE = "signingLts"; //$NON-NLS-1$
 
-	// ExtraParams asociados a los errores que requieren confirmacion del usuario
-	private static final String EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF = "allowSigningCertifiedPdfs"; //$NON-NLS-1$
-	private static final String EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN = "allowCosigningUnregisteredSignatures"; //$NON-NLS-1$
-	private static final String EXTRAPARAM_ALLOW_MODIFIED_PDF_FORM = "allowModifiedForm"; //$NON-NLS-1$
-	private static final String EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT = "allowShadowAttack"; //$NON-NLS-1$
-	private static final String EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE = "allowSignLTSignature"; //$NON-NLS-1$
-
 	/** Codificaci&oacute;n de texto por defecto. */
 	private static final String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
 	/** Tiempo de espera por defecto (-1 es para indicar el por defecto de Java. */
@@ -114,13 +104,14 @@ public class TriSigner {
 	 * @param signerCert Certificado de firma.
 	 * @param signServiceUrl URL del servicio de firma.
 	 * @param forcedExtraParams Par&aacute;metros de firma que se deben aplicar forzosamente.
+	 * @throws IdentifiedSignatureException Cuando falla la prefirma del documento debido a un problema conocido
 	 * @throws IOException Cuando no se puede obtener el documento para prefirmar.
 	 * @throws AOException Cuando ocurre un error al generar la prefirma.
 	 */
 	public static void doPreSign(final TriphaseSignDocumentRequest docReq,
 			final X509Certificate signerCert,
 			final String signServiceUrl,
-			final String forcedExtraParams) throws IOException, AOException {
+			final String forcedExtraParams) throws IdentifiedSignatureException, IOException, AOException {
 
 		// Configuramos el formato y la operacion criptografica adecuada
 		String cop;
@@ -156,9 +147,12 @@ public class TriSigner {
 			// se incluia alguno de estos con otro valor acabara siendo pisado ya que en un properties
 			// tiene preferencia el ultimo valor leido
 			final Properties extraParams = buildExtraParams(docReq.getParams());
-			printAuditLog(docReq.getId(), extraParams);
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
 			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
+
+
+			extraParams.setProperty("allowSigningCertifiedPdfs", "true");
+
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
@@ -331,7 +325,10 @@ public class TriSigner {
 			// tiene preferencia el ultimo valor leido
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
-			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
+			addForcedExtraParams(extraParams, forcedExtraParams.split(";"));
+
+			extraParams.setProperty("allowSigningCertifiedPdfs", "true");
+
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
 
@@ -543,77 +540,45 @@ public class TriSigner {
 	 * notificado por el servidor trif&aacute;sico.
 	 * @param msg Mensaje de error devuelto por el servidor trif&aacute;sico.
 	 * @param extraParams Configuraci&oacute;n aplicada en la operaci&oacute;n.
-	 * @return Excepci&oacute;n construida.
+	 * @return Excepci&oacute;n que identifica un error de firma concreto.
+	 * @throws AOException Cuando no se pueda identificar el tipo de error.
 	 */
-	private static AOException buildInternalException(final String msg, final Properties extraParams) {
+	private static IdentifiedSignatureException buildInternalException(final String msg, final Properties extraParams)
+			throws AOException {
 
-		AOException exception = null;
+		IdentifiedSignatureException exception = null;
 		final int separatorPos = msg.indexOf(":"); //$NON-NLS-1$
 		if (msg.startsWith(CONFIG_NEEDED_ERROR_PREFIX)) {
 			final int separatorPos2 = msg.indexOf(":", separatorPos + 1); //$NON-NLS-1$
 			final String errorCode = msg.substring(separatorPos + 1, separatorPos2);
-			final String errorMsg = msg.substring(separatorPos2 + 1);
 
 			// Incrustamos aqui la logica para la identificacion de cada uno de los
 			// errores conocidos asociados a que se necesita mas informacion del usuario
 			switch (errorCode) {
 			case ERROR_CODE_SIGNING_CERTIFIED_PDF:
-				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_CERTIFIED_PDF, EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF);
+				exception = new IdentifiedSignatureException(OperationError.SIGN_CERTIFIED_PDF);
 				break;
 			case ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN:
-				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_PDF_WITH_UNREGISTERED_SIGN, EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN);
+				exception = new IdentifiedSignatureException(OperationError.SIGN_UNREGISTER_SIGN_PDF);
 				break;
 			case ERROR_CODE_SIGNING_MODIFIED_PDF_FORM:
-				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_MODIFIED_PDF_FORM, EXTRAPARAM_ALLOW_MODIFIED_PDF_FORM);
+				exception = new IdentifiedSignatureException(OperationError.SIGN_MODIFIED_FORM_PDF);
 				break;
 			case ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT:
-				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT, EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT);
+				exception = new IdentifiedSignatureException(OperationError.SIGN_MODIFIED_SUSPECT_PDF);
 				break;
 			case ERROR_CODE_SIGNING_LTS_SIGNATURE:
-				exception = new RuntimeConfigNeededException(errorMsg, RequestType.CONFIRM, ERROR_CODE_SIGNING_LTS_SIGNATURE, EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE);
+				exception = new IdentifiedSignatureException(OperationError.SIGN_LTS_SIGNATURE);
 				break;
 			default:
-				exception = new AOException("La firma requiere una interaccion del usuario no soportada: " + msg); //$NON-NLS-1$
-				break;
+				throw new AOException("Error de confirmacion requerida de un tipo no soportado: " + errorCode); //$NON-NLS-1$
 			}
+		}
+		else {
+			throw new AOException("Error de firma no reconocido: " + msg); //$NON-NLS-1$
 		}
 
-		if (exception == null) {
-			final int internalExceptionPos = msg.indexOf(":", separatorPos + 1); //$NON-NLS-1$
-			if (internalExceptionPos > 0) {
-				final String intMessage = msg.substring(internalExceptionPos + 1).trim();
-				exception = AOTriphaseException.parseException(intMessage);
-			}
-			else {
-				exception = new AOException(msg);
-			}
-		}
 
 		return exception;
-	}
-
-	/**
-	 * Imprime logs de auditor&iacute;a referentes a las autorizaciones que ha
-	 * concedido el usuario para firmar documentos que pudiesen generar firmas
-	 * no v&aacute;lidas.
-	 * @param docId Identificador del documento.
-	 * @param extraParams Configuraci&oacute;n de la operaci&oacute;n.
-	 */
-	private static void printAuditLog(final String docId, final Properties extraParams) {
-		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_MODIFIED_PDF_FORM))) {
-			LOGGER.info("El usuario ha aceptado que se firme el documento aunque se haya modificado un formulario despues de una firma anterior. Id documento: " + docId); //$NON-NLS-1$
-		}
-		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_PDF_SHADOW_ATTACK_SUSPECT))) {
-			LOGGER.info("El usuario ha aceptado que se firme el documento aunque fuese sospechoso de haber sufrido PDF Shadow Attack. Id documento: " + docId); //$NON-NLS-1$
-		}
-		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_SIGNING_CERTIFIED_PDF))) {
-			LOGGER.info("El usuario ha aceptado que se firme el documento aunque sea un PDF certificado que pudiese quedar invalidado. Id documento: " + docId); //$NON-NLS-1$
-		}
-		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_SIGNING_LTS_SIGNATURE))) {
-			LOGGER.info("El usuario ha aceptado que se firme el documento aunque fuese una firma de archivo longevo que pudiese quedar invalidada. Id documento: " + docId); //$NON-NLS-1$
-		}
-		if (Boolean.parseBoolean(extraParams.getProperty(EXTRAPARAM_ALLOW_SIGNING_PDF_WITH_UNREGISTERED_SIGN))) {
-			LOGGER.info("El usuario ha aceptado que se firme el documento aunque fuese un documento PDF con firmas no registradas que pudiesen quedar invalidadas. Id documento: " + docId); //$NON-NLS-1$
-		}
 	}
 }

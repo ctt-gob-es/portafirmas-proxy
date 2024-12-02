@@ -172,7 +172,6 @@ final class SignRequestsParser {
 		private static final String CRYPTO_OPERATION_ATTRIBUTE = "cop"; //$NON-NLS-1$
 		private static final String SIGNATURE_FORMAT_ATTRIBUTE = "sigfrmt"; //$NON-NLS-1$
 		private static final String MESSAGE_DIGEST_ALGORITHM_ATTRIBUTE = "mdalgo"; //$NON-NLS-1$
-		private static final String NEED_CONFIRMATION_ATTRIBUTE = "needcnf"; //$NON-NLS-1$
 		private static final String PARAMS_TRIPHASE_NODE = "params"; //$NON-NLS-1$
 		private static final String RESULT_TRIPHASE_RESULT_NODE = "result"; //$NON-NLS-1$
 
@@ -234,14 +233,9 @@ final class SignRequestsParser {
 			attributeNode = attributes.getNamedItem(MESSAGE_DIGEST_ALGORITHM_ATTRIBUTE);
 			messageDigestAlgorithm = attributeNode != null ? attributeNode.getNodeValue() : null;
 
-			attributeNode = attributes.getNamedItem(NEED_CONFIRMATION_ATTRIBUTE);
-			final boolean needConfirmation = attributeNode != null ? Boolean.parseBoolean(attributeNode.getNodeValue()) : false;
-
 			final NodeList docNodeChilds = trisignDocumentRequestNode.getChildNodes();
 			if (docNodeChilds == null || docNodeChilds.getLength() == 0) {
-				final TriphaseSignDocumentRequest docRequest = new TriphaseSignDocumentRequest(docId, signatureFormat, messageDigestAlgorithm, null);
-				docRequest.setNeedConfirmation(needConfirmation);
-				return docRequest;
+				return new TriphaseSignDocumentRequest(docId, signatureFormat, messageDigestAlgorithm, null);
 			}
 
 			String params = null;
@@ -286,12 +280,10 @@ final class SignRequestsParser {
 				params += "target=leafs"; //$NON-NLS-1$
 			}
 
-			final TriphaseSignDocumentRequest docRequest = new TriphaseSignDocumentRequest(
+			return new TriphaseSignDocumentRequest(
 					docId, normalizeOperationType(cryptoOperation), signatureFormat,
 					messageDigestAlgorithm, params, null,
 					partialResult);
-			docRequest.setNeedConfirmation(needConfirmation);
-			return docRequest;
 		}
 
 		/**

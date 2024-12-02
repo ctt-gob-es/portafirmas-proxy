@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import es.gob.afirma.core.RuntimeConfigNeededException;
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
 import es.gob.afirma.core.signers.TriphaseData;
@@ -70,6 +69,7 @@ import es.gob.afirma.signfolder.client.MobileDocSignInfo;
 import es.gob.afirma.signfolder.client.MobileDocSignInfoList;
 import es.gob.afirma.signfolder.client.MobileDocument;
 import es.gob.afirma.signfolder.client.MobileDocumentList;
+import es.gob.afirma.signfolder.client.MobileError;
 import es.gob.afirma.signfolder.client.MobileException;
 import es.gob.afirma.signfolder.client.MobileFiltroAnioList;
 import es.gob.afirma.signfolder.client.MobileFiltroGenerico;
@@ -105,7 +105,7 @@ import es.gob.afirma.signfolder.soap.security.SecurityHandler;
 /**
  * Servicio Web para firma trif&aacute;sica.
  *
- * @author Tom&aacute;s Garc&iacute;a-;er&aacute;s
+ * @author Tom&aacute;s Garc&iacute;a-Mer&aacute;s
  */
 public final class ProxyService extends HttpServlet {
 
@@ -799,7 +799,7 @@ public final class ProxyService extends HttpServlet {
 		final ValidateLoginResult result = new ValidateLoginResult();
 		if (session == null) {
 			LOGGER.warn("No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
-			result.setError("No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
+			result.setError(OperationError.LOGIN_CERT_EXPIRED_SESSION);
 			return result;
 		}
 
@@ -813,7 +813,7 @@ public final class ProxyService extends HttpServlet {
 					(byte[]) session.getAttribute(SessionParams.INIT_TOKEN));
 		} catch (final Exception e) {
 			LOGGER.warn("La firma del token de sesion no es valida", e); //$NON-NLS-1$
-			result.setError("La firma del token de sesi\u00F3n no es v\u00E1lida"); //$NON-NLS-1$
+			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR);
 			return result;
 		}
 
@@ -825,12 +825,10 @@ public final class ProxyService extends HttpServlet {
 			dni = getService().validateUser(loginRequest.getCertificate());
 		} catch (final MobileException e) {
 			LOGGER.warn("Error devuelto por el servicio de validacion", e); //$NON-NLS-1$
-			final String errMsg = processLoginErrorMessage(e.getMessage());
-			result.setError(errMsg != null ? errMsg
-					: "El usuario no dispone de cuenta en este portafirmas o utiliz\u00F3 un certificado no v\u00E1lido."); //$NON-NLS-1$
+			processLoginError(e, result);
 		} catch (final Exception e) {
 			LOGGER.warn("Error al validar la firma del token de login", e); //$NON-NLS-1$
-			result.setError("El certificado utilizado no es v\u00E1lido."); //$NON-NLS-1$
+			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR);
 		}
 
 		// El Portafirmas nunca devolveria un DNI nulo, pero lo comprobamos
@@ -838,32 +836,59 @@ public final class ProxyService extends HttpServlet {
 			result.setDni(dni);
 		} else if (result.getError() == null) {
 			LOGGER.warn("No se pudo obtener el DNI del usuario del certificado indicado"); //$NON-NLS-1$
-			result.setError("No se ha podido identificar al usuario"); //$NON-NLS-1$
+			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR, "No se ha podido identificar al usuario"); //$NON-NLS-1$
 		}
 
 		return result;
 	}
 
 	/**
-	 * Procesa el mensaje de error remitido por el Portafirmas para hacerlo
-	 * legible para el usuario.
-	 *
-	 * @param rawErrorMessage
-	 *            Mensaje devuelto por el Portafirmas.
+	 * Analiza el error remitido por el Portafirmas, identifica el tipo de error que se ha
+	 * producido y registra un error soportado asociado. En caso de no reconocerse el tipo
+	 * de error, se usar&aacute; "COD_001" (Error interno). Los errores esperados son:
+	 * <ul>
+	 *  <li>COD_001: Error en la validación del certificado debido a problemas de comunicación con los servicios de Afirma.</li>
+	 *  <li>COD_002: Cualquier otro error en la validación del certificado.</li>
+	 *  <li>COD_003: Usuario no vigente o no dado de alta en Portafirmas.</li>
+	 *  <li>COD_021: Certificado no válido porque está caducado.</li>
+	 *  <li>COD_022: Certificado no válido porque está revocado.</li>
+	 * </ul>
+	 * @param pfException Excepci&oacute;n devuelta por el servicio de validaci&oacute;n de login.
+	 * @param loginResult Resultado de la operaci&oacute;n de validaci&oacute;n en el que registrar el error.
 	 * @return Mensaje procesado o {@code null} si no hay ninguno.
 	 */
-	private static String processLoginErrorMessage(final String rawErrorMessage) {
+	private static void processLoginError(final MobileException pfException, final ValidateLoginResult loginResult) {
+
+		OperationError error = OperationError.LOGIN_CERT_VALIDATION;
 		String msg = null;
-		if (rawErrorMessage != null) {
-			msg = rawErrorMessage;
-			if (msg.indexOf(':') > -1) {
-				msg = msg.substring(0, msg.indexOf(':'));
-			}
-			if (!msg.endsWith(".")) { //$NON-NLS-1$
-				msg += "."; //$NON-NLS-1$
+
+		final MobileError faultInfo = pfException.getFaultInfo();
+		if (faultInfo != null) {
+			final String code = faultInfo.getCode();
+			msg = faultInfo.getMessage();
+			LOGGER.warn("Error extraido del servicio de validacion de login con certificado local: {}: {}", code, msg); //$NON-NLS-1$
+			switch (code) {
+			case "COD_001": //$NON-NLS-1$
+				error = OperationError.LOGIN_CERT_INTERNAL_ERROR;
+				break;
+			case "COD_002": //$NON-NLS-1$
+				error = OperationError.LOGIN_CERT_VALIDATION;
+				break;
+			case "COD_003": //$NON-NLS-1$
+				error = OperationError.LOGIN_CERT_UNKNOWN_USER;
+				break;
+			case "COD_021": //$NON-NLS-1$
+				error = OperationError.LOGIN_CERT_CERT_EXPIRED;
+				break;
+			case "COD_022": //$NON-NLS-1$
+				error = OperationError.LOGIN_CERT_CERT_REVOKED;
+				break;
+			default:
+				error = OperationError.LOGIN_CERT_VALIDATION;
+				break;
 			}
 		}
-		return msg;
+		loginResult.setError(error, msg);
 	}
 
 	/**
@@ -1177,9 +1202,6 @@ public final class ProxyService extends HttpServlet {
 			signInfo.setDocumentId(docReq.getId());
 			signInfo.setSignFormat(docReq.getSignatureFormat());
 			signInfo.setSignature(new DataHandler(new ByteArrayDataSource(docReq.getResult(), null)));
-			if (docReq.isNeedConfirmation()) {
-				signInfo.setValidar(factory.createMobileDocSignInfoValidar("false")); //$NON-NLS-1$
-			}
 			list.add(signInfo);
 		}
 
@@ -2713,9 +2735,9 @@ public final class ProxyService extends HttpServlet {
 					loadDocumentsFromService(triRequest, null, triRequests.getCertificate().getEncoded(), service);
 				}
 				catch (final Exception e2) {
-					LOGGER.warn("Error al cargar los documentos de la peticion " + triRequest.getRef(), e2); //$NON-NLS-1$
+					LOGGER.warn("Error {}: No se pudieron cargar los documentos de la peticion {}", OperationError.SIGN_INTERNAL_ERROR.getCode(), triRequest.getRef(), e2); //$NON-NLS-1$
 					triRequest.setStatusOk(false);
-					triRequest.setThrowable(e2);
+					triRequest.setErrorCode(OperationError.SIGN_INTERNAL_ERROR.getCode());
 					continue;
 				}
 			}
@@ -2725,29 +2747,30 @@ public final class ProxyService extends HttpServlet {
 			try {
 				// Prefirmamos cada documento de la peticion
 				for (final TriphaseSignDocumentRequest docRequest : triRequest) {
-
-					// Los documentos no deben estar marcados como que necesitan
-					// confirmacion del usuario antes de prefirmarse
-					docRequest.setNeedConfirmation(false);
-
-					// Prefirmamos
 					LOGGER.debug("Procedemos a realizar la prefirma del documento {}", docRequest.getId()); //$NON-NLS-1$
 					try {
 						TriSigner.doPreSign(docRequest, triRequests.getCertificate(), ConfigManager.getTriphaseServiceUrl(), ConfigManager.getForcedExtraParams());
 					}
-					catch (final RuntimeConfigNeededException e) {
-						LOGGER.warn("Se interrumpe la operacion porque requiere intervencion del usuario: {}", e.getRequestorText()); //$NON-NLS-1$
-						docRequest.setNeedConfirmation(true);
-						triRequest.addConfirmationRequirement(e.getRequestorText());
+					catch (final IdentifiedSignatureException e) {
+						LOGGER.warn("No se pudo firmar el documento {} debido al error {}", docRequest.getId(), e); //$NON-NLS-1$
+						throw e;
 					}
+
 				}
+			} catch (final IdentifiedSignatureException e) {
+				triRequest.setStatusOk(false);
+				triRequest.setErrorCode(e.getErrorCode());
+				continue;
 			} catch (final Exception e) {
-				LOGGER.warn("Error en la prefirma de la peticion " + triRequest.getRef(), e); //$NON-NLS-1$
+				LOGGER.warn("Error en la prefirma de la peticion {}", triRequest.getRef(), e); //$NON-NLS-1$
 				if (loadedFromCache) {
 					removeFromCache(triRequest);
 				}
 				triRequest.setStatusOk(false);
-				triRequest.setThrowable(e);
+				final String errorCode = e instanceof IdentifiedSignatureException
+						? ((IdentifiedSignatureException) e).getErrorCode()
+						: OperationError.SIGN_INTERNAL_ERROR.getCode();
+				triRequest.setErrorCode(errorCode);
 				continue;
 			}
 
@@ -2796,7 +2819,7 @@ public final class ProxyService extends HttpServlet {
 				final TriphaseData triData = docRequest.getPartialResult();
 				if (triData.getSignsCount() > 0 && (!triData.getSign(0).getDict().containsKey(CRYPTO_PARAM_NEED_DATA)
 						|| Boolean.parseBoolean(triData.getSign(0).getDict().get(CRYPTO_PARAM_NEED_DATA)))) {
-					LOGGER.debug("Se necesitara el documento '" + docRequest.getId() + "' para su uso en la postfirma"); //$NON-NLS-1$ //$NON-NLS-2$
+					LOGGER.debug("Se necesitara el documento '{}' para su uso en la postfirma", docRequest.getId()); //$NON-NLS-1$
 					requestNeedContent.add(docRequest.getId());
 				}
 			}
@@ -2820,7 +2843,7 @@ public final class ProxyService extends HttpServlet {
 					} catch (final Exception e2) {
 						LOGGER.warn("Ocurrio un error al cargar los documentos de la peticion {}: {}", triRequest.getRef(), e2); //$NON-NLS-1$
 						triRequest.setStatusOk(false);
-						triRequest.setThrowable(e2);
+						triRequest.setErrorCode(OperationError.SIGN_INTERNAL_ERROR.getCode());
 						continue;
 					}
 				}
@@ -2846,8 +2869,20 @@ public final class ProxyService extends HttpServlet {
 			try {
 				service.saveSign(triRequests.getCertificate().getEncoded(), triRequest.getRef(),
 						transformToWsParams(triRequest));
+			} catch (final MobileException ex) {
+				LOGGER.warn("El servicio devolvio un error durante el guardado de la firma del documento {}: {}", triRequest.getRef(), ex); //$NON-NLS-1$
+
+				String code = OperationError.SIGN_INTERNAL_ERROR.getCode();
+				final MobileError faultInfo = ex.getFaultInfo();
+				if (faultInfo != null) {
+					code = faultInfo.getCode();
+					final String msg = faultInfo.getMessage();
+					LOGGER.warn("Error extraido del servicio de guardado de firma: {}: {}", code, msg); //$NON-NLS-1$
+				}
+				triRequest.setErrorCode(code);
+				triRequest.setStatusOk(false);
 			} catch (final Exception ex) {
-				LOGGER.warn("Ocurrio un error al guardar los documentos de la peticion de firma " + triRequest.getRef(), ex); //$NON-NLS-1$
+				LOGGER.warn("Ocurrio un error desconocido al guardar los documentos de la peticion de firma {}", triRequest.getRef(), ex); //$NON-NLS-1$
 				triRequest.setStatusOk(false);
 			}
 		}

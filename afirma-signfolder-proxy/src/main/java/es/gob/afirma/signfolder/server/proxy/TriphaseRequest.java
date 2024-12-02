@@ -18,8 +18,8 @@ public class TriphaseRequest extends ArrayList<TriphaseSignDocumentRequest> {
 	/** Resultado de la petici&oacute;n de la petici&oacute;n. */
 	private boolean statusOk = true;
 
-	/** Excepcion detectada durante la peticion, en caso de existir. */
-	private Throwable throwable = null;
+	/** C&oacute;digo del error detectado durante la peticion en caso de producirse. */
+	private String errorCode = null;
 
 	/** Indica si es necesaria confirmaci&oacute;n del usuario. */
 	private boolean needConfirmation = false;
@@ -73,18 +73,18 @@ public class TriphaseRequest extends ArrayList<TriphaseSignDocumentRequest> {
 
 	/**
 	 * Recupera el error detectado durante la operaci&oacute;n en caso de haberse producido.
-	 * @return Excepci&oacute;n/error que hizo fallar la operaci&oacute;n.
+	 * @return C&oacute;digo del error que hizo fallar la operaci&oacute;n.
 	 */
-	public Throwable getThrowable() {
-		return this.throwable;
+	public String getErrorCode() {
+		return this.errorCode;
 	}
 
 	/**
 	 * Establece el error que se haya producido durante la operaci&oacute;n.
 	 * @param t Excepci&oacute;n/error que hizo fallar la operaci&oacute;n.
 	 */
-	public void setThrowable(final Throwable t) {
-		this.throwable = t;
+	public void setErrorCode(final String errorCode) {
+		this.errorCode = errorCode;
 	}
 
 	/**

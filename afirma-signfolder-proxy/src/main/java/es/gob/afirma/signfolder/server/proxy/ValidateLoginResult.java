@@ -9,7 +9,8 @@ class ValidateLoginResult {
 
 	private boolean logged = false;
 
-	private String error = null;
+	private OperationError error = null;
+	private String errorMessage = null;
 
 	private String dni = null;
 
@@ -30,12 +31,23 @@ class ValidateLoginResult {
 		return this.dni;
 	}
 
-	void setError(final String error) {
+	void setError(final OperationError error) {
 		this.error = error;
+		this.errorMessage = null;
 		this.logged = false;
 	}
 
-	String getError() {
+	void setError(final OperationError error, final String errorMessage) {
+		this.error = error;
+		this.errorMessage = errorMessage;
+		this.logged = false;
+	}
+
+	OperationError getError() {
 		return this.error;
+	}
+
+	public String getErrorMessage() {
+		return this.errorMessage;
 	}
 }

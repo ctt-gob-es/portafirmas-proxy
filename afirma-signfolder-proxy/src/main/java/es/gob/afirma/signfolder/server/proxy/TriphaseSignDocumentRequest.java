@@ -49,9 +49,6 @@ public final class TriphaseSignDocumentRequest {
 	/** Resultado de la firma del documento. */
 	private byte[] result;
 
-	/** Si la operaci&oacute;n requiere confirmaci&oacute;n del usuario para completarse. */
-	private boolean needConfirmation = false;
-
 	/** Construye un objeto petici&oacute;n de prefirma de un documento.
 	 * @param docId Identificador del documento.
 	 * @param signatureFormat Formato de firma electr&oacute;nica.
@@ -402,23 +399,5 @@ public final class TriphaseSignDocumentRequest {
 			}
 
 		}
-	}
-
-	/**
-	 * Indica la firma requiere confirmaci&oacute;n por parte del usuario.
-	 * @return {@code true} si se requiere confirmaci&oacute;n,
-	 * {@code false} en caso contrario.
-	 */
-	public boolean isNeedConfirmation() {
-		return this.needConfirmation;
-	}
-
-	/**
-	 * Establece si el documento necesita confirmaci&oacute;n o no.
-	 * @param needConfirmation {@code true} si necesita confirmaci&oacute;n,
-	 * {@code false} en caso contrario.
-	 */
-	public void setNeedConfirmation(final boolean needConfirmation) {
-		this.needConfirmation = needConfirmation;
 	}
 }

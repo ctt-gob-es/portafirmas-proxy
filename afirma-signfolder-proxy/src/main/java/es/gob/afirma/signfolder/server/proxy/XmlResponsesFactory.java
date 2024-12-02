@@ -1,8 +1,5 @@
 package es.gob.afirma.signfolder.server.proxy;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
@@ -56,24 +53,15 @@ final class XmlResponsesFactory {
 
 			sb.append(">"); //$NON-NLS-1$
 			for (final TriphaseSignDocumentRequest docReq : triphaseRequest) {
-
-				// Si el documento necesita confirmacion, solo indicaremos el identificador
-				// y el tipo de confirmacion
-				if (docReq.isNeedConfirmation()) {
-					sb.append("<doc docid=\"").append(docReq.getId()) //$NON-NLS-1$
-						.append("\" needcnf=\"").append(docReq.isNeedConfirmation()).append("\" />"); //$NON-NLS-1$ //$NON-NLS-2$
-					continue;
-				}
-
 				// Proporcionamos toda la informacion de la prefirma
 				sb.append("<doc docid=\"").append(docReq.getId()) //$NON-NLS-1$
-					.append("\" cop=\"").append(docReq.getCryptoOperation()) //$NON-NLS-1$
-					.append("\" sigfrmt=\"").append(docReq.getSignatureFormat()) //$NON-NLS-1$
-					.append("\" mdalgo=\"").append(docReq.getMessageDigestAlgorithm()) //$NON-NLS-1$
-					.append("\">") //$NON-NLS-1$
-					.append("<params>") //$NON-NLS-1$
-					.append(docReq.getParams() != null ? escapeXmlCharacters(docReq.getParams()) : "") //$NON-NLS-1$
-					.append("</params>"); //$NON-NLS-1$
+				.append("\" cop=\"").append(docReq.getCryptoOperation()) //$NON-NLS-1$
+				.append("\" sigfrmt=\"").append(docReq.getSignatureFormat()) //$NON-NLS-1$
+				.append("\" mdalgo=\"").append(docReq.getMessageDigestAlgorithm()) //$NON-NLS-1$
+				.append("\">") //$NON-NLS-1$
+				.append("<params>") //$NON-NLS-1$
+				.append(docReq.getParams() != null ? escapeXmlCharacters(docReq.getParams()) : "") //$NON-NLS-1$
+				.append("</params>"); //$NON-NLS-1$
 				if (docReq.getPartialResult() != null) {
 					sb.append("<result>"); //$NON-NLS-1$
 					// Ahora mismo las firmas se envian de una en una, asi que
@@ -90,25 +78,11 @@ final class XmlResponsesFactory {
 		}
 		// La prefirma fallo
 		else {
-			String exceptionb64 = null;
-			final Throwable t = triphaseRequest.getThrowable();
-			if (t != null) {
-				try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						PrintWriter writer = new PrintWriter(baos)) {
-					t.printStackTrace(writer);
-					writer.flush();
-					exceptionb64 = Base64.encode(baos.toByteArray());
-				} catch (final IOException e) {
-					// No hacemos nada
-				}
+			sb.append("KO\" "); //$NON-NLS-1$
+			if (triphaseRequest.getErrorCode() != null) {
+				sb.append("ec=\"").append(triphaseRequest.getErrorCode()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-
-			if (exceptionb64 != null) {
-				sb.append("KO\" exceptionb64=\"") //$NON-NLS-1$
-						.append(exceptionb64).append("\" />"); //$NON-NLS-1$
-			} else {
-				sb.append("KO\" />"); //$NON-NLS-1$
-			}
+			sb.append("/>"); //$NON-NLS-1$
 		}
 		return sb.toString();
 	}
@@ -125,9 +99,12 @@ final class XmlResponsesFactory {
 
 	private static String createSingleReqPostsignNode(final TriphaseRequest triphaseRequest) {
 		final StringBuilder sb = new StringBuilder("<req id=\""); //$NON-NLS-1$
-		sb.append(triphaseRequest.getRef()).append("\" status=\""). //$NON-NLS-1$
-				append(triphaseRequest.isStatusOk() ? "OK" : "KO"). //$NON-NLS-1$ //$NON-NLS-2$
-				append("\"/>"); //$NON-NLS-1$
+		sb.append(triphaseRequest.getRef()).append("\" status=\"") //$NON-NLS-1$
+			.append(triphaseRequest.isStatusOk() ? "OK" : "KO").append("\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		if (triphaseRequest.getErrorCode() != null) {
+			sb.append(" ec=\"").append(triphaseRequest.getErrorCode()).append("\""); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		sb.append("/>"); //$NON-NLS-1$
 
 		return sb.toString();
 	}
@@ -358,7 +335,7 @@ final class XmlResponsesFactory {
 		if (validateLoginData.isLogged()) {
 			sb.append(" dni='").append(validateLoginData.getDni()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		} else {
-			sb.append(" er='").append(validateLoginData.getError().toString()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			sb.append(" ec='").append(validateLoginData.getError().getCode()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		sb.append("/>"); //$NON-NLS-1$
 
@@ -1077,4 +1054,32 @@ final class XmlResponsesFactory {
 
 		return sb.toString();
 	}
+
+//	/**
+//	 * Construye el XML de respuesta correspondiente a un error.
+//	 * @param error Error generado.
+//	 * @return XML con el c&oacute;digo de error y su mensaje correspondiente.
+//	 */
+//	public static String createErrorResponse(final ProxyErrors error) {
+//		return createErrorResponse(error, null);
+//	}
+//
+//	/**
+//	 * Construye el XML de respuesta correspondiente a un error.
+//	 * @param error Error generado.
+//	 * @param message Error generado.
+//	 * @return XML con el c&oacute;digo de error y el mensaje indicado.
+//	 */
+//	public static String createErrorResponse(final ProxyErrors error, final String message) {
+//
+//		final String text = message != null ? message : error.getDescription();
+//
+//		final StringBuilder sb = new StringBuilder();
+//		sb.append(XML_HEADER)
+//		    .append("<err cd=\"").append(error.getCode()).append("\">") //$NON-NLS-1$ //$NON-NLS-2$
+//		    .append(text)
+//		    .append("</err>"); //$NON-NLS-1$
+//
+//		return sb.toString();
+//	}
 }

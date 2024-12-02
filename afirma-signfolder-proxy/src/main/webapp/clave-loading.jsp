@@ -1,3 +1,4 @@
+<%@page import="es.gob.afirma.signfolder.server.proxy.OperationError"%>
 <%@page import="org.slf4j.LoggerFactory"%>
 <%@page import="org.slf4j.Logger"%>
 <%@page import="es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector"%>
@@ -39,8 +40,8 @@
 	LOGGER.info("Id de sesion cargada: " + (session != null ? session.getId() : null));
 
 	if (session == null || !Boolean.TRUE.equals(session.getAttribute(SessionParams.INIT_WITH_CLAVE))) {
-		LOGGER.warn("No se encontro la sesion o no se inicio con Clave");
-		response.sendRedirect("error.jsp?type=session");
+		LOGGER.warn("Error " + OperationError.LOGIN_CLAVE_EXPIRED.getCode() + ": No se encontro la sesion o no se inicio con Clave");
+		response.sendRedirect("error.jsp?code=" + OperationError.LOGIN_CLAVE_EXPIRED_SESSION.getCode());
 		return;
 	}
 
@@ -50,8 +51,8 @@
 	String forcedIdp = (String) session.getAttribute(SessionParams.CLAVE_FORCED_IDP);
 
 	if (url == null || token == null) {
-		LOGGER.warn("No se recibio la URL o el token de inicio de sesion para su envio a Clave");
-		response.sendRedirect("error.jsp?type=request");
+		LOGGER.warn(OperationError.LOGIN_CLAVE_INTERNAL_ERROR.getCode() + ": No se recibio la URL o el token de inicio de sesion para su envio a Clave");
+		response.sendRedirect("error.jsp?code=" + OperationError.LOGIN_CLAVE_EXPIRED_SESSION.getCode());
 		return;
 	}
 %>
