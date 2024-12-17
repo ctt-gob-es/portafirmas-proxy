@@ -336,6 +336,9 @@ final class XmlResponsesFactory {
 			sb.append(" dni='").append(validateLoginData.getDni()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
 		} else {
 			sb.append(" ec='").append(validateLoginData.getError().getCode()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (validateLoginData.getErrorMessage() != null) {
+				sb.append(" er='").append(validateLoginData.getErrorMessage()).append("'"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
 		}
 		sb.append("/>"); //$NON-NLS-1$
 

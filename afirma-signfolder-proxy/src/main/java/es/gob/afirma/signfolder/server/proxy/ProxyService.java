@@ -799,7 +799,7 @@ public final class ProxyService extends HttpServlet {
 		final ValidateLoginResult result = new ValidateLoginResult();
 		if (session == null) {
 			LOGGER.warn("No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
-			result.setError(OperationError.LOGIN_CERT_EXPIRED_SESSION);
+			result.setError(OperationError.LOGIN_CERT_EXPIRED_SESSION, "No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
 			return result;
 		}
 
@@ -813,7 +813,7 @@ public final class ProxyService extends HttpServlet {
 					(byte[]) session.getAttribute(SessionParams.INIT_TOKEN));
 		} catch (final Exception e) {
 			LOGGER.warn("La firma del token de sesion no es valida", e); //$NON-NLS-1$
-			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR);
+			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR, "La firma del token de sesi\u00F3n no es v\u00E1lida"); //$NON-NLS-1$
 			return result;
 		}
 
@@ -825,10 +825,10 @@ public final class ProxyService extends HttpServlet {
 			dni = getService().validateUser(loginRequest.getCertificate());
 		} catch (final MobileException e) {
 			LOGGER.warn("Error devuelto por el servicio de validacion", e); //$NON-NLS-1$
-			processLoginError(e, result);
+			processLoginError(e, result, "El usuario no dispone de cuenta en este portafirmas o utiliz\u00F3 un certificado no v\u00E1lido."); //$NON-NLS-1$
 		} catch (final Exception e) {
 			LOGGER.warn("Error al validar la firma del token de login", e); //$NON-NLS-1$
-			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR);
+			result.setError(OperationError.LOGIN_CERT_INTERNAL_ERROR, "El certificado utilizado no es v\u00E1lido."); //$NON-NLS-1$
 		}
 
 		// El Portafirmas nunca devolveria un DNI nulo, pero lo comprobamos
@@ -855,9 +855,10 @@ public final class ProxyService extends HttpServlet {
 	 * </ul>
 	 * @param pfException Excepci&oacute;n devuelta por el servicio de validaci&oacute;n de login.
 	 * @param loginResult Resultado de la operaci&oacute;n de validaci&oacute;n en el que registrar el error.
+	 * @param errorMsg Mensaje de error que se debe asociar a la respuesta si no hubiese alternativa.
 	 * @return Mensaje procesado o {@code null} si no hay ninguno.
 	 */
-	private static void processLoginError(final MobileException pfException, final ValidateLoginResult loginResult) {
+	private static void processLoginError(final MobileException pfException, final ValidateLoginResult loginResult, final String errorMsg) {
 
 		OperationError error = OperationError.LOGIN_CERT_VALIDATION;
 		String msg = null;
@@ -865,7 +866,11 @@ public final class ProxyService extends HttpServlet {
 		final MobileError faultInfo = pfException.getFaultInfo();
 		if (faultInfo != null) {
 			final String code = faultInfo.getCode();
-			msg = faultInfo.getMessage();
+			if (errorMsg != null) {
+				msg = errorMsg;
+			} else {
+				msg = faultInfo.getMessage();
+			}
 			LOGGER.warn("Error extraido del servicio de validacion de login con certificado local: {}: {}", code, msg); //$NON-NLS-1$
 			switch (code) {
 			case "COD_001": //$NON-NLS-1$

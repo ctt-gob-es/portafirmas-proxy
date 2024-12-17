@@ -52,14 +52,14 @@ public class ClaveResultService extends HttpServlet {
 		final HttpSession session = SessionCollector.getSession(request, sessionId);
 		if (session == null) {
 			LOGGER.warn("Error {}: Se intenta acceder a traves del servicio de resultado de Clave sin iniciar sesion", OperationError.LOGIN_CLAVE_EXPIRED.getCode()); //$NON-NLS-1$
-			response.sendRedirect("error.jsp?code=" + OperationError.LOGIN_CLAVE_EXPIRED.getCode()); //$NON-NLS-1$
+			response.sendRedirect("error.jsp?type=session&code=" + OperationError.LOGIN_CLAVE_EXPIRED.getCode()); //$NON-NLS-1$
 			return;
 		}
 
 		if (session.getAttribute(SessionParams.INIT_WITH_CLAVE) == null) {
 			LOGGER.warn("Error {}: Se intenta acceder a traves del servicio de resultado de Clave sin iniciar sesion con Cl@ve", OperationError.LOGIN_CLAVE_EXPIRED.getCode()); //$NON-NLS-1$
 			SessionCollector.removeSession(session);
-			response.sendRedirect("error.jsp?code=" + OperationError.LOGIN_CLAVE_EXPIRED.getCode()); //$NON-NLS-1$
+			response.sendRedirect("error.jsp?type=session&code=" + OperationError.LOGIN_CLAVE_EXPIRED.getCode()); //$NON-NLS-1$
 			return;
 		}
 
@@ -81,7 +81,7 @@ public class ClaveResultService extends HttpServlet {
 			SessionCollector.removeSession(session);
 			final OperationError error = identifyError(e);
 			LOGGER.warn("Error identificado a partir de la respuesta del Portafirmas: {}", error.getCode()); //$NON-NLS-1$
-			response.sendRedirect("error.jsp?code=" + error.getCode()); //$NON-NLS-1$
+			response.sendRedirect("error.jsp?type=validation&code=" + error.getCode()); //$NON-NLS-1$
 			return;
 		}
 
