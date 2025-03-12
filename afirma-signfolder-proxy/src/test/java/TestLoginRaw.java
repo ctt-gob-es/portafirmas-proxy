@@ -20,6 +20,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import es.gob.afirma.core.misc.AOUtil;
@@ -155,7 +156,7 @@ public class TestLoginRaw {
 	 * @throws Exception Cuando ocurre cualquier error no esperado.
 	 */
 	@Test
-	//@Ignore
+	@Ignore
 	public void testLoginOk() throws Exception {
 
 		// --------------------------

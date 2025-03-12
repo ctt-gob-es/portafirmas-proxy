@@ -82,6 +82,11 @@ public class TriSigner {
 	private static final String ERROR_CODE_SIGNING_MODIFIED_PDF_FORM = "signingModifiedPdfForm"; //$NON-NLS-1$
 	private static final String ERROR_CODE_PDF_SHADOW_ATTACK_SUSPECT = "pdfShadowAttackSuspect"; //$NON-NLS-1$
 	private static final String ERROR_CODE_SIGNING_LTS_SIGNATURE = "signingLts"; //$NON-NLS-1$
+	private static final String ERROR_CODE_PASSWORD_WRONG = "pdfbadpassword"; //$NON-NLS-1$
+	private static final String ERROR_CODE_PASSWORD_NEEDED = "pdfpasswordprotected"; //$NON-NLS-1$
+	private static final String ERROR_CODE_INCOMPATIBILY_WITH_POLICY_SIGN = "agePolicyIncompatibilitySign"; //$NON-NLS-1$
+	private static final String ERROR_CODE_INCOMPATIBILY_WITH_POLICY_COSIGN = "agePolicyIncompatibilityCosign"; //$NON-NLS-1$
+	private static final String ERROR_CODE_INCOMPATIBILY_WITH_POLICY_COUNTERSIGN = "agePolicyIncompatibilityCounterSign"; //$NON-NLS-1$
 
 	/** Codificaci&oacute;n de texto por defecto. */
 	private static final String DEFAULT_ENCODING = "utf-8"; //$NON-NLS-1$
@@ -149,9 +154,6 @@ public class TriSigner {
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
 			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
-
-
-			extraParams.setProperty("allowSigningCertifiedPdfs", "true");
 
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
@@ -326,8 +328,6 @@ public class TriSigner {
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
 			addForcedExtraParams(extraParams, forcedExtraParams.split(";"));
-
-			extraParams.setProperty("allowSigningCertifiedPdfs", "true");
 
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
@@ -569,6 +569,15 @@ public class TriSigner {
 				break;
 			case ERROR_CODE_SIGNING_LTS_SIGNATURE:
 				exception = new IdentifiedSignatureException(OperationError.SIGN_LTS_SIGNATURE);
+				break;
+			case ERROR_CODE_PASSWORD_NEEDED:
+			case ERROR_CODE_PASSWORD_WRONG:
+				exception = new IdentifiedSignatureException(OperationError.SIGN_PROTECTED_PDF);
+				break;
+			case ERROR_CODE_INCOMPATIBILY_WITH_POLICY_SIGN:
+			case ERROR_CODE_INCOMPATIBILY_WITH_POLICY_COSIGN:
+			case ERROR_CODE_INCOMPATIBILY_WITH_POLICY_COUNTERSIGN:
+				exception = new IdentifiedSignatureException(OperationError.SIGN_INCOMPATIBILITY_WITH_POLICY);
 				break;
 			default:
 				throw new AOException("Error de confirmacion requerida de un tipo no soportado: " + errorCode); //$NON-NLS-1$

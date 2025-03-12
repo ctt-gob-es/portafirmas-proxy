@@ -108,7 +108,7 @@ public class ClaveResultService extends HttpServlet {
 	 * Portafirmas, pero deber&iacute;an limitarse a:
 	 * <ul>
 	 *  <li>COD_015: No se ha podido validar el token de la SAML Response.</li>
-	 *  <li>COD_016: El token indica que el usuario no es válido, las credenciales son erróneas.</li>
+	 *  <li>COD_016: El token indica que el usuario no es v&aacute;lido, las credenciales son err&oacute;neas.</li>
 	 *  <li>COD_017: El usuario no autenticado en Portafirmas.</li>
 	 *  <li>COD_018: El campo SAML es nulo.</li>
 	 *  <li>COD_000: Cualquier otro error. (este se traducira al COD_101)</li>

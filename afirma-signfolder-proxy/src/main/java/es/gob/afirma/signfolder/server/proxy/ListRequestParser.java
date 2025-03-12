@@ -108,7 +108,7 @@ public class ListRequestParser {
 				ownerId = null;
 			}
 
-			// Si había un filtro de validador, lo actualizamos con el DNI
+			// Si habia un filtro de validador, lo actualizamos con el DNI
 			// del usuario actual, que es el verdadero validador
 			if (ownerId != null) {
 				filters.put(VALIDATOR_FILTER_KEY, userId);

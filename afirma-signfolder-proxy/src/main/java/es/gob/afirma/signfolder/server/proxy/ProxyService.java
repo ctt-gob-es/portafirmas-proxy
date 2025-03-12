@@ -98,6 +98,7 @@ import es.gob.afirma.signfolder.client.MobileValidador;
 import es.gob.afirma.signfolder.client.MobileValidadorList;
 import es.gob.afirma.signfolder.client.ObjectFactory;
 import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
+import es.gob.afirma.signfolder.server.proxy.ProxyService.CacheCleanerThread;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
 import es.gob.afirma.signfolder.soap.security.SecurityHandler;
@@ -624,7 +625,7 @@ public final class ProxyService extends HttpServlet {
 			LOGGER.info("Solicitud de aceptacion de una autorizacion de usuario."); //$NON-NLS-1$
 			ret = processAcceptAuthorization(session, xml);
 		} else if (OPERATION_LIST_VALIDATORS.equals(operation)) {
-			LOGGER.info("Solicitud de listado de autorizaciones de usuario."); //$NON-NLS-1$
+			LOGGER.info("Solicitud de listado de validadores de usuario."); //$NON-NLS-1$
 			ret = processListValidators(session, xml);
 		} else if (OPERATION_SAVE_VALIDATOR.equals(operation)) {
 			LOGGER.info("Solicitud de guardado de autorizacion de usuario."); //$NON-NLS-1$
@@ -847,11 +848,11 @@ public final class ProxyService extends HttpServlet {
 	 * producido y registra un error soportado asociado. En caso de no reconocerse el tipo
 	 * de error, se usar&aacute; "COD_001" (Error interno). Los errores esperados son:
 	 * <ul>
-	 *  <li>COD_001: Error en la validación del certificado debido a problemas de comunicación con los servicios de Afirma.</li>
-	 *  <li>COD_002: Cualquier otro error en la validación del certificado.</li>
+	 *  <li>COD_001: Error en la validaciï¿½n del certificado debido a problemas de comunicaciï¿½n con los servicios de Afirma.</li>
+	 *  <li>COD_002: Cualquier otro error en la validaciï¿½n del certificado.</li>
 	 *  <li>COD_003: Usuario no vigente o no dado de alta en Portafirmas.</li>
-	 *  <li>COD_021: Certificado no válido porque está caducado.</li>
-	 *  <li>COD_022: Certificado no válido porque está revocado.</li>
+	 *  <li>COD_021: Certificado no vï¿½lido porque estï¿½ caducado.</li>
+	 *  <li>COD_022: Certificado no vï¿½lido porque estï¿½ revocado.</li>
 	 * </ul>
 	 * @param pfException Excepci&oacute;n devuelta por el servicio de validaci&oacute;n de login.
 	 * @param loginResult Resultado de la operaci&oacute;n de validaci&oacute;n en el que registrar el error.
@@ -2200,11 +2201,11 @@ public final class ProxyService extends HttpServlet {
 			result = new GenericResult(true);
 		}
 		catch (final MobileException e) {
-			LOGGER.error("Error al cambiar de estos la autorizacion", e); //$NON-NLS-1$
+			LOGGER.error("Error al cambiar de estado la autorizacion", e); //$NON-NLS-1$
 			return new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION, e.getMessage());
 		}
 		catch (final Exception e) {
-			LOGGER.error("Error desconocido al cambiar de estos la autorizacion", e); //$NON-NLS-1$
+			LOGGER.error("Error desconocido al cambiar de estado la autorizacion", e); //$NON-NLS-1$
 			result = new GenericResult(GenericResult.ERROR_TYPE_COMMUNICATION);
 		}
 
@@ -2763,6 +2764,7 @@ public final class ProxyService extends HttpServlet {
 
 				}
 			} catch (final IdentifiedSignatureException e) {
+				LOGGER.warn("Error identificado en la prefirma de la peticion {}", triRequest.getRef(), e); //$NON-NLS-1$
 				triRequest.setStatusOk(false);
 				triRequest.setErrorCode(e.getErrorCode());
 				continue;
@@ -2865,6 +2867,7 @@ public final class ProxyService extends HttpServlet {
 			} catch (final Exception ex) {
 				LOGGER.warn("Ocurrio un error al postfirmar un documento", ex); //$NON-NLS-1$
 				triRequest.setStatusOk(false);
+				triRequest.setErrorCode(OperationError.SIGN_INTERNAL_ERROR.getCode());
 				continue;
 			}
 
@@ -2889,6 +2892,7 @@ public final class ProxyService extends HttpServlet {
 			} catch (final Exception ex) {
 				LOGGER.warn("Ocurrio un error desconocido al guardar los documentos de la peticion de firma {}", triRequest.getRef(), ex); //$NON-NLS-1$
 				triRequest.setStatusOk(false);
+				triRequest.setErrorCode(OperationError.SIGN_INTERNAL_ERROR.getCode());
 			}
 		}
 	}

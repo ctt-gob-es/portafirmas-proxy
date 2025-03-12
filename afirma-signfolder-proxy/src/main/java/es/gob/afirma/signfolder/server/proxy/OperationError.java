@@ -3,7 +3,7 @@ package es.gob.afirma.signfolder.server.proxy;
 public enum OperationError {
 	//GENERAL_BAD_REQUEST("COD_000", "Peticion mal formada"), //$NON-NLS-1$ //$NON-NLS-2$
 	LOGIN_CERT_INTERNAL_ERROR("COD_001", "Error interno"), //$NON-NLS-1$ //$NON-NLS-2$
-	LOGIN_CERT_VALIDATION("COD_002", "Error en el servicio de validación de Portafirmas"), //$NON-NLS-1$ //$NON-NLS-2$
+	LOGIN_CERT_VALIDATION("COD_002", "Error en el servicio de validacion de Portafirmas"), //$NON-NLS-1$ //$NON-NLS-2$
 	LOGIN_CERT_UNKNOWN_USER("COD_003", "El usuario no dispone de cuenta en este Portafirmas"), //$NON-NLS-1$ //$NON-NLS-2$
 	LOGIN_CERT_EXPIRED_SESSION("COD_004", "Sesion expirada"), //$NON-NLS-1$ //$NON-NLS-2$
 	LOGIN_CERT_CERT_EXPIRED("COD_021", "Certificado expirado"), //$NON-NLS-1$ //$NON-NLS-2$
@@ -22,7 +22,8 @@ public enum OperationError {
 	SIGN_PROTECTED_PDF("COD_306", "PDF protegido por contrasena"), //$NON-NLS-1$ //$NON-NLS-2$
 	SIGN_MODIFIED_SUSPECT_PDF("COD_307", "PDF sospechoso de haber sido modificado"), //$NON-NLS-1$ //$NON-NLS-2$
 	SIGN_MODIFIED_FORM_PDF("COD_308", "PDF con formulario modificado"), //$NON-NLS-1$ //$NON-NLS-2$
-	SIGN_LTS_SIGNATURE("COD_309", "Firma longeva"); //$NON-NLS-1$ //$NON-NLS-2$
+	SIGN_LTS_SIGNATURE("COD_309", "Firma longeva"), //$NON-NLS-1$ //$NON-NLS-2$
+	SIGN_INCOMPATIBILITY_WITH_POLICY("COD_310", "Incompatibilidad con la politica de firma"); //$NON-NLS-1$ //$NON-NLS-2$
 
 	private final String code;
 	private final String description;
