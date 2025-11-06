@@ -44,7 +44,7 @@ public final class TriphaseSignDocumentRequest {
 	private TriphaseData partialResult;
 
 	/** Algoritmo de firma. */
-	private final String algorithm;
+	private String algorithm;
 
 	/** Resultado de la firma del documento. */
 	private byte[] result;
@@ -115,6 +115,14 @@ public final class TriphaseSignDocumentRequest {
 	 * @return Algoritmo de huella digital. */
 	public String getMessageDigestAlgorithm() {
 		return this.algorithm;
+	}
+
+	/**
+	 * Establece el algoritmo de huella digital de la operaci&oacute;n de firma.
+	 * @param Algoritmo de huella digital.
+	 */
+	public void setMessageDigestAlgorithm(final String digestAlgoritm) {
+		this.algorithm = digestAlgoritm;
 	}
 
 	/** Recupera las propiedades de configuraci&oacute;n para la firma.

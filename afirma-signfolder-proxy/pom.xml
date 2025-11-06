@@ -6,10 +6,10 @@
 	<packaging>war</packaging>
 	<artifactId>afirma-signfolder-proxy</artifactId>
 	<name>afirma-signfolder-proxy</name>
-	<version>3.0.3</version>
+	<version>3.0.4</version>
 	<properties>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-		<version.code>39</version.code>
+		<version.code>40</version.code>
 		<java.version>1.7</java.version>
 	</properties>
 	
@@ -17,7 +17,7 @@
 		<dependency>
 			<groupId>es.gob.afirma</groupId>
 			<artifactId>afirma-core</artifactId>
-			<version>1.8.2</version>
+			<version>1.9</version>
 		</dependency>
 		
 		<dependency>

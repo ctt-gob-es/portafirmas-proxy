@@ -84,6 +84,8 @@ public class ConfigManager {
 	/** Minutos de inactividad que por defecto admite una sesi&oacute;n antes de caducar. */
 	private static final int DEFAULT_SESSION_INACTIVITY_MINS = 30;
 
+	/** Cadena usada en el fichero de configuraci&oacute;n para separar las tuplas "clave=valor" de los extraParams. */
+	private static final String FORCED_EXTRAPARAMS_SEPERATOR = ";"; //$NON-NLS-1$
 
 	private static Properties config = null;
 
@@ -228,10 +230,16 @@ public class ConfigManager {
 	/**
 	 * Devuelve la cadena de configuraci&oacute;n con los ExtraParams que deben
 	 * aplicarse a todas las operaciones de firma.
-	 * @return Cadena con los ExtraParams en forma clave=valor y separados por '\n'.
+	 * @return Cadena con el listado de ExtraParams en forma clave=valor.
 	 */
-	public static String getForcedExtraParams(){
-		return getProperty(PROPERTY_FORCED_EXTRAPARAMS);
+	public static String[] getForcedExtraParams(){
+
+		String[] extraParams = null;
+		final String value = getProperty(PROPERTY_FORCED_EXTRAPARAMS);
+		if (value != null) {
+			extraParams = value.split(FORCED_EXTRAPARAMS_SEPERATOR);
+		}
+		return extraParams;
 	}
 
 	/**

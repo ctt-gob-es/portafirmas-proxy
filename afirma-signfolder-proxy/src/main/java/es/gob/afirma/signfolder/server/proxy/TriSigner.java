@@ -116,7 +116,7 @@ public class TriSigner {
 	public static void doPreSign(final TriphaseSignDocumentRequest docReq,
 			final X509Certificate signerCert,
 			final String signServiceUrl,
-			final String forcedExtraParams) throws IdentifiedSignatureException, IOException, AOException {
+			final String[] forcedExtraParams) throws IdentifiedSignatureException, IOException, AOException {
 
 		// Configuramos el formato y la operacion criptografica adecuada
 		String cop;
@@ -153,7 +153,7 @@ public class TriSigner {
 			// tiene preferencia el ultimo valor leido
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
-			addForcedExtraParams(extraParams, forcedExtraParams.split(";")); //$NON-NLS-1$
+			addForcedExtraParams(extraParams, forcedExtraParams);
 
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));
@@ -300,7 +300,7 @@ public class TriSigner {
 	public static void doPostSign(final TriphaseSignDocumentRequest docReq,
 			final X509Certificate signerCert,
 			final String signServiceUrl,
-			final String forcedExtraParams) throws IOException, AOException {
+			final String[] forcedExtraParams) throws IOException, AOException {
 
 		// Configuramos el formato y la operacion criptografica adecuada
 		String cop;
@@ -327,7 +327,7 @@ public class TriSigner {
 			// tiene preferencia el ultimo valor leido
 			final Properties extraParams = buildExtraParams(docReq.getParams());
 			addFormatExtraParam(extraParams, docReq.getSignatureFormat());
-			addForcedExtraParams(extraParams, forcedExtraParams.split(";"));
+			addForcedExtraParams(extraParams, forcedExtraParams);
 
 			urlBuffer.append(HTTP_AND).append(PARAMETER_NAME_EXTRA_PARAM)
 			.append(HTTP_EQUALS).append(AOUtil.properties2Base64(extraParams));

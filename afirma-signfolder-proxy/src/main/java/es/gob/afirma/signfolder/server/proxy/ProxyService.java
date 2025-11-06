@@ -57,6 +57,7 @@ import org.xml.sax.SAXException;
 
 import es.gob.afirma.core.misc.AOUtil;
 import es.gob.afirma.core.misc.Base64;
+import es.gob.afirma.core.signers.AOSignConstants;
 import es.gob.afirma.core.signers.TriphaseData;
 import es.gob.afirma.signfolder.client.EstadoNotifyPushResponse;
 import es.gob.afirma.signfolder.client.MobileAccesoClave;
@@ -96,9 +97,7 @@ import es.gob.afirma.signfolder.client.MobileUsuarioGenerico;
 import es.gob.afirma.signfolder.client.MobileUsuariosList;
 import es.gob.afirma.signfolder.client.MobileValidador;
 import es.gob.afirma.signfolder.client.MobileValidadorList;
-import es.gob.afirma.signfolder.client.ObjectFactory;
 import es.gob.afirma.signfolder.client.UpdateNotifyPushResponse;
-import es.gob.afirma.signfolder.server.proxy.ProxyService.CacheCleanerThread;
 import es.gob.afirma.signfolder.server.proxy.SignLine.SignLineType;
 import es.gob.afirma.signfolder.server.proxy.sessions.SessionCollector;
 import es.gob.afirma.signfolder.soap.security.SecurityHandler;
@@ -158,7 +157,7 @@ public final class ProxyService extends HttpServlet {
 
 	private static final String CRYPTO_PARAM_NEED_DATA = "NEED_DATA"; //$NON-NLS-1$
 
-	private static final String LOGIN_SIGNATURE_ALGORITHM = "SHA256withRSA"; //$NON-NLS-1$
+	private static final String LOGIN_HASH_ALGORITHM = "SHA256"; //$NON-NLS-1$
 
 	private static final String PAGE_CLAVE_LOADING = "clave-loading.jsp"; //$NON-NLS-1$
 
@@ -1070,7 +1069,21 @@ public final class ProxyService extends HttpServlet {
 		final Certificate cert = CertificateFactory.getInstance("X.509").generateCertificate( //$NON-NLS-1$
 				new ByteArrayInputStream(certEncoded));
 
-		final Signature signer = Signature.getInstance(LOGIN_SIGNATURE_ALGORITHM);
+		final String keyType = cert.getPublicKey().getAlgorithm();
+
+		// Agregamos el algoritmo de cifrado correspondiente al tipo de clave del certificado
+		String signatureAlgorithm = LOGIN_HASH_ALGORITHM;
+		if ("RSA".equals(keyType)) { //$NON-NLS-1$
+			signatureAlgorithm += "withRSA"; //$NON-NLS-1$
+		} else if ("DSA".equals(keyType)) { //$NON-NLS-1$
+			signatureAlgorithm += "withDSA"; //$NON-NLS-1$
+		} else if (keyType.startsWith("EC")) { //$NON-NLS-1$
+			signatureAlgorithm += "withECDSA"; //$NON-NLS-1$
+		} else {
+			throw new IllegalArgumentException("Tipo de clave de firma no soportado: " + keyType); //$NON-NLS-1$
+		}
+
+		final Signature signer = Signature.getInstance(signatureAlgorithm);
 		signer.initVerify(cert.getPublicKey());
 		signer.update(data);
 
@@ -1199,8 +1212,6 @@ public final class ProxyService extends HttpServlet {
 
 		final MobileDocSignInfoList signInfoList = new MobileDocSignInfoList();
 		final List<MobileDocSignInfo> list = signInfoList.getMobileDocSignInfo();
-
-		final ObjectFactory factory = new ObjectFactory();
 
 		MobileDocSignInfo signInfo;
 		for (final TriphaseSignDocumentRequest docReq : req) {
@@ -3006,6 +3017,11 @@ public final class ProxyService extends HttpServlet {
 
 				// Establecemos la operacion
 				docRequest.setCryptoOperation(downloadedDoc.getOperationType());
+
+				// Actualizamos el algoritmo de firma
+				final String digestAlgorithm = AOSignConstants.getDigestAlgorithmName(
+						downloadedDoc.getSignAlgorithm().getValue());
+				docRequest.setMessageDigestAlgorithm(digestAlgorithm);
 
 				// Si el documento descargado define la configuracion que se debe aplicar,
 				// la sumamos a la configuracion ya establecida para la firma
