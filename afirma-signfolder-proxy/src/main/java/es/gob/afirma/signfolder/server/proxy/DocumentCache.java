@@ -14,10 +14,12 @@ public interface DocumentCache {
 	 * @param requestRef Requerencia de la petici&oacute;n de firma del documento.
 	 * @param docId Identificador del documento.
 	 * @param cop Operaci&oacute;n criptogr&aacute;fica que realizar.
+	 * @param digestAlgorithm Algoritmo de huella digital.
 	 * @param content Contenido del documento.
 	 * @throws IOException Cuando ocurre un error durante el guardado de los datos.
 	 */
-	void saveDocument(String requestRef, String docId, String cop, byte[] content) throws IOException;
+	void saveDocument(String requestRef, String docId, String cop, String digestAlgorithm,
+			String params, byte[] content) throws IOException;
 
 	/**
 	 * Carga un documento de la cach&eacute;.

@@ -209,7 +209,7 @@ final class SignRequestsParser {
 			// Datos de la peticion
 			final String docId;
 			final String cryptoOperation;
-			final String messageDigestAlgorithm;
+			final String digestAlgorithm;
 			String signatureFormat;
 
 			// Cargamos los atributos
@@ -231,11 +231,15 @@ final class SignRequestsParser {
 			signatureFormat = attributeNode.getNodeValue();
 
 			attributeNode = attributes.getNamedItem(MESSAGE_DIGEST_ALGORITHM_ATTRIBUTE);
-			messageDigestAlgorithm = attributeNode != null ? attributeNode.getNodeValue() : null;
+			if (attributeNode == null) {
+				throw new IllegalArgumentException("No se ha encontrado el atributo obligatorio '" + //$NON-NLS-1$
+						MESSAGE_DIGEST_ALGORITHM_ATTRIBUTE + "' en una peticion de firma trifasica de documento"); //$NON-NLS-1$
+			}
+			digestAlgorithm = attributeNode.getNodeValue();
 
 			final NodeList docNodeChilds = trisignDocumentRequestNode.getChildNodes();
 			if (docNodeChilds == null || docNodeChilds.getLength() == 0) {
-				return new TriphaseSignDocumentRequest(docId, signatureFormat, messageDigestAlgorithm, null);
+				return new TriphaseSignDocumentRequest(docId, signatureFormat, digestAlgorithm, null);
 			}
 
 			String params = null;
@@ -282,7 +286,7 @@ final class SignRequestsParser {
 
 			return new TriphaseSignDocumentRequest(
 					docId, normalizeOperationType(cryptoOperation), signatureFormat,
-					messageDigestAlgorithm, params, null,
+					digestAlgorithm, params, null,
 					partialResult);
 		}
 

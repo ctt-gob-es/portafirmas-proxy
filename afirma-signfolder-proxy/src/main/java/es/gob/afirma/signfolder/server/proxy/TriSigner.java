@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;
@@ -144,7 +145,7 @@ public class TriSigner {
 			append(PARAMETER_NAME_OPERATION).append(HTTP_EQUALS).append(OPERATION_PRESIGN).append(HTTP_AND).
 			append(PARAMETER_NAME_CRYPTO_OPERATION).append(HTTP_EQUALS).append(cop).append(HTTP_AND).
 			append(PARAMETER_NAME_FORMAT).append(HTTP_EQUALS).append(format).append(HTTP_AND).
-			append(PARAMETER_NAME_ALGORITHM).append(HTTP_EQUALS).append(digestToSignatureAlgorithmName(docReq.getMessageDigestAlgorithm())).append(HTTP_AND).
+			append(PARAMETER_NAME_ALGORITHM).append(HTTP_EQUALS).append(digestToSignatureAlgorithmName(docReq.getDigestAlgorithm())).append(HTTP_AND).
 			append(PARAMETER_NAME_CERT).append(HTTP_EQUALS).append(Base64.encode(signerCert.getEncoded(), true)).append(HTTP_AND).
 			append(PARAMETER_NAME_DOCID).append(HTTP_EQUALS).append(Base64.encode(docReq.getContent(), true));
 
@@ -183,6 +184,9 @@ public class TriSigner {
 		}
 		catch (final CertificateEncodingException e) {
 			throw new AOException("Error decodificando el certificado del firmante", e); //$NON-NLS-1$
+		}
+		catch (final SocketTimeoutException e) {
+			throw new AOException("El servicio de prefirma ha excedido el tiempo de espera maximo establecido", e); //$NON-NLS-1$
 		}
 		catch (final IOException e) {
 			throw new AOException("Error en la llamada de prefirma al servidor", e); //$NON-NLS-1$
@@ -319,7 +323,9 @@ public class TriSigner {
 			append(PARAMETER_NAME_OPERATION).append(HTTP_EQUALS).append(OPERATION_POSTSIGN).append(HTTP_AND).
 			append(PARAMETER_NAME_CRYPTO_OPERATION).append(HTTP_EQUALS).append(cop).append(HTTP_AND).
 			append(PARAMETER_NAME_FORMAT).append(HTTP_EQUALS).append(format).append(HTTP_AND).
-			append(PARAMETER_NAME_ALGORITHM).append(HTTP_EQUALS).append(digestToSignatureAlgorithmName(docReq.getMessageDigestAlgorithm())).append(HTTP_AND).
+			// Enviamos el algoritmo de firma RSA por compatibilidad con los servicios trifasicos antiguos, pero el nuevo usara
+			// solo el algoritmo de firma y aplicara el cifrado RSA o EC segun sea el certificado
+			append(PARAMETER_NAME_ALGORITHM).append(HTTP_EQUALS).append(digestToSignatureAlgorithmName(docReq.getDigestAlgorithm())).append(HTTP_AND).
 			append(PARAMETER_NAME_CERT).append(HTTP_EQUALS).append(Base64.encode(signerCert.getEncoded(), true));
 
 			// Forzamos que se incluyan una serie de parametros en la configuracion de firma. Si ya
@@ -353,6 +359,9 @@ public class TriSigner {
 		}
 		catch (final CertificateEncodingException e) {
 			throw new AOException("Error decodificando el certificado del firmante", e); //$NON-NLS-1$
+		}
+		catch (final SocketTimeoutException e) {
+			throw new AOException("El servicio de postfirma ha excedido el tiempo de espera maximo establecido", e); //$NON-NLS-1$
 		}
 		catch (final IOException e) {
 			throw new AOException("Error en la llamada de postfirma al servidor", e); //$NON-NLS-1$

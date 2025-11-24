@@ -57,7 +57,7 @@ final class XmlResponsesFactory {
 				sb.append("<doc docid=\"").append(docReq.getId()) //$NON-NLS-1$
 				.append("\" cop=\"").append(docReq.getCryptoOperation()) //$NON-NLS-1$
 				.append("\" sigfrmt=\"").append(docReq.getSignatureFormat()) //$NON-NLS-1$
-				.append("\" mdalgo=\"").append(docReq.getMessageDigestAlgorithm()) //$NON-NLS-1$
+				.append("\" mdalgo=\"").append(docReq.getDigestAlgorithm()) //$NON-NLS-1$
 				.append("\">") //$NON-NLS-1$
 				.append("<params>") //$NON-NLS-1$
 				.append(docReq.getParams() != null ? escapeXmlCharacters(docReq.getParams()) : "") //$NON-NLS-1$

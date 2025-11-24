@@ -2792,7 +2792,7 @@ public final class ProxyService extends HttpServlet {
 				continue;
 			}
 
-			// Cacheamos los documentos si a cache esta habilitada y no estan ya cacheados
+			// Cacheamos los documentos si la cache esta habilitada y no estan ya cacheados
 			if (this.documentCache != null && !loadedFromCache) {
 				try {
 					saveInCache(triRequest);
@@ -2921,8 +2921,11 @@ public final class ProxyService extends HttpServlet {
 		for (final TriphaseSignDocumentRequest docRequest : triRequest) {
 			final String docId = docRequest.getId();
 			final String cop = docRequest.getCryptoOperation();
+			final String digestAlgorithm = docRequest.getDigestAlgorithm();
+			final String extraParams = docRequest.getParams();
+
 			final byte[] content = docRequest.getContent();
-			this.documentCache.saveDocument(requestRef, docId, cop, content);
+			this.documentCache.saveDocument(requestRef, docId, cop, digestAlgorithm, extraParams, content);
 			countCacheAccess();
 		}
 	}
@@ -2958,6 +2961,8 @@ public final class ProxyService extends HttpServlet {
 			final String docId = docRequest.getId();
 			final CachedDocument document = this.documentCache.loadDocument(requestRef, docId, delete);
 			docRequest.setCryptoOperation(document.getCryptoOperation());
+			docRequest.setDigestAlgorithm(document.getDigestAlgorithm());
+			docRequest.setParams(document.getParams());
 			docRequest.setContent(document.getContent());
 			countCacheAccess();
 		}
@@ -3020,8 +3025,9 @@ public final class ProxyService extends HttpServlet {
 
 				// Actualizamos el algoritmo de firma
 				final String digestAlgorithm = AOSignConstants.getDigestAlgorithmName(
-						downloadedDoc.getSignAlgorithm().getValue());
-				docRequest.setMessageDigestAlgorithm(digestAlgorithm);
+						downloadedDoc.getSignAlgorithm().getValue()).replace("-", ""); //$NON-NLS-1$ //$NON-NLS-2$
+
+				docRequest.setDigestAlgorithm(digestAlgorithm);
 
 				// Si el documento descargado define la configuracion que se debe aplicar,
 				// la sumamos a la configuracion ya establecida para la firma

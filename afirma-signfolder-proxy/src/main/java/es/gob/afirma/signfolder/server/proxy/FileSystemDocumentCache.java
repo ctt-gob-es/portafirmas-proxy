@@ -14,21 +14,27 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Date;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Implementaci&oacute;n de cach&eacute; de documentos que carga y guarda los documentos en disco.
+ * El documento guardado en disco va precedido de una cabecera de longitud variable. En la cabecera
+ * se encuentran una serie de metadatos que definen la configuraci&oacute;n de firma del documento.
+ * La cabecera est&aacute; compuesta por tuplas clave:valor, separados por el signo de pocentaje
+ * ('%') entre ellas y por dos signos de porcentaje ("%%") del contenido del propio documento.
+ * Las claves de la configuraci&oacute;n que se almacena en la cabecera son:
+ *  - c: Operaci&oacute;n criptogr&aacute;fica.
+ *  - d: Algoritmo de huella que se debe usar para la firma.
+ *  - p: ExtraParams de configuraci&oacute;n de la firma.
  * @author carlos.gamuci
  */
 public class FileSystemDocumentCache implements DocumentCache {
 
 	/** Propiedad en la que se almacenara el directorio temporal para el guardado de documentos en cache. */
 	private static final String CONFIG_PROPERTY_CACHE_DIR = "cache.filesystem.dir"; //$NON-NLS-1$
-
-	/** Tama&ntilde:o de la cabecera. */
-	private static final int HEADER_SIZE = 50;
 
     private static final int BUFFER_SIZE = 4096;
 
@@ -38,15 +44,23 @@ public class FileSystemDocumentCache implements DocumentCache {
 
 	private static final String FILENAME_REF_SEP = "_"; //$NON-NLS-1$
 
+
+	private static final String HEADER_SEP = ":"; //$NON-NLS-1$
 	private static final String HEADER_ENTRIES_SEP = "%"; //$NON-NLS-1$
-	private static final String HEADER_ENTRY_PREFIX_COP = "c:"; //$NON-NLS-1$
+	private static final String HEADER_EOF = "%%"; //$NON-NLS-1$
+	private static final String HEADER_PROP_COP = "c"; //$NON-NLS-1$
+	private static final String HEADER_PROP_DIGEST_ALGO = "d"; //$NON-NLS-1$
+	private static final String HEADER_PROP_EXTRA_PARAMS = "p"; //$NON-NLS-1$
+
+
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemDocumentCache.class);
 
 	private static File cacheDir = null;
 
 	@Override
-	public void saveDocument(final String requestRef, final String docId, final String cop, final byte[] content) throws IOException {
+	public void saveDocument(final String requestRef, final String docId, final String cop,
+			final String digestAlgorithm, final String params, final byte[] content) throws IOException {
 
 		final File dir = getCacheDir();
 		final File tempFile = new File(dir, requestRef + FILENAME_REF_SEP + docId);
@@ -54,10 +68,18 @@ public class FileSystemDocumentCache implements DocumentCache {
 		// Guardamos el fichero en disco anteponiendo a su contenido una cabecera con
 		// los datos que deseamos
 		try (OutputStream fos = new FileOutputStream(tempFile)) {
-			final byte[] headerContent = (HEADER_ENTRY_PREFIX_COP + cop + HEADER_ENTRIES_SEP).getBytes(CHARSET);
-			final byte[] header = new byte[HEADER_SIZE];
-			System.arraycopy(headerContent, 0, header, 0, headerContent.length);
-			fos.write(header);
+
+			String header = HEADER_PROP_COP + HEADER_SEP + cop + HEADER_ENTRIES_SEP
+					 + HEADER_PROP_DIGEST_ALGO + HEADER_SEP + digestAlgorithm;
+
+			if (params != null) {
+				header += HEADER_ENTRIES_SEP + HEADER_PROP_EXTRA_PARAMS + HEADER_SEP
+						+ params;
+			}
+			header += HEADER_EOF;
+
+			final byte[] headerContent = header.getBytes(CHARSET);
+			fos.write(headerContent);
 			fos.write(content);
 		}
 	}
@@ -101,20 +123,20 @@ public class FileSystemDocumentCache implements DocumentCache {
 			throw new FileNotFoundException("No se ha encontrado el documento " + docId + " en cache"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
+		byte[] header;
 		byte[] content;
-		final byte[] header = new byte[HEADER_SIZE];
 		try (InputStream fis = new FileInputStream(tempFile);
 			 InputStream bis = new BufferedInputStream(fis)) {
-			// Leemos la cabecera de tamano fijo
-			if (bis.read(header) < header.length) {
-				throw new IOException("El documento almacenado en cache no alcanzaba el tamano minimo"); //$NON-NLS-1$
-			}
+
+			// Leemos la cabecera con la configuracion de firma
+			header = readHeader(bis);
+
 			// Leemos el resto del fichero, que sera el contenido del documento
 			content = readData(bis);
 		}
 
 		// Extraemos la operacion cryptografica de la cache
-		final String cop = readCryptoOperation(header);
+		final Properties cryptoConfig = readCryptoConfig(header);
 
 		if (delete) {
 			if (!Files.deleteIfExists(tempFile.toPath())) {
@@ -122,35 +144,83 @@ public class FileSystemDocumentCache implements DocumentCache {
 			}
 		}
 
-		return new CachedDocument(cop, content);
-	}
+		final String cop = cryptoConfig.getProperty(HEADER_PROP_COP);
+		final String digestAlgorithm = cryptoConfig.getProperty(HEADER_PROP_DIGEST_ALGO);
+		String params = null;
+		if (cryptoConfig.containsKey(HEADER_PROP_EXTRA_PARAMS)) {
+			params = cryptoConfig.getProperty(HEADER_PROP_EXTRA_PARAMS);
+		}
 
+		return new CachedDocument(cop, digestAlgorithm, params, content);
+	}
 
 	/**
-	 * Lee la operaci&oacute;n criptogr&aacute;fica de entre los datos de cabecera.
+	 * Lee la configuraci&oacute;n de la operaci&oacute;n de los datos en la cabecera
+	 * de la informaci&oacute;n en cach&eacute;.
 	 * @param header Datos de cabecera.
-	 * @return Operaci&oacute;n criptogr&aacute;fica o {@code null} si no se identifica.
+	 * @return Conjunto de propiedades para la firma del documento.
 	 */
-    private static String readCryptoOperation(final byte[] header) {
+    private static Properties readCryptoConfig(final byte[] header) {
 		final String headerContent = new String(header, CHARSET);
+
 		final String[] headerEntries = headerContent.split(HEADER_ENTRIES_SEP);
 
-		String cop = null;
+		final Properties headers = new Properties();
+
 		for (final String headerEntry : headerEntries) {
-			// Operacion criptografica
-			if (headerEntry.startsWith(HEADER_ENTRY_PREFIX_COP)) {
-				cop = headerEntry.substring(HEADER_ENTRY_PREFIX_COP.length());
-			}
+			final String[] headerParts = headerEntry.split(HEADER_SEP);
+			headers.setProperty(headerParts[0], headerParts[1]);
 		}
-		return cop;
+		return headers;
 	}
 
-	/** Lee un flujo de datos de entrada y los recupera en forma de array de
+    /**
+     * Lee el flujo de entrada hasta leer la configuraci&oacute;n de firma
+     * de la cabecera del documento.
+     * @param input Flujo de donde se toman los datos.
+     * @return Los datos obtenidos del flujo.
+     * @throws IOException Cuando ocurre un problema durante la lectura.
+     */
+    private static byte[] readHeader(final InputStream bis) throws IOException {
+
+    	final char[] EOF_CHARS = HEADER_EOF.toCharArray();
+
+    	boolean headerComplete = false;
+    	byte[] header;
+
+    	try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+    		while (!headerComplete) {
+    			final int c = bis.read();
+    			if (c == -1) {
+    				headerComplete = true;
+    			}
+    			else if (c != EOF_CHARS[0]) {
+    				baos.write(c);
+    			} else {
+    				final int c2 = bis.read();
+    				if (c2 != EOF_CHARS[1]) {
+    					baos.write(c);
+    					baos.write(c2);
+    				}
+    				else {
+    					headerComplete = true;
+    				}
+    			}
+    		}
+    		header = baos.toByteArray();
+    	}
+
+		return header;
+	}
+
+	/**
+	 * Lee un flujo de datos de entrada y los recupera en forma de array de
      * bytes. Este m&eacute;todo consume, pero no cierra el flujo de datos de
      * entrada.
      * @param input Flujo de donde se toman los datos.
      * @return Los datos obtenidos del flujo.
-     * @throws IOException Cuando ocurre un problema durante la lectura. */
+     * @throws IOException Cuando ocurre un problema durante la lectura.
+     */
     private static byte[] readData(final InputStream input) throws IOException {
         if (input == null) {
             return new byte[0];
@@ -215,4 +285,6 @@ public class FileSystemDocumentCache implements DocumentCache {
 			return false;
 		}
 	}
+
+
 }

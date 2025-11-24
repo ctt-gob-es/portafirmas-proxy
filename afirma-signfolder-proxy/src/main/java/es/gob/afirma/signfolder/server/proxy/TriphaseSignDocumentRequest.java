@@ -21,8 +21,6 @@ public final class TriphaseSignDocumentRequest {
 	/** Operaci&oacute;n de firma en cascada o contrafirma. */
 	public static final String CRYPTO_OPERATION_COUNTERSIGN = "countersign"; //$NON-NLS-1$
 
-	private static final String DEFAULT_ALGORITHM = "SHA-512"; //$NON-NLS-1$
-
 	private static final String DEFAULT_CRYPTO_OPERATION = "sign"; //$NON-NLS-1$
 
 	/** Identificador del documento. */
@@ -43,8 +41,8 @@ public final class TriphaseSignDocumentRequest {
 	/** Atributos de configuracion trifasica de la firma. */
 	private TriphaseData partialResult;
 
-	/** Algoritmo de firma. */
-	private String algorithm;
+	/** Algoritmo de huella usado en la firma. */
+	private String digestAlgorithm;
 
 	/** Resultado de la firma del documento. */
 	private byte[] result;
@@ -70,7 +68,7 @@ public final class TriphaseSignDocumentRequest {
 	TriphaseSignDocumentRequest(final String docId,
 								final String cryptoOperation,
 								final String signatureFormat,
-			                    final String messageDigestAlgorithm,
+			                    final String digestAlgorithm,
 			                    final String params,
 			                    final byte[] content,
 			                    final TriphaseData partialResult) {
@@ -80,7 +78,7 @@ public final class TriphaseSignDocumentRequest {
 		this.params = params;
 		this.content = content;
 		this.partialResult = partialResult;
-		this.algorithm = messageDigestAlgorithm != null ? messageDigestAlgorithm : DEFAULT_ALGORITHM;
+		this.digestAlgorithm = digestAlgorithm;
 	}
 
 	/** Recupera el identificador del documento.
@@ -113,16 +111,16 @@ public final class TriphaseSignDocumentRequest {
 
 	/** Recupera el algoritmo de huella digital de la operaci&oacute;n de firma.
 	 * @return Algoritmo de huella digital. */
-	public String getMessageDigestAlgorithm() {
-		return this.algorithm;
+	public String getDigestAlgorithm() {
+		return this.digestAlgorithm;
 	}
 
 	/**
 	 * Establece el algoritmo de huella digital de la operaci&oacute;n de firma.
 	 * @param Algoritmo de huella digital.
 	 */
-	public void setMessageDigestAlgorithm(final String digestAlgoritm) {
-		this.algorithm = digestAlgoritm;
+	public void setDigestAlgorithm(final String digestAlgorithm) {
+		this.digestAlgorithm = digestAlgorithm;
 	}
 
 	/** Recupera las propiedades de configuraci&oacute;n para la firma.
