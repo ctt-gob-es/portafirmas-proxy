@@ -799,7 +799,7 @@ public final class ProxyService extends HttpServlet {
 		final ValidateLoginResult result = new ValidateLoginResult();
 		if (session == null) {
 			LOGGER.warn("No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
-			result.setError(OperationError.LOGIN_CERT_EXPIRED_SESSION, "No se ha realizado previamente el inicio de sesion"); //$NON-NLS-1$
+			result.setError(OperationError.LOGIN_CERT_EXPIRED_SESSION, "No se ha realizado previamente el inicio de sesi\u00F3n"); //$NON-NLS-1$
 			return result;
 		}
 
@@ -847,11 +847,11 @@ public final class ProxyService extends HttpServlet {
 	 * producido y registra un error soportado asociado. En caso de no reconocerse el tipo
 	 * de error, se usar&aacute; "COD_001" (Error interno). Los errores esperados son:
 	 * <ul>
-	 *  <li>COD_001: Error en la validaci�n del certificado debido a problemas de comunicaci�n con los servicios de Afirma.</li>
-	 *  <li>COD_002: Cualquier otro error en la validaci�n del certificado.</li>
+	 *  <li>COD_001: Error en la validaci&oacute;n del certificado debido a problemas de comunicaci&oacute;n con los servicios de Afirma.</li>
+	 *  <li>COD_002: Cualquier otro error en la validaci&oacute;n del certificado.</li>
 	 *  <li>COD_003: Usuario no vigente o no dado de alta en Portafirmas.</li>
-	 *  <li>COD_021: Certificado no v�lido porque est� caducado.</li>
-	 *  <li>COD_022: Certificado no v�lido porque est� revocado.</li>
+	 *  <li>COD_021: Certificado no v&aacute;lido porque est&aacute; caducado.</li>
+	 *  <li>COD_022: Certificado no v&aacute;lido porque est&aacute; revocado.</li>
 	 * </ul>
 	 * @param pfException Excepci&oacute;n devuelta por el servicio de validaci&oacute;n de login.
 	 * @param loginResult Resultado de la operaci&oacute;n de validaci&oacute;n en el que registrar el error.
